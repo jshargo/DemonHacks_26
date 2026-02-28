@@ -1,18 +1,49 @@
-import { View, Text, ScrollView, Pressable, StyleSheet, SafeAreaView } from 'react-native';
+import { useState } from 'react';
+import { View, Text, ScrollView, Pressable, StyleSheet, SafeAreaView, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { CATEGORIES } from '@/lib/categories';
 import { usePreferencesStore } from '@/stores/preferences-store';
-import { SubcategoryChip } from '@/components/onboarding/SubcategoryChip';
+import { useAuthStore } from '@/stores/auth-store';
+import { supabase } from '@/lib/supabase';
+import { ChipGroup } from '@/components/onboarding/ChipGroup';
+
+const MAX_SUBS_PER_CATEGORY = 3;
 
 export default function SubInterestsScreen() {
   const router = useRouter();
-  const { selectedCategories, selectedSubcategories, toggleSubcategory, completeOnboarding } =
+  const [saving, setSaving] = useState(false);
+  const { selectedCategories, selectedSubcategories, setSubInterests, completeOnboarding } =
     usePreferencesStore();
+  const { session } = useAuthStore();
 
   const chosenCategories = CATEGORIES.filter((c) => selectedCategories.includes(c.id));
 
-  const handleFinish = () => {
+  const handleToggle = (categoryId: string, label: string) => {
+    const current = selectedSubcategories[categoryId] ?? [];
+    const exists = current.includes(label);
+    const next = exists
+      ? current.filter((x) => x !== label)
+      : [...current, label].slice(0, MAX_SUBS_PER_CATEGORY);
+    setSubInterests(categoryId, next);
+  };
+
+  const handleFinish = async () => {
+    setSaving(true);
+    const userId = session?.user.id;
+    if (userId) {
+      // Write preferences to Supabase (upsert handles new and returning users)
+      await supabase.from('user_preferences').upsert({
+        user_id: userId,
+        selected_categories: selectedCategories,
+        selected_subcategories: selectedSubcategories,
+        updated_at: new Date().toISOString(),
+      });
+      // Mark onboarding done on the user profile
+      await supabase.from('users').update({ onboarding_completed: true }).eq('id', userId);
+    }
+    // Always update local state so AuthGate can redirect even if Supabase is slow
     completeOnboarding();
+    setSaving(false);
   };
 
   return (
@@ -24,7 +55,7 @@ export default function SubInterestsScreen() {
             <Text style={styles.backText}>← Back</Text>
           </Pressable>
           <Text style={styles.heading}>Tell us more</Text>
-          <Text style={styles.subheading}>Fine-tune your picks — all optional</Text>
+          <Text style={styles.subheading}>Pick up to {MAX_SUBS_PER_CATEGORY} per interest — all optional</Text>
         </View>
 
         {/* Subcategory Sections */}
@@ -33,23 +64,28 @@ export default function SubInterestsScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {chosenCategories.map((category) => (
-            <View key={category.id} style={styles.section}>
-              <Text style={styles.sectionTitle}>
-                {category.emoji}{'  '}{category.label}
-              </Text>
-              <View style={styles.chipsRow}>
-                {category.subcategories.map((sub) => (
-                  <SubcategoryChip
-                    key={sub}
-                    label={sub}
-                    selected={(selectedSubcategories[category.id] ?? []).includes(sub)}
-                    onPress={() => toggleSubcategory(category.id, sub)}
-                  />
-                ))}
+          {chosenCategories.map((category) => {
+            const selectedSubs = selectedSubcategories[category.id] ?? [];
+            const atSubLimit = selectedSubs.length >= MAX_SUBS_PER_CATEGORY;
+
+            return (
+              <View key={category.id} style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>
+                    {category.emoji}{'  '}{category.label}
+                  </Text>
+                  <Text style={[styles.subCounter, atSubLimit && styles.subCounterAtLimit]}>
+                    {selectedSubs.length}/{MAX_SUBS_PER_CATEGORY}
+                  </Text>
+                </View>
+                <ChipGroup
+                  options={category.subcategories}
+                  selected={selectedSubs}
+                  onToggle={(label) => handleToggle(category.id, label)}
+                />
               </View>
-            </View>
-          ))}
+            );
+          })}
 
           {/* Bottom padding so content clears the footer */}
           <View style={{ height: 100 }} />
@@ -57,8 +93,8 @@ export default function SubInterestsScreen() {
 
         {/* Finish Button */}
         <View style={styles.footer}>
-          <Pressable onPress={handleFinish} style={styles.finishButton}>
-            <Text style={styles.finishText}>Finish</Text>
+          <Pressable onPress={handleFinish} disabled={saving} style={styles.finishButton}>
+            <Text style={styles.finishText}>{saving ? 'Saving...' : 'Finish'}</Text>
           </Pressable>
         </View>
       </View>
@@ -108,16 +144,25 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 28,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: '#222222',
-    marginBottom: 12,
   },
-  chipsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginHorizontal: -4,
+  subCounter: {
+    fontSize: 12,
+    fontWeight: '400',
+    color: '#AAAAAA',
+  },
+  subCounterAtLimit: {
+    color: '#222222',
+    fontWeight: '600',
   },
   footer: {
     position: 'absolute',

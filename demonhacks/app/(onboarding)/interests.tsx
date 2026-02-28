@@ -2,11 +2,14 @@ import { View, Text, FlatList, Pressable, StyleSheet, SafeAreaView } from 'react
 import { useRouter } from 'expo-router';
 import { CATEGORIES, MAX_CATEGORIES } from '@/lib/categories';
 import { usePreferencesStore } from '@/stores/preferences-store';
+import { useAuthStore } from '@/stores/auth-store';
+import { supabase } from '@/lib/supabase';
 import { CategoryCard } from '@/components/onboarding/CategoryCard';
 
 export default function InterestsScreen() {
   const router = useRouter();
   const { selectedCategories, toggleCategory, skipOnboarding } = usePreferencesStore();
+  const { session } = useAuthStore();
 
   const atLimit = selectedCategories.length >= MAX_CATEGORIES;
   const hasSelection = selectedCategories.length > 0;
@@ -15,7 +18,11 @@ export default function InterestsScreen() {
     router.push('/(onboarding)/sub-interests');
   };
 
-  const handleSkip = () => {
+  const handleSkip = async () => {
+    const userId = session?.user.id;
+    if (userId) {
+      await supabase.from('users').update({ onboarding_completed: true }).eq('id', userId);
+    }
     skipOnboarding();
   };
 
@@ -79,6 +86,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 16,
+    maxWidth: 900,
+    width: '100%',
+    alignSelf: 'center',
   },
   header: {
     paddingTop: 32,

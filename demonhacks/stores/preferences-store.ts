@@ -12,6 +12,8 @@ interface PreferencesState {
 
   toggleCategory: (id: string) => void;
   toggleSubcategory: (categoryId: string, sub: string) => void;
+  /** Replace the full subcategory array for a category (used with a cap) */
+  setSubInterests: (categoryId: string, subs: string[]) => void;
   completeOnboarding: () => void;
   skipOnboarding: () => void;
   resetPreferences: () => void;
@@ -40,6 +42,11 @@ export const usePreferencesStore = create<PreferencesState>()(
           ? existing.filter((s) => s !== sub)
           : [...existing, sub];
         set({ selectedSubcategories: { ...current, [categoryId]: updated } });
+      },
+
+      setSubInterests: (categoryId, subs) => {
+        const current = get().selectedSubcategories;
+        set({ selectedSubcategories: { ...current, [categoryId]: subs } });
       },
 
       completeOnboarding: () => set({ onboardingComplete: true }),

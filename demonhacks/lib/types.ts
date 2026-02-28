@@ -81,6 +81,7 @@ export interface UserProfile {
   avatar_url: string | null;
   bio: string | null;
   location: string | null; // PostgreSQL point or null
+  onboarding_completed: boolean;
   created_at: string;
 }
 
