@@ -1,29 +1,27 @@
-// Saved spot card
+// Collection card for list views
 // Owner: Person 4 (Collections + Saves)
 
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { ENTITY_TYPES } from '@/lib/constants';
-import type { SavedSpot } from '@/lib/types';
+import type { Collection } from '@/lib/types';
 
 interface CollectionCardProps {
-  savedSpot: SavedSpot;
-  onPress: (savedSpot: SavedSpot) => void;
+  collection: Collection;
+  onPress: (collection: Collection) => void;
 }
 
-export default function CollectionCard({ savedSpot, onPress }: CollectionCardProps) {
+export default function CollectionCard({ collection, onPress }: CollectionCardProps) {
   return (
-    <Pressable style={styles.card} onPress={() => onPress(savedSpot)}>
-      <View style={[styles.badge, { backgroundColor: ENTITY_TYPES[savedSpot.entity_type]?.color }]}>
-        <Text style={styles.badgeText}>{savedSpot.entity_type}</Text>
-      </View>
-      <Text style={styles.id}>{savedSpot.entity_id}</Text>
+    <Pressable style={styles.card} onPress={() => onPress(collection)}>
+      <Text style={styles.name}>{collection.name}</Text>
+      <Text style={styles.date}>
+        Created {new Date(collection.created_at).toLocaleDateString()}
+      </Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { flexDirection: 'row', alignItems: 'center', padding: 12, borderBottomWidth: 1, borderBottomColor: '#eee' },
-  badge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4, marginRight: 10 },
-  badgeText: { color: '#fff', fontSize: 11, fontWeight: '600', textTransform: 'capitalize' },
-  id: { fontSize: 13, color: '#666', flex: 1 },
+  card: { padding: 12, borderBottomWidth: 1, borderBottomColor: '#eee' },
+  name: { fontSize: 16, fontWeight: '600' },
+  date: { fontSize: 12, color: '#999', marginTop: 2 },
 });

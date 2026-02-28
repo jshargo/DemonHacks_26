@@ -16,7 +16,7 @@ interface AuthState {
   signUp: (email: string, password: string, username: string, displayName?: string) => Promise<void>;
   signOut: () => Promise<void>;
 
-  /** Fetch the user's profile from the users table */
+  /** Fetch the user's profile from the profiles table */
   fetchProfile: () => Promise<void>;
 }
 
@@ -33,7 +33,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (session) get().fetchProfile();
     });
 
-    // Listen for auth state changes (SIGNED_IN, SIGNED_OUT, TOKEN_REFRESHED, etc.)
+    // Listen for auth state changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
@@ -73,9 +73,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return;
     }
 
-    // Create a row in the public.users table for this auth user
+    // Create a row in public.profiles for this auth user
+    // The DB trigger will auto-create a default "Favorites" collection
     if (user) {
-      const { error: profileError } = await supabase.from('users').insert({
+      const { error: profileError } = await supabase.from('profiles').insert({
         id: user.id,
         username: username,
         display_name: displayName ?? username,
@@ -105,7 +106,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (!userId) return;
 
     const { data } = await supabase
-      .from('users')
+      .from('profiles')
       .select('*')
       .eq('id', userId)
       .single();

@@ -1,34 +1,37 @@
-// Saved spots screen — shows user's bookmarked restaurants, events, activities
+// Collections screen — shows user's named collections with saved places & events
 // Owner: Person 4 (Collections + Saves)
 
 import { View, Text, FlatList, Pressable, StyleSheet } from 'react-native';
-import { useSavedSpots } from '@/hooks/useSavedSpots';
-import { ENTITY_TYPES } from '@/lib/constants';
+import { useCollections } from '@/hooks/useCollections';
 
-export default function SavedScreen() {
-  const { savedSpots, loading, unsaveSpot } = useSavedSpots();
+export default function CollectionsScreen() {
+  const { collections, loading, deleteCollection } = useCollections();
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Saved Spots</Text>
+      <Text style={styles.title}>Collections</Text>
       {loading && <Text style={styles.empty}>Loading...</Text>}
-      {!loading && savedSpots.length === 0 && (
+      {!loading && collections.length === 0 && (
         <Text style={styles.empty}>
-          Save spots while exploring the map to see them here.
+          Save places and events to collections while exploring the map.
         </Text>
       )}
       <FlatList
-        data={savedSpots}
+        data={collections}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.card}>
-            <View style={[styles.badge, { backgroundColor: ENTITY_TYPES[item.entity_type]?.color ?? '#333' }]}>
-              <Text style={styles.badgeText}>{item.entity_type}</Text>
+            <View style={styles.cardContent}>
+              <Text style={styles.name}>{item.name}</Text>
+              <Text style={styles.date}>
+                Created {new Date(item.created_at).toLocaleDateString()}
+              </Text>
             </View>
-            <Text style={styles.entityId}>{item.entity_id}</Text>
-            <Pressable onPress={() => unsaveSpot(item.id)}>
-              <Text style={styles.remove}>Remove</Text>
-            </Pressable>
+            {item.name !== 'Favorites' && (
+              <Pressable onPress={() => deleteCollection(item.id)}>
+                <Text style={styles.remove}>Delete</Text>
+              </Pressable>
+            )}
           </View>
         )}
       />
@@ -47,13 +50,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
-  badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-    marginRight: 10,
-  },
-  badgeText: { color: '#fff', fontSize: 11, fontWeight: '600', textTransform: 'capitalize' },
-  entityId: { flex: 1, fontSize: 13, color: '#666' },
+  cardContent: { flex: 1 },
+  name: { fontSize: 16, fontWeight: '600' },
+  date: { fontSize: 12, color: '#999', marginTop: 2 },
   remove: { color: '#e74c3c', fontSize: 13, fontWeight: '500' },
 });

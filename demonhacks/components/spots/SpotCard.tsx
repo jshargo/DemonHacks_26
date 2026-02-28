@@ -17,7 +17,7 @@ export default function SpotCard({ pin, onPress }: SpotCardProps) {
       <Text style={[styles.type, { color: ENTITY_TYPES[pin.entityType]?.color }]}>
         {ENTITY_TYPES[pin.entityType]?.label}
       </Text>
-      {pin.type && <Text style={styles.subtype}>{pin.type}</Text>}
+      {pin.subcategory && <Text style={styles.subtype}>{pin.subcategory}</Text>}
     </Pressable>
   );
 }

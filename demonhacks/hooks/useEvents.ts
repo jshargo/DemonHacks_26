@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { Event } from '@/lib/types';
 
-/** Fetch events, optionally filtered by upcoming */
+/** Fetch events, optionally filtered to upcoming only */
 export function useEvents(options?: { upcomingOnly?: boolean }) {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -13,10 +13,10 @@ export function useEvents(options?: { upcomingOnly?: boolean }) {
 
     async function fetch() {
       setLoading(true);
-      let query = supabase.from('events').select('*').order('time_start');
+      let query = supabase.from('events').select('*').order('starts_at');
 
       if (options?.upcomingOnly) {
-        query = query.gte('time_start', new Date().toISOString());
+        query = query.gte('starts_at', new Date().toISOString());
       }
 
       const { data, error: fetchError } = await query;

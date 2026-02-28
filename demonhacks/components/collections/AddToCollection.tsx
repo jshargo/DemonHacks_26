@@ -1,34 +1,40 @@
-// Save/unsave a spot — simplified for saved_spots schema
+// Collection picker modal — lets user save a place/event to a named collection
 // Owner: Person 4 (Collections + Saves)
 
-import { View, Text, StyleSheet, Pressable } from 'react-native';
-import type { EntityType } from '@/lib/types';
+import { View, Text, StyleSheet, Pressable, FlatList } from 'react-native';
+import type { EntityType, Collection } from '@/lib/types';
 
 interface AddToCollectionProps {
   visible: boolean;
   entityType: EntityType;
   entityId: string;
-  isSaved: boolean;
-  onSave: () => void;
-  onUnsave: () => void;
+  collections: Collection[];
+  onSelect: (collectionId: string) => void;
   onClose: () => void;
 }
 
 export default function AddToCollection({
   visible,
-  entityType,
-  isSaved,
-  onSave,
-  onUnsave,
+  collections,
+  onSelect,
   onClose,
 }: AddToCollectionProps) {
   if (!visible) return null;
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{isSaved ? 'Remove from Saved' : 'Save this spot'}</Text>
-      <Pressable style={styles.button} onPress={isSaved ? onUnsave : onSave}>
-        <Text style={styles.buttonText}>{isSaved ? 'Unsave' : 'Save'}</Text>
+      <Text style={styles.title}>Save to Collection</Text>
+      <FlatList
+        data={collections}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <Pressable style={styles.option} onPress={() => onSelect(item.id)}>
+            <Text style={styles.optionText}>{item.name}</Text>
+          </Pressable>
+        )}
+      />
+      <Pressable style={styles.cancelButton} onPress={onClose}>
+        <Text style={styles.cancelText}>Cancel</Text>
       </Pressable>
     </View>
   );
@@ -37,6 +43,16 @@ export default function AddToCollection({
 const styles = StyleSheet.create({
   container: { padding: 16 },
   title: { fontSize: 18, fontWeight: 'bold', marginBottom: 12 },
-  button: { backgroundColor: '#333', paddingVertical: 12, borderRadius: 8, alignItems: 'center' },
-  buttonText: { color: '#fff', fontWeight: '600' },
+  option: {
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  optionText: { fontSize: 15 },
+  cancelButton: {
+    marginTop: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  cancelText: { color: '#999', fontSize: 15 },
 });

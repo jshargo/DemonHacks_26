@@ -1,21 +1,22 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { parsePoint } from '@/lib/geo';
-import type { EntityType, MapPin, Restaurant, Event, Activity } from '@/lib/types';
+import type { EntityType, MapPin, Place, Event, PlaceCategory } from '@/lib/types';
 
 interface UseMapPinsOptions {
   entityTypes?: Set<EntityType>;
+  placeCategories?: Set<PlaceCategory>;
 }
 
-/** Fetch pins from restaurants, events, and activities tables */
+/** Fetch pins from places and events tables */
 export function useMapPins(options?: UseMapPinsOptions) {
   const [pins, setPins] = useState<MapPin[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const filterKey = options?.entityTypes
-    ? Array.from(options.entityTypes).sort().join(',')
-    : '';
+  const filterKey = [
+    options?.entityTypes ? Array.from(options.entityTypes).sort().join(',') : '',
+    options?.placeCategories ? Array.from(options.placeCategories).sort().join(',') : '',
+  ].join('|');
 
   useEffect(() => {
     let cancelled = false;
@@ -29,21 +30,28 @@ export function useMapPins(options?: UseMapPinsOptions) {
       const results: MapPin[] = [];
 
       try {
-        // Fetch restaurants
-        if (showAll || activeTypes?.has('restaurant')) {
-          const { data } = await supabase.from('restaurants').select('*');
+        // Fetch places
+        if (showAll || activeTypes?.has('place')) {
+          let query = supabase.from('places').select('*');
+
+          // Apply place category filter if specified
+          if (options?.placeCategories && options.placeCategories.size > 0) {
+            query = query.in('category', Array.from(options.placeCategories));
+          }
+
+          const { data } = await query;
           if (data) {
-            for (const r of data as Restaurant[]) {
-              const { lat, lng } = parsePoint(r.coordinates);
+            for (const p of data as Place[]) {
               results.push({
-                id: r.id,
-                entityType: 'restaurant',
-                name: r.name,
-                lat,
-                lng,
-                type: r.cuisine ?? r.type,
-                description: r.discount_description,
-                imageUrl: r.image_urls?.[0] ?? null,
+                id: p.id,
+                entityType: 'place',
+                name: p.name,
+                lat: p.lat,
+                lng: p.lng,
+                category: p.category,
+                subcategory: p.subcategory,
+                description: p.description,
+                imageUrl: p.image_url,
               });
             }
           }
@@ -54,36 +62,16 @@ export function useMapPins(options?: UseMapPinsOptions) {
           const { data } = await supabase.from('events').select('*');
           if (data) {
             for (const e of data as Event[]) {
-              const { lat, lng } = parsePoint(e.coordinates);
               results.push({
                 id: e.id,
                 entityType: 'event',
                 name: e.name,
-                lat,
-                lng,
-                type: e.type,
+                lat: e.lat,
+                lng: e.lng,
+                category: null,
+                subcategory: null,
                 description: e.description,
                 imageUrl: e.image_url,
-              });
-            }
-          }
-        }
-
-        // Fetch activities
-        if (showAll || activeTypes?.has('activity')) {
-          const { data } = await supabase.from('activities').select('*');
-          if (data) {
-            for (const a of data as Activity[]) {
-              const { lat, lng } = parsePoint(a.coordinates);
-              results.push({
-                id: a.id,
-                entityType: 'activity',
-                name: a.name,
-                lat,
-                lng,
-                type: a.type,
-                description: a.description,
-                imageUrl: a.image_urls?.[0] ?? null,
               });
             }
           }

@@ -33,8 +33,7 @@ export default function EventsScreen() {
           <Pressable style={styles.card}>
             <Text style={styles.name}>{item.name}</Text>
             {item.venue_name && <Text style={styles.venue}>{item.venue_name}</Text>}
-            <Text style={styles.time}>{formatDate(item.time_start)}</Text>
-            {item.type && <Text style={styles.type}>{item.type}</Text>}
+            <Text style={styles.time}>{formatDate(item.starts_at)}</Text>
             {item.description && (
               <Text style={styles.desc} numberOfLines={2}>{item.description}</Text>
             )}
