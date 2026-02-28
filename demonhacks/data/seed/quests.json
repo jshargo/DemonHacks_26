@@ -1,0 +1,41 @@
+[
+  {
+    "name": "Deep Dish Discovery Tour",
+    "description": "Hit Chicago's most iconic food spots in one epic day. From deep-dish pizza to Chicago-style hot dogs, this quest takes you through the flavors that define the city.",
+    "difficulty": "easy",
+    "estimated_time": "3 hours",
+    "stops": [
+      { "spot_name": "Lou Malnati's Pizzeria", "stop_order": 1, "hint": "Head to River North for the original butter crust experience." },
+      { "spot_name": "Portillo's", "stop_order": 2, "hint": "Just a short walk away — grab an Italian beef combo." },
+      { "spot_name": "Garrett Popcorn", "stop_order": 3, "hint": "Walk south on Michigan Ave. Follow your nose to the Chicago Mix." },
+      { "spot_name": "Revival Food Hall", "stop_order": 4, "hint": "Underground food paradise on Clark St. Perfect for dessert." }
+    ]
+  },
+  {
+    "name": "Chicago Street Art Walk",
+    "description": "Explore Chicago's vibrant street art scene from Pilsen's murals to Wicker Park's creative energy. Bring your camera!",
+    "difficulty": "medium",
+    "estimated_time": "4 hours",
+    "stops": [
+      { "spot_name": "Pilsen Murals", "stop_order": 1, "hint": "Start at 18th & Ashland and walk east along 18th Street." },
+      { "spot_name": "Thalia Hall", "stop_order": 2, "hint": "Beautiful historic building right in the heart of Pilsen." },
+      { "spot_name": "Wicker Park Vintage Shops", "stop_order": 3, "hint": "Take the Blue Line north to Damen. Browse the shops along Milwaukee Ave." },
+      { "spot_name": "Big Star", "stop_order": 4, "hint": "Reward yourself with tacos at this Wicker Park institution." },
+      { "spot_name": "The Violet Hour", "stop_order": 5, "hint": "End the night at this hidden cocktail bar — look for the mural on Damen Ave." }
+    ]
+  },
+  {
+    "name": "Lakefront Adventure",
+    "description": "A full day along Chicago's stunning Lake Michigan shoreline. Parks, beaches, wildlife, and the best skyline views in the city.",
+    "difficulty": "medium",
+    "estimated_time": "5 hours",
+    "stops": [
+      { "spot_name": "Millennium Park", "stop_order": 1, "hint": "Start at The Bean for the ultimate Chicago photo op." },
+      { "spot_name": "Chicago Riverwalk", "stop_order": 2, "hint": "Walk north to the river. Grab a coffee and stroll along the water." },
+      { "spot_name": "Navy Pier", "stop_order": 3, "hint": "Continue east to the pier. Ride the Ferris wheel for lakefront views." },
+      { "spot_name": "Lakefront Trail", "stop_order": 4, "hint": "Head north on the trail. Rent a bike for the best experience." },
+      { "spot_name": "Montrose Beach", "stop_order": 5, "hint": "Keep going north to Montrose. Relax on the beach and enjoy the skyline." },
+      { "spot_name": "Lincoln Park Zoo", "stop_order": 6, "hint": "Cut west into Lincoln Park. The zoo is free and open year-round!" }
+    ]
+  }
+]
