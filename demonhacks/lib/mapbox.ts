@@ -8,5 +8,6 @@ if (!MAPBOX_ACCESS_TOKEN) {
   );
 }
 
-/** Default Mapbox map style */
-export const MAP_STYLE = 'mapbox://styles/mapbox/streets-v12';
+/** Default Mapbox map style — Standard gives us photorealistic 3D buildings,
+ *  real-time lighting presets, and atmospheric fog out of the box. */
+export const MAP_STYLE = 'mapbox://styles/mapbox/standard';

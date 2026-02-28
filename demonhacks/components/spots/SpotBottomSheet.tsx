@@ -19,7 +19,7 @@ export default function SpotBottomSheet({ pin, onClose }: SpotBottomSheetProps) 
         <Text style={styles.badgeText}>{ENTITY_TYPES[pin.entityType]?.label}</Text>
       </View>
       <Text style={styles.name}>{pin.name}</Text>
-      {pin.type && <Text style={styles.type}>{pin.type}</Text>}
+      {pin.subcategory && <Text style={styles.type}>{pin.subcategory}</Text>}
       {pin.description && <Text style={styles.desc}>{pin.description}</Text>}
     </View>
   );
