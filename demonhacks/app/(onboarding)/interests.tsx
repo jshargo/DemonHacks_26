@@ -21,7 +21,7 @@ export default function InterestsScreen() {
   const handleSkip = async () => {
     const userId = session?.user.id;
     if (userId) {
-      await supabase.from('users').update({ onboarding_completed: true }).eq('id', userId);
+      await supabase.from('profiles').update({ onboarding_completed: true }).eq('id', userId);
     }
     skipOnboarding();
   };

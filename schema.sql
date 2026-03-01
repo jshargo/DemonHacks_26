@@ -24,12 +24,13 @@ create table public.profiles (
   updated_at           timestamptz not null default now()
 );
 
--- ─── User Preferences ───────────────────────────────────────────────────────
+-- ─── User Onboarding Preferences ────────────────────────────────────────────
 -- Stores onboarding interest selections. One row per user, upserted per step.
--- Step 1 (interests screen)    → upsert selected_categories
+-- Step 1 (interests screen)     → upsert selected_categories
 -- Step 2 (sub-interests screen) → upsert selected_subcategories, mark profiles.onboarding_completed = true
+-- Note: kept separate from public.user_preferences (row-per-pref model owned by another feature)
 
-create table public.user_preferences (
+create table public.user_onboarding_preferences (
   user_id                uuid primary key references public.profiles(id) on delete cascade,
   -- Array of category IDs selected on step 1, e.g. '{live-music,sports,food-drink}'
   selected_categories    text[]  not null default '{}',
@@ -194,14 +195,14 @@ create index idx_event_attendees_user on public.event_attendees (user_id);
 -- Preference-based recommendations: GIN index lets the feed query
 -- "give me places/events whose category matches ANY of this user's selected_categories"
 -- without a full table scan on user_preferences
-create index idx_user_preferences_categories on public.user_preferences using gin (selected_categories);
+create index idx_user_onboarding_prefs_categories on public.user_onboarding_preferences using gin (selected_categories);
 
 -- =============================================================================
 -- Row-Level Security (RLS)
 -- =============================================================================
 
 alter table public.profiles enable row level security;
-alter table public.user_preferences enable row level security;
+alter table public.user_onboarding_preferences enable row level security;
 alter table public.places enable row level security;
 alter table public.events enable row level security;
 alter table public.event_attendees enable row level security;
@@ -220,12 +221,12 @@ create policy "Users can insert their own profile"
   on public.profiles for insert with check (auth.uid() = id);
 
 -- User preferences: strictly private — only the owning user can read or write
-create policy "Users can read their own preferences"
-  on public.user_preferences for select using (auth.uid() = user_id);
-create policy "Users can insert their own preferences"
-  on public.user_preferences for insert with check (auth.uid() = user_id);
-create policy "Users can update their own preferences"
-  on public.user_preferences for update using (auth.uid() = user_id);
+create policy "Users can read their own onboarding preferences"
+  on public.user_onboarding_preferences for select using (auth.uid() = user_id);
+create policy "Users can insert their own onboarding preferences"
+  on public.user_onboarding_preferences for insert with check (auth.uid() = user_id);
+create policy "Users can update their own onboarding preferences"
+  on public.user_onboarding_preferences for update using (auth.uid() = user_id);
 
 -- Places: public read, admin-only write (via service role / dashboard)
 create policy "Places are publicly readable"
@@ -297,7 +298,7 @@ begin
   values (new.id, 'Favorites');
 
   -- Seed an empty preferences row so upserts never fail on missing PK
-  insert into public.user_preferences (user_id)
+  insert into public.user_onboarding_preferences (user_id)
   values (new.id);
 
   return new;

@@ -32,14 +32,14 @@ export default function SubInterestsScreen() {
     const userId = session?.user.id;
     if (userId) {
       // Write preferences to Supabase (upsert handles new and returning users)
-      await supabase.from('user_preferences').upsert({
+      await supabase.from('user_onboarding_preferences').upsert({
         user_id: userId,
         selected_categories: selectedCategories,
         selected_subcategories: selectedSubcategories,
         updated_at: new Date().toISOString(),
       });
       // Mark onboarding done on the user profile
-      await supabase.from('users').update({ onboarding_completed: true }).eq('id', userId);
+      await supabase.from('profiles').update({ onboarding_completed: true }).eq('id', userId);
     }
     // Always update local state so AuthGate can redirect even if Supabase is slow
     completeOnboarding();
