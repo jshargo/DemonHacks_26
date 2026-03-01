@@ -1,7 +1,9 @@
 // BikeToggle — Standalone toggle button for the Chicago bike routes layer.
 // Positioned bottom-left, separate from the CTA overlay buttons.
 
-import { Pressable, Text, View, StyleSheet } from 'react-native';
+import { Pressable, View, StyleSheet } from 'react-native';
+import { Route } from 'lucide-react-native';
+import { colors, spacing, shadows } from '@/lib/theme';
 
 interface Props {
   active: boolean;
@@ -11,7 +13,7 @@ interface Props {
 export default function BikeToggle({ active, onPress }: Props) {
   return (
     <Pressable style={[styles.btn, active && styles.btnActive]} onPress={onPress}>
-      <Text style={styles.icon}>🛣️</Text>
+      <Route size={20} color={active ? colors.textInverse : colors.textPrimary} />
       {active && <View style={styles.accent} />}
     </Pressable>
   );
@@ -21,22 +23,19 @@ const styles = StyleSheet.create({
   btn: {
     position: 'absolute',
     bottom: 100,
-    left: 16,
+    left: spacing.lg,
     zIndex: 10,
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.25)',
+    ...shadows.md,
     overflow: 'hidden',
   },
   btnActive: {
-    backgroundColor: '#1a1a2e',
-  },
-  icon: {
-    fontSize: 20,
+    backgroundColor: colors.primary,
   },
   accent: {
     position: 'absolute',
@@ -45,6 +44,6 @@ const styles = StyleSheet.create({
     right: 8,
     height: 3,
     borderRadius: 2,
-    backgroundColor: '#2ecc71',
+    backgroundColor: colors.success,
   },
 });

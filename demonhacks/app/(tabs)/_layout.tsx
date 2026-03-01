@@ -1,84 +1,53 @@
 import React from 'react';
-import { SymbolView } from 'expo-symbols';
 import { Tabs } from 'expo-router';
+import { Compass, Flag, Users, User } from 'lucide-react-native';
 
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
-import { useClientOnlyValue } from '@/components/useClientOnlyValue';
+import { colors, fonts } from '@/lib/theme';
+import { CustomTabBar } from '@/components/ui/CustomTabBar';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
     <Tabs
+      tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme].tint,
-        headerShown: useClientOnlyValue(false, true),
-      }}>
+        headerShown: false,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textTertiary,
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Map',
+          title: 'Explore',
           headerShown: false,
-          tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{ ios: 'map', android: 'map', web: 'map' }}
-              tintColor={color}
-              size={28}
-            />
-          ),
+          tabBarIcon: ({ color }) => <Compass size={22} color={color} />,
         }}
       />
       <Tabs.Screen
         name="quests"
         options={{
           title: 'Quests',
-          tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{ ios: 'flag', android: 'flag', web: 'flag' }}
-              tintColor={color}
-              size={28}
-            />
-          ),
+          tabBarIcon: ({ color }) => <Flag size={22} color={color} />,
         }}
       />
       <Tabs.Screen
         name="collections"
         options={{
-          title: 'Saved',
-          tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{ ios: 'heart', android: 'favorite', web: 'favorite' }}
-              tintColor={color}
-              size={28}
-            />
-          ),
+          href: null, // Hide from tab bar — accessible via Profile navigation
         }}
       />
       <Tabs.Screen
         name="social"
         options={{
           title: 'Social',
-          tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{ ios: 'person.2', android: 'group', web: 'group' }}
-              tintColor={color}
-              size={28}
-            />
-          ),
+          tabBarIcon: ({ color }) => <Users size={22} color={color} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',
-          tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{ ios: 'person', android: 'person', web: 'person' }}
-              tintColor={color}
-              size={28}
-            />
-          ),
+          tabBarIcon: ({ color }) => <User size={22} color={color} />,
         }}
       />
     </Tabs>

@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#1a1a2e',
+    color: '#1A1A1A',
     marginBottom: 8,
   },
   row: {

@@ -22,6 +22,8 @@ import { useCTAStore } from '@/stores/cta-store';
 import { useAutoRotate } from '@/hooks/useAutoRotate';
 import { useCTATrainIcons } from '@/hooks/useCTATrainIcons';
 import { useCTATrains } from '@/hooks/useCTATrains';
+import { colors, shadows, spacing, radii, fonts } from '@/lib/theme';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import type { MapPin as MapPinType, PinLabel, MapBounds, SearchResult } from '@/lib/types';
 import type { CTATrain } from '@/lib/cta';
 
@@ -314,7 +316,7 @@ export default function MapViewComponent({
 
       {loading && (
         <View style={styles.loadingOverlay}>
-          <Text style={styles.loadingText}>Loading pins...</Text>
+          <LoadingSpinner size={20} color={colors.textInverse} />
         </View>
       )}
 
@@ -374,18 +376,23 @@ export default function MapViewComponent({
         )}
 
         {/* Map pins — animated circles or Airbnb-style labels */}
-        {pins.map((pin, index) => (
+        {pins.map((pin, index) => {
+          const isSelected = selectedPinId === pin.id;
+          const isHighlighted = highlightedPinId === pin.id;
+          return (
           <Marker
             key={`${pin.entityType}-${pin.id}`}
             latitude={pin.lat}
             longitude={pin.lng}
             anchor="center"
+            style={{ zIndex: isSelected ? 3 : isHighlighted ? 2 : 0 }}
           >
             {pinStyle === 'label' && pinLabels?.has(pin.id) ? (
               <LabelPin
-                label={pinLabels.get(pin.id)!}
-                isSelected={selectedPinId === pin.id}
-                isHighlighted={highlightedPinId === pin.id}
+                label={isSelected ? { text: pin.name, type: 'rating' } : pinLabels.get(pin.id)!}
+                isSelected={isSelected}
+                isHighlighted={isHighlighted}
+                isDimmed={!!selectedPinId && !isSelected}
                 onClick={() => { pinClickedRef.current = true; onPinPress?.(pin); }}
                 onMouseEnter={() => onPinHover?.(pin.id)}
                 onMouseLeave={() => onPinHoverEnd?.()}
@@ -398,7 +405,8 @@ export default function MapViewComponent({
               />
             )}
           </Marker>
-        ))}
+          );
+        })}
 
         {/* Search result pin */}
         {searchResult && (
@@ -427,46 +435,43 @@ const styles = StyleSheet.create({
   nativeMsg: {
     textAlign: 'center',
     marginTop: 40,
-    color: '#999',
+    color: colors.textTertiary,
   },
   toggleContainer: {
     position: 'absolute',
     bottom: 40,
-    right: 16,
+    right: spacing.lg,
     zIndex: 10,
   },
   toggleBtn: {
     width: 48,
     height: 48,
-    borderRadius: 24,
-    backgroundColor: '#fff',
+    borderRadius: radii.full,
+    backgroundColor: colors.white,
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.25)',
+    ...shadows.sm,
   },
   toggleBtnActive: {
-    backgroundColor: '#1a1a2e',
+    backgroundColor: colors.primary,
   },
   toggleIcon: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#1a1a2e',
+    fontFamily: fonts.bold,
+    color: colors.primary,
   },
   toggleIconActive: {
-    color: '#fff',
+    color: colors.textInverse,
   },
   loadingOverlay: {
     position: 'absolute',
     top: 100,
     alignSelf: 'center',
     zIndex: 10,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  loadingText: {
-    color: '#fff',
-    fontSize: 13,
+    backgroundColor: colors.overlay,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: radii.full,
   },
 });

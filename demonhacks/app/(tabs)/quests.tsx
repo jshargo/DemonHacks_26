@@ -1,11 +1,12 @@
 import { View, Text, SectionList, StyleSheet, Pressable, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuests, type LocalQuest, type DifficultySection } from '@/hooks/useQuests';
+import { colors, fonts, typography, spacing, radii, shadows } from '@/lib/theme';
 
 const DIFFICULTY_COLORS: Record<string, string> = {
-  easy: '#00C49A',
-  medium: '#F77F00',
-  hard: '#E63946',
+  easy: colors.success,
+  medium: colors.warning,
+  hard: colors.error,
 };
 
 function DifficultyHeader({ section }: { section: DifficultySection }) {
@@ -14,17 +15,22 @@ function DifficultyHeader({ section }: { section: DifficultySection }) {
     <View style={styles.sectionHeader}>
       <View style={[styles.sectionAccent, { backgroundColor: color }]} />
       <Text style={styles.sectionTitle}>{section.label}</Text>
-      <Text style={styles.sectionCount}>{section.data.length} quest{section.data.length !== 1 ? 's' : ''}</Text>
+      <Text style={styles.sectionCount}>
+        {section.data.length} quest{section.data.length !== 1 ? 's' : ''}
+      </Text>
     </View>
   );
 }
 
 function QuestCard({ quest, onPress }: { quest: LocalQuest; onPress: () => void }) {
-  const diffColor = DIFFICULTY_COLORS[quest.difficulty] ?? '#888';
+  const diffColor = DIFFICULTY_COLORS[quest.difficulty] ?? colors.textTertiary;
   const totalXp = quest.xp_reward + quest.stops.reduce((sum, s) => sum + (s.xp_reward || 0), 0);
 
   return (
-    <Pressable style={styles.card} onPress={onPress}>
+    <Pressable
+      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+      onPress={onPress}
+    >
       <View style={[styles.cardStripe, { backgroundColor: diffColor }]} />
 
       <View style={styles.cardBody}>
@@ -80,115 +86,112 @@ export default function QuestsScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#fff' },
+  safe: { flex: 1, backgroundColor: colors.background },
   header: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E5E5',
+    borderBottomColor: colors.borderLight,
   },
-  headerTitle: { fontSize: 24, fontWeight: '800', color: '#111' },
-  list: { paddingBottom: 24 },
+  headerTitle: {
+    ...typography.displaySm,
+    color: colors.textPrimary,
+  },
+  list: { paddingBottom: spacing['2xl'] },
 
-  // Section header
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 20,
-    paddingBottom: 8,
-    backgroundColor: '#fff',
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.sm,
+    backgroundColor: colors.background,
   },
   sectionAccent: {
     width: 4,
     height: 24,
     borderRadius: 2,
-    marginRight: 10,
+    marginRight: spacing.md,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111',
+    ...typography.headingLg,
+    color: colors.textPrimary,
     flex: 1,
   },
   sectionCount: {
-    fontSize: 13,
-    color: '#999',
-    fontWeight: '500',
+    ...typography.labelMd,
+    color: colors.textTertiary,
   },
 
-  // Quest card
   card: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    marginHorizontal: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
+    backgroundColor: colors.white,
+    borderRadius: radii.lg,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
     overflow: 'hidden',
+    ...shadows.card,
+  },
+  cardPressed: {
+    opacity: 0.92,
+    transform: [{ scale: 0.985 }],
   },
   cardStripe: {
     width: 5,
   },
   cardBody: {
     flex: 1,
-    padding: 16,
+    padding: spacing.lg,
   },
   cardTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   cardName: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#111',
+    ...typography.headingMd,
+    color: colors.textPrimary,
     flex: 1,
-    marginRight: 8,
+    marginRight: spacing.sm,
   },
   xpBadge: {
-    backgroundColor: '#6C63FF',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: radii.sm,
   },
   xpBadgeText: {
-    color: '#fff',
+    color: colors.textInverse,
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: fonts.bold,
   },
   cardMeta: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
   },
   diffBadge: {
     fontSize: 11,
-    color: '#fff',
-    fontWeight: '600',
+    color: colors.textInverse,
+    fontFamily: fonts.bold,
     textTransform: 'capitalize',
-    paddingHorizontal: 8,
+    paddingHorizontal: spacing.sm,
     paddingVertical: 3,
-    borderRadius: 6,
+    borderRadius: radii.sm,
     overflow: 'hidden',
   },
   metaText: {
-    fontSize: 13,
-    color: '#888',
+    ...typography.bodySm,
+    color: colors.textTertiary,
   },
   metaDot: {
-    fontSize: 13,
-    color: '#ccc',
+    ...typography.bodySm,
+    color: colors.border,
   },
   cardDesc: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
+    ...typography.bodyMd,
+    color: colors.textSecondary,
   },
 });

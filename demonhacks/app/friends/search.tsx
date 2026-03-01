@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, FlatList,
-  StyleSheet, SafeAreaView, Image, ActivityIndicator,
+  View, Text, TextInput, FlatList,
+  StyleSheet, SafeAreaView, ActivityIndicator,
 } from 'react-native';
 
 import { useFriends } from '@/hooks/useFriends';
 import { useSocialStore } from '@/stores/social-store';
+import { Avatar } from '@/components/ui/Avatar';
+import { Button } from '@/components/ui/Button';
 import type { UserProfile } from '@/lib/types';
+import { colors, fonts, typography, spacing, radii } from '@/lib/theme';
 
 export default function FriendSearchScreen() {
   const [query, setQuery] = useState('');
@@ -53,52 +56,63 @@ export default function FriendSearchScreen() {
         <TextInput
           style={styles.input}
           placeholder="Search by username..."
+          placeholderTextColor={colors.textTertiary}
           value={query}
           onChangeText={setQuery}
           returnKeyType="search"
           onSubmitEditing={handleSearch}
           autoFocus
         />
-        <TouchableOpacity style={styles.searchBtn} onPress={handleSearch}>
-          <Text style={styles.searchBtnText}>Search</Text>
-        </TouchableOpacity>
+        <Button
+          title="Search"
+          variant="primary"
+          size="sm"
+          onPress={handleSearch}
+        />
       </View>
 
-      {searching && <ActivityIndicator style={{ marginTop: 40 }} color="#6C63FF" />}
+      {searching && <ActivityIndicator style={{ marginTop: spacing['5xl'] }} color={colors.primary} />}
 
       <FlatList
         data={results}
         keyExtractor={(u) => u.id}
         renderItem={({ item }) => {
           const state = getButtonState(item.id);
-          const initials = (item.display_name ?? item.username).slice(0, 2).toUpperCase();
+          const displayName = item.display_name ?? item.username;
           return (
             <View style={styles.row}>
-              <View style={styles.avatar}>
-                {item.avatar_url ? (
-                  <Image source={{ uri: item.avatar_url }} style={styles.avatarImg} />
-                ) : (
-                  <Text style={styles.initials}>{initials}</Text>
-                )}
+              <View style={styles.avatarWrap}>
+                <Avatar imageUrl={item.avatar_url} name={displayName} size="md" />
               </View>
               <View style={styles.info}>
-                <Text style={styles.name}>{item.display_name ?? item.username}</Text>
+                <Text style={styles.name}>{displayName}</Text>
                 <Text style={styles.username}>@{item.username}</Text>
               </View>
               {state === 'friends' && (
-                <View style={styles.friendsBadge}>
-                  <Text style={styles.friendsBadgeText}>Friends</Text>
-                </View>
+                <Button
+                  title="Friends"
+                  variant="ghost"
+                  size="sm"
+                  disabled
+                  style={{ backgroundColor: colors.success + '18' }}
+                />
               )}
               {state === 'pending' && (
-                <TouchableOpacity style={styles.cancelBtn} onPress={() => handleCancel(item.id)}>
-                  <Text style={styles.cancelBtnText}>Cancel</Text>
-                </TouchableOpacity>
+                <Button
+                  title="Cancel"
+                  variant="secondary"
+                  size="sm"
+                  onPress={() => handleCancel(item.id)}
+                  style={{ backgroundColor: colors.surface, borderColor: colors.surface }}
+                />
               )}
               {state === 'add' && (
-                <TouchableOpacity style={styles.addBtn} onPress={() => handleAdd(item.id)}>
-                  <Text style={styles.addBtnText}>+ Add</Text>
-                </TouchableOpacity>
+                <Button
+                  title="+ Add"
+                  variant="primary"
+                  size="sm"
+                  onPress={() => handleAdd(item.id)}
+                />
               )}
             </View>
           );
@@ -116,75 +130,49 @@ export default function FriendSearchScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#fff' },
+  safe: { flex: 1, backgroundColor: colors.background },
   searchRow: {
     flexDirection: 'row',
-    padding: 12,
-    gap: 8,
+    padding: spacing.md,
+    gap: spacing.sm,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E5E5',
+    borderBottomColor: colors.border,
+    alignItems: 'center',
   },
   input: {
     flex: 1,
     height: 42,
-    backgroundColor: '#F0F0F0',
-    borderRadius: 21,
-    paddingHorizontal: 16,
+    backgroundColor: colors.surface,
+    borderRadius: radii.full,
+    paddingHorizontal: spacing.lg,
+    fontFamily: fonts.regular,
     fontSize: 15,
+    color: colors.textPrimary,
   },
-  searchBtn: {
-    paddingHorizontal: 16,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: '#6C63FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  searchBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E5E5',
+    borderBottomColor: colors.border,
   },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#6C63FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-    overflow: 'hidden',
+  avatarWrap: {
+    marginRight: spacing.md,
   },
-  avatarImg: { width: 44, height: 44 },
-  initials: { color: '#fff', fontWeight: '700', fontSize: 16 },
   info: { flex: 1 },
-  name: { fontSize: 15, fontWeight: '600', color: '#111' },
-  username: { fontSize: 13, color: '#888', marginTop: 2 },
-  addBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 20,
-    backgroundColor: '#6C63FF',
+  name: {
+    ...typography.headingSm,
+    color: colors.textPrimary,
   },
-  addBtnText: { color: '#fff', fontWeight: '600', fontSize: 13 },
-  cancelBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 20,
-    backgroundColor: '#F0F0F0',
+  username: {
+    ...typography.bodySm,
+    color: colors.textSecondary,
+    marginTop: 2,
   },
-  cancelBtnText: { color: '#666', fontWeight: '600', fontSize: 13 },
-  friendsBadge: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 20,
-    backgroundColor: '#E8F5E9',
-  },
-  friendsBadgeText: { color: '#4CAF50', fontWeight: '600', fontSize: 13 },
   empty: { alignItems: 'center', paddingTop: 60 },
-  emptyText: { color: '#888', fontSize: 15 },
+  emptyText: {
+    ...typography.bodyMd,
+    color: colors.textSecondary,
+  },
 });

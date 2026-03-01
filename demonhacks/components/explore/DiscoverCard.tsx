@@ -1,7 +1,9 @@
 import { View, Text, Pressable, Image, StyleSheet } from 'react-native';
+import { Star } from 'lucide-react-native';
 import type { DiscoverItem } from '@/lib/types';
 import { PLACE_CATEGORIES, ENTITY_TYPES } from '@/lib/constants';
 import SaveButton from '@/components/collections/SaveButton';
+import { colors, fonts, typography, spacing, radii, shadows } from '@/lib/theme';
 
 interface DiscoverCardProps {
   item: DiscoverItem;
@@ -13,13 +15,11 @@ interface DiscoverCardProps {
   onToggleSave?: () => void;
 }
 
-/** Format event date for display */
 function formatEventDate(startsAt: string): string {
   const d = new Date(startsAt);
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-/** Get badge color for this item */
 function getBadgeColor(item: DiscoverItem): string {
   if (item.entityType === 'event') return ENTITY_TYPES.event.color;
   if (item.category && item.category in PLACE_CATEGORIES) {
@@ -28,7 +28,6 @@ function getBadgeColor(item: DiscoverItem): string {
   return ENTITY_TYPES.place.color;
 }
 
-/** Get badge label for this item */
 function getBadgeLabel(item: DiscoverItem): string {
   if (item.entityType === 'event') return item.subcategory ?? 'Event';
   if (item.category && item.category in PLACE_CATEGORIES) {
@@ -51,12 +50,15 @@ export default function DiscoverCard({
 
   return (
     <Pressable
-      style={[styles.card, isHighlighted && styles.cardHighlighted]}
+      style={({ pressed }) => [
+        styles.card,
+        isHighlighted && styles.cardHighlighted,
+        pressed && styles.cardPressed,
+      ]}
       onPress={onPress}
       onHoverIn={onHover}
       onHoverOut={onHoverEnd}
     >
-      {/* Image */}
       <View style={styles.imageContainer}>
         {item.imageUrl ? (
           <Image source={{ uri: item.imageUrl }} style={styles.image} resizeMode="cover" />
@@ -64,12 +66,10 @@ export default function DiscoverCard({
           <View style={styles.imagePlaceholder} />
         )}
 
-        {/* Category Badge */}
         <View style={[styles.badge, { backgroundColor: badgeColor }]}>
           <Text style={styles.badgeText}>{badgeLabel}</Text>
         </View>
 
-        {/* Save Button */}
         {onToggleSave && (
           <View style={styles.saveContainer}>
             <SaveButton isSaved={isSaved ?? false} onToggle={onToggleSave} />
@@ -77,27 +77,23 @@ export default function DiscoverCard({
         )}
       </View>
 
-      {/* Content */}
       <View style={styles.content}>
-        {/* Title + Rating */}
         <View style={styles.titleRow}>
           <Text style={styles.title} numberOfLines={1}>
             {item.name}
           </Text>
           {item.rating && (
             <View style={styles.ratingContainer}>
-              <Text style={styles.ratingStar}>★</Text>
+              <Star size={13} color={colors.textPrimary} fill={colors.textPrimary} />
               <Text style={styles.ratingText}>{item.rating.toFixed(1)}</Text>
             </View>
           )}
         </View>
 
-        {/* Subtitle — show formatted address for Mapbox items, subcategory+neighborhood otherwise */}
         <Text style={styles.subtitle} numberOfLines={1}>
           {item.placeFormatted || [item.subcategory, item.neighborhood].filter(Boolean).join(' · ')}
         </Text>
 
-        {/* Event date or price range */}
         {item.entityType === 'event' && item.startsAt && (
           <Text style={styles.meta}>{formatEventDate(item.startsAt)}</Text>
         )}
@@ -105,7 +101,6 @@ export default function DiscoverCard({
           <Text style={styles.meta}>{item.priceRange}</Text>
         )}
 
-        {/* Tags */}
         {item.tags.length > 0 && (
           <View style={styles.tagsRow}>
             {item.tags.slice(0, 3).map((tag) => (
@@ -122,51 +117,58 @@ export default function DiscoverCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: colors.white,
+    borderRadius: radii.lg,
     overflow: 'hidden',
-    marginBottom: 16,
-    borderWidth: 2,
+    marginBottom: spacing.lg,
+    borderWidth: 1.5,
     borderColor: 'transparent',
+    ...shadows.card,
   },
   cardHighlighted: {
-    borderColor: '#1a1a2e',
+    borderColor: colors.primary,
+  },
+  cardPressed: {
+    opacity: 0.92,
+    transform: [{ scale: 0.985 }],
   },
   imageContainer: {
     position: 'relative',
     aspectRatio: 3 / 2,
   },
   image: {
-    flex: 1,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
+    width: '100%' as unknown as number,
+    height: '100%' as unknown as number,
+    borderTopLeftRadius: radii.lg,
+    borderTopRightRadius: radii.lg,
   },
   imagePlaceholder: {
-    flex: 1,
-    backgroundColor: '#e8e8e8',
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
+    width: '100%' as unknown as number,
+    height: '100%' as unknown as number,
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: radii.lg,
+    borderTopRightRadius: radii.lg,
   },
   badge: {
     position: 'absolute',
-    top: 10,
-    left: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    top: spacing.sm,
+    left: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: radii.sm,
   },
   badgeText: {
-    color: '#fff',
+    color: colors.textInverse,
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: fonts.bold,
   },
   saveContainer: {
     position: 'absolute',
-    top: 6,
-    right: 6,
+    top: spacing.sm,
+    right: spacing.sm,
   },
   content: {
-    padding: 12,
+    padding: spacing.md,
   },
   titleRow: {
     flexDirection: 'row',
@@ -175,51 +177,45 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   title: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#1a1a2e',
+    ...typography.headingSm,
+    color: colors.textPrimary,
     flex: 1,
-    marginRight: 8,
+    marginRight: spacing.sm,
   },
   ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 2,
   },
-  ratingStar: {
-    fontSize: 13,
-    color: '#1a1a2e',
-  },
   ratingText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#1a1a2e',
+    ...typography.labelMd,
+    color: colors.textPrimary,
   },
   subtitle: {
-    fontSize: 13,
-    color: '#666',
-    marginBottom: 4,
+    ...typography.bodySm,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
   },
   meta: {
+    fontFamily: fonts.medium,
     fontSize: 13,
-    color: '#444',
-    fontWeight: '500',
-    marginBottom: 4,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
   },
   tagsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 4,
-    marginTop: 4,
+    gap: spacing.xs,
+    marginTop: spacing.xs,
   },
   tag: {
-    backgroundColor: '#f0f0f0',
-    paddingHorizontal: 8,
+    backgroundColor: colors.surface,
+    paddingHorizontal: spacing.sm,
     paddingVertical: 2,
-    borderRadius: 10,
+    borderRadius: radii.full,
   },
   tagText: {
-    fontSize: 11,
-    color: '#555',
+    ...typography.caption,
+    color: colors.textSecondary,
   },
 });

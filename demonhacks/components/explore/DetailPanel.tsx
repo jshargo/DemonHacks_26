@@ -1,7 +1,12 @@
-import { View, Text, Pressable, ScrollView, Image, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, Image, StyleSheet } from 'react-native';
+import { ChevronLeft, Star, Navigation, Globe } from 'lucide-react-native';
 import type { DiscoverItem } from '@/lib/types';
 import { PLACE_CATEGORIES, ENTITY_TYPES } from '@/lib/constants';
 import SaveButton from '@/components/collections/SaveButton';
+import ImageCarousel from '@/components/ui/ImageCarousel';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { colors, fonts, typography, spacing, radii } from '@/lib/theme';
 
 interface DetailPanelProps {
   item: DiscoverItem;
@@ -44,20 +49,22 @@ export default function DetailPanel({ item, onBack, isSaved, onToggleSave }: Det
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Back button */}
-      <Pressable style={styles.backBtn} onPress={onBack}>
-        <Text style={styles.backText}>← Back to results</Text>
-      </Pressable>
+      <Button
+        title="Back to results"
+        variant="ghost"
+        size="sm"
+        leftIcon={<ChevronLeft size={18} color={colors.primary} />}
+        onPress={onBack}
+        style={styles.backBtn}
+      />
 
-      {/* Image */}
       <View style={styles.imageContainer}>
-        {item.imageUrl ? (
-          <Image source={{ uri: item.imageUrl }} style={styles.image} resizeMode="cover" />
-        ) : (
-          <View style={styles.imagePlaceholder} />
-        )}
-        <View style={[styles.badge, { backgroundColor: badgeColor }]}>
-          <Text style={styles.badgeText}>{badgeLabel}</Text>
+        <ImageCarousel
+          imageUrl={item.imageUrl}
+          photoUrls={item.photoUrls ?? []}
+        />
+        <View style={styles.badgeWrap}>
+          <Badge text={badgeLabel} color={badgeColor} variant="filled" size="md" />
         </View>
         {onToggleSave && (
           <View style={styles.saveContainer}>
@@ -66,26 +73,24 @@ export default function DetailPanel({ item, onBack, isSaved, onToggleSave }: Det
         )}
       </View>
 
-      {/* Title + Rating */}
       <View style={styles.titleRow}>
         <Text style={styles.title}>{item.name}</Text>
         {item.rating && (
           <View style={styles.ratingContainer}>
-            <Text style={styles.ratingStar}>★</Text>
+            <Star size={16} color={colors.textPrimary} fill={colors.textPrimary} />
             <Text style={styles.ratingText}>{item.rating.toFixed(1)}</Text>
           </View>
         )}
       </View>
 
-      {/* Subtitle */}
       <Text style={styles.subtitle}>
         {[item.subcategory, item.neighborhood].filter(Boolean).join(' · ')}
       </Text>
 
-      {/* Price range */}
-      {item.priceRange && <Text style={styles.meta}>Price: {item.priceRange}</Text>}
+      {item.priceRange && (
+        <Text style={styles.meta}>Price: {item.priceRange}</Text>
+      )}
 
-      {/* Event details */}
       {item.entityType === 'event' && (
         <View style={styles.eventDetails}>
           {item.startsAt && (
@@ -103,10 +108,8 @@ export default function DetailPanel({ item, onBack, isSaved, onToggleSave }: Det
         </View>
       )}
 
-      {/* Description */}
       {item.description && <Text style={styles.description}>{item.description}</Text>}
 
-      {/* Tags */}
       {item.tags.length > 0 && (
         <View style={styles.tagsRow}>
           {item.tags.map((tag) => (
@@ -117,15 +120,22 @@ export default function DetailPanel({ item, onBack, isSaved, onToggleSave }: Det
         </View>
       )}
 
-      {/* Action buttons */}
       <View style={styles.actions}>
-        <Pressable style={styles.actionBtn}>
-          <Text style={styles.actionBtnText}>Get Directions</Text>
-        </Pressable>
+        <Button
+          title="Get Directions"
+          variant="primary"
+          size="lg"
+          leftIcon={<Navigation size={18} color={colors.textInverse} />}
+          style={styles.actionBtn}
+        />
         {item.websiteUrl && (
-          <Pressable style={[styles.actionBtn, styles.actionBtnSecondary]}>
-            <Text style={[styles.actionBtnText, styles.actionBtnSecondaryText]}>Website</Text>
-          </Pressable>
+          <Button
+            title="Website"
+            variant="secondary"
+            size="lg"
+            leftIcon={<Globe size={18} color={colors.primary} />}
+            style={styles.actionBtn}
+          />
         )}
       </View>
     </ScrollView>
@@ -135,142 +145,98 @@ export default function DetailPanel({ item, onBack, isSaved, onToggleSave }: Det
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
   },
   content: {
-    padding: 16,
-    paddingBottom: 40,
+    padding: spacing.lg,
+    paddingBottom: spacing['4xl'],
   },
   backBtn: {
-    marginBottom: 16,
-    padding: 4,
-  },
-  backText: {
-    fontSize: 14,
-    color: '#1a1a2e',
-    fontWeight: '600',
+    alignSelf: 'flex-start',
+    marginBottom: spacing.lg,
   },
   imageContainer: {
     position: 'relative',
     aspectRatio: 16 / 9,
-    borderRadius: 16,
+    borderRadius: radii.lg,
     overflow: 'hidden',
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
-  image: {
-    flex: 1,
-  },
-  imagePlaceholder: {
-    flex: 1,
-    backgroundColor: '#e8e8e8',
-  },
-  badge: {
+  badgeWrap: {
     position: 'absolute',
-    top: 12,
-    left: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 14,
-  },
-  badgeText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '700',
+    top: spacing.md,
+    left: spacing.md,
   },
   saveContainer: {
     position: 'absolute',
-    top: 8,
-    right: 8,
+    top: spacing.sm,
+    right: spacing.sm,
   },
   titleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: spacing.xs,
   },
   title: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#1a1a2e',
+    ...typography.displaySm,
+    color: colors.textPrimary,
     flex: 1,
-    marginRight: 8,
+    marginRight: spacing.sm,
   },
   ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
-  },
-  ratingStar: {
-    fontSize: 16,
-    color: '#1a1a2e',
+    gap: spacing.xs,
   },
   ratingText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1a1a2e',
+    ...typography.headingSm,
+    color: colors.textPrimary,
   },
   subtitle: {
-    fontSize: 15,
-    color: '#666',
-    marginBottom: 8,
+    ...typography.bodyLg,
+    color: colors.textSecondary,
+    marginBottom: spacing.sm,
   },
   meta: {
+    fontFamily: fonts.medium,
     fontSize: 14,
-    color: '#444',
-    fontWeight: '500',
-    marginBottom: 4,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
   },
   eventDetails: {
-    marginVertical: 8,
-    padding: 12,
-    backgroundColor: '#f8f8f8',
-    borderRadius: 12,
+    marginVertical: spacing.sm,
+    padding: spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: radii.md,
   },
   description: {
-    fontSize: 15,
-    color: '#333',
-    lineHeight: 22,
-    marginVertical: 12,
+    ...typography.bodyLg,
+    color: colors.textPrimary,
+    marginVertical: spacing.md,
   },
   tagsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 16,
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
   },
   tag: {
-    backgroundColor: '#f0f0f0',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    backgroundColor: colors.surface,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: radii.full,
   },
   tagText: {
-    fontSize: 12,
-    color: '#555',
+    ...typography.bodySm,
+    color: colors.textSecondary,
   },
   actions: {
     flexDirection: 'row',
-    gap: 12,
-    marginTop: 8,
+    gap: spacing.md,
+    marginTop: spacing.sm,
   },
   actionBtn: {
     flex: 1,
-    backgroundColor: '#1a1a2e',
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  actionBtnText: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  actionBtnSecondary: {
-    backgroundColor: '#fff',
-    borderWidth: 1.5,
-    borderColor: '#1a1a2e',
-  },
-  actionBtnSecondaryText: {
-    color: '#1a1a2e',
   },
 });

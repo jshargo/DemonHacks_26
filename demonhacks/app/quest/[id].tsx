@@ -1,11 +1,12 @@
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useQuestById, type LocalQuestStop } from '@/hooks/useQuests';
+import { colors, fonts, typography, spacing, radii } from '@/lib/theme';
 
 const DIFFICULTY_COLORS: Record<string, string> = {
-  easy: '#00C49A',
-  medium: '#F77F00',
-  hard: '#E63946',
+  easy: colors.success,
+  medium: colors.warning,
+  hard: colors.error,
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -30,10 +31,10 @@ function StopTimelineItem({
   return (
     <View style={styles.timelineItem}>
       <View style={styles.timelineLeft}>
-        <View style={[styles.timelineCircle, { backgroundColor: diffColor }]}>
+        <View style={[styles.timelineCircle, { backgroundColor: colors.primary }]}>
           <Text style={styles.timelineNumber}>{stop.stop_order}</Text>
         </View>
-        {!isLast && <View style={[styles.timelineLine, { backgroundColor: diffColor + '30' }]} />}
+        {!isLast && <View style={[styles.timelineLine, { backgroundColor: colors.primary + '30' }]} />}
       </View>
 
       <View style={styles.timelineCard}>
@@ -74,7 +75,7 @@ export default function QuestDetailScreen() {
     );
   }
 
-  const diffColor = DIFFICULTY_COLORS[quest.difficulty] ?? '#888';
+  const diffColor = DIFFICULTY_COLORS[quest.difficulty] ?? colors.textTertiary;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -89,7 +90,7 @@ export default function QuestDetailScreen() {
       {/* Stats row */}
       <View style={styles.statsRow}>
         <View style={styles.statItem}>
-          <Text style={[styles.statValue, { color: '#6C63FF' }]}>{totalXp}</Text>
+          <Text style={[styles.statValue, { color: colors.primary }]}>{totalXp}</Text>
           <Text style={styles.statLabel}>XP Total</Text>
         </View>
         <View style={styles.statDivider} />
@@ -126,30 +127,34 @@ export default function QuestDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  content: { paddingBottom: 40 },
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  content: {
+    paddingBottom: spacing['4xl'],
+  },
 
   // Hero
   hero: {
-    padding: 24,
-    paddingTop: 16,
+    padding: spacing['2xl'],
+    paddingTop: spacing.lg,
   },
   heroBadge: {
     alignSelf: 'flex-start',
-    fontSize: 11,
-    color: '#fff',
-    fontWeight: '700',
+    ...typography.caption,
+    fontFamily: fonts.bold,
+    color: colors.textInverse,
     letterSpacing: 1,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: spacing.xs,
+    borderRadius: radii.sm - 2,
     overflow: 'hidden',
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
   heroTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#111',
+    ...typography.displayLg,
+    color: colors.textPrimary,
     lineHeight: 34,
   },
 
@@ -157,132 +162,136 @@ const styles = StyleSheet.create({
   statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
+    paddingHorizontal: spacing['2xl'],
+    paddingVertical: spacing.lg,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E5E5',
+    borderBottomColor: colors.border,
   },
   statItem: {
     flex: 1,
     alignItems: 'center',
   },
   statValue: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111',
+    ...typography.headingMd,
+    color: colors.textPrimary,
   },
   statLabel: {
-    fontSize: 12,
-    color: '#999',
+    ...typography.bodySm,
+    fontFamily: fonts.medium,
+    color: colors.textTertiary,
     marginTop: 2,
-    fontWeight: '500',
   },
   statDivider: {
     width: 1,
     height: 28,
-    backgroundColor: '#E5E5E5',
+    backgroundColor: colors.border,
   },
 
   // Description
   description: {
-    fontSize: 15,
-    color: '#555',
+    ...typography.bodyLg,
+    fontFamily: fonts.regular,
+    color: colors.textSecondary,
     lineHeight: 22,
-    paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
   },
 
   // Stops
   stopsTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111',
-    paddingHorizontal: 16,
-    marginTop: 24,
-    marginBottom: 16,
+    ...typography.headingLg,
+    color: colors.textPrimary,
+    paddingHorizontal: spacing.lg,
+    marginTop: spacing['2xl'],
+    marginBottom: spacing.lg,
   },
 
   // Timeline
   timelineItem: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing.lg,
   },
   timelineLeft: {
     alignItems: 'center',
     width: 40,
-    marginRight: 12,
+    marginRight: spacing.md,
   },
   timelineCircle: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: radii.full,
     alignItems: 'center',
     justifyContent: 'center',
   },
   timelineNumber: {
-    color: '#fff',
-    fontWeight: '700',
+    color: colors.textInverse,
+    fontFamily: fonts.bold,
     fontSize: 14,
   },
   timelineLine: {
     width: 2,
     flex: 1,
-    marginVertical: 4,
+    marginVertical: spacing.xs,
   },
   timelineCard: {
     flex: 1,
-    backgroundColor: '#f8f8f8',
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 12,
+    backgroundColor: colors.surface,
+    borderRadius: radii.md,
+    padding: spacing.md + 2,
+    marginBottom: spacing.md,
   },
   timelineCardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: spacing.sm - 2,
   },
   stopName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#111',
+    ...typography.headingSm,
+    color: colors.textPrimary,
     flex: 1,
-    marginRight: 8,
+    marginRight: spacing.sm,
   },
   stopXpBadge: {
-    backgroundColor: '#6C63FF15',
-    paddingHorizontal: 8,
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: spacing.sm,
     paddingVertical: 3,
-    borderRadius: 8,
+    borderRadius: radii.sm,
   },
   stopXpText: {
-    color: '#6C63FF',
+    color: colors.primary,
+    fontFamily: fonts.bold,
     fontSize: 11,
-    fontWeight: '700',
   },
   stopAddress: {
-    fontSize: 12,
-    color: '#999',
-    marginBottom: 4,
+    ...typography.bodySm,
+    color: colors.textTertiary,
+    marginBottom: spacing.xs,
   },
   stopCategoryBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: '#E8E8E8',
-    paddingHorizontal: 8,
+    backgroundColor: colors.border,
+    paddingHorizontal: spacing.sm,
     paddingVertical: 2,
-    borderRadius: 6,
-    marginBottom: 6,
+    borderRadius: radii.sm - 2,
+    marginBottom: spacing.sm - 2,
   },
   stopCategoryText: {
-    fontSize: 11,
-    color: '#666',
-    fontWeight: '500',
+    ...typography.caption,
+    fontFamily: fonts.medium,
+    color: colors.textSecondary,
   },
   stopHint: {
-    fontSize: 13,
-    color: '#777',
+    ...typography.bodyMd,
+    fontFamily: fonts.regular,
+    color: colors.textSecondary,
     lineHeight: 18,
   },
 
-  empty: { fontSize: 15, color: '#999', textAlign: 'center', marginTop: 40 },
+  empty: {
+    ...typography.bodyMd,
+    color: colors.textTertiary,
+    textAlign: 'center',
+    marginTop: spacing['4xl'],
+  },
 });

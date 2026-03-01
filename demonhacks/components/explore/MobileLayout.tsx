@@ -15,6 +15,7 @@ import DetailPanel from './DetailPanel';
 import { POIDetailPanel } from './SearchBar';
 import MapViewComponent from '@/components/map/MapView';
 import { useSearchStore } from '@/stores/search-store';
+import { colors, spacing, radii, zIndex as zIndexTokens } from '@/lib/theme';
 
 const SNAP_POINTS = ['12%', '50%', '90%'];
 const BOUNDS_DEBOUNCE_MS = 300;
@@ -244,19 +245,19 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    zIndex: 10,
+    zIndex: zIndexTokens.sticky,
   },
   sheetBackground: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    backgroundColor: colors.white,
+    borderTopLeftRadius: radii.xl,
+    borderTopRightRadius: radii.xl,
   },
   sheetHandle: {
-    backgroundColor: '#ccc',
+    backgroundColor: colors.border,
     width: 40,
   },
   sheetList: {
-    padding: 16,
-    paddingBottom: 32,
+    padding: spacing.lg,
+    paddingBottom: spacing['3xl'],
   },
 });

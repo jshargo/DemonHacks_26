@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  Modal, FlatList, Image,
+  Modal, FlatList,
 } from 'react-native';
 import type { UserProfile } from '@/lib/types';
+import { colors, fonts, typography, spacing, radii, shadows } from '@/lib/theme';
+import { Avatar } from '@/components/ui/Avatar';
 
 interface Props {
   visible: boolean;
@@ -75,6 +77,7 @@ export function NewChatModal({ visible, friends, onClose, onCreateDM, onCreateGr
           <TextInput
             style={styles.groupInput}
             placeholder="Group name (optional)"
+            placeholderTextColor={colors.textTertiary}
             value={groupName}
             onChangeText={setGroupName}
           />
@@ -85,7 +88,7 @@ export function NewChatModal({ visible, friends, onClose, onCreateDM, onCreateGr
           keyExtractor={(f) => f.id}
           renderItem={({ item }) => {
             const isSelected = selected.includes(item.id);
-            const initials = (item.display_name ?? item.username).slice(0, 2).toUpperCase();
+            const displayName = item.display_name ?? item.username;
             return (
               <TouchableOpacity
                 style={styles.row}
@@ -97,15 +100,11 @@ export function NewChatModal({ visible, friends, onClose, onCreateDM, onCreateGr
                   }
                 }}
               >
-                <View style={styles.avatar}>
-                  {item.avatar_url ? (
-                    <Image source={{ uri: item.avatar_url }} style={styles.avatarImg} />
-                  ) : (
-                    <Text style={styles.initials}>{initials}</Text>
-                  )}
+                <View style={styles.avatarWrap}>
+                  <Avatar imageUrl={item.avatar_url} name={displayName} size="md" />
                 </View>
                 <View style={styles.info}>
-                  <Text style={styles.name}>{item.display_name ?? item.username}</Text>
+                  <Text style={styles.name}>{displayName}</Text>
                   <Text style={styles.username}>@{item.username}</Text>
                 </View>
                 <View style={[styles.check, isSelected && styles.checkSelected]}>
@@ -124,66 +123,101 @@ export function NewChatModal({ visible, friends, onClose, onCreateDM, onCreateGr
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: colors.white },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing.lg,
     paddingVertical: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E5E5',
+    borderBottomColor: colors.border,
   },
-  title: { fontSize: 17, fontWeight: '700' },
-  cancel: { fontSize: 16, color: '#6C63FF' },
-  done: { fontSize: 16, color: '#6C63FF', fontWeight: '700' },
-  doneDis: { color: '#ccc' },
-  tabs: { flexDirection: 'row', margin: 12, backgroundColor: '#F0F0F0', borderRadius: 10, padding: 3 },
-  tab: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 8 },
-  tabActive: { backgroundColor: '#fff', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
-  tabText: { fontSize: 14, color: '#888', fontWeight: '600' },
-  tabTextActive: { color: '#111' },
+  title: {
+    ...typography.headingMd,
+    color: colors.textPrimary,
+  },
+  cancel: {
+    ...typography.bodyLg,
+    color: colors.primary,
+  },
+  done: {
+    ...typography.bodyLg,
+    fontFamily: fonts.bold,
+    color: colors.primary,
+  },
+  doneDis: { color: colors.textTertiary },
+  tabs: {
+    flexDirection: 'row',
+    margin: spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: radii.sm,
+    padding: 3,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+    borderRadius: radii.sm,
+  },
+  tabActive: {
+    backgroundColor: colors.white,
+    ...shadows.sm,
+  },
+  tabText: {
+    ...typography.labelLg,
+    color: colors.textSecondary,
+  },
+  tabTextActive: { color: colors.textPrimary },
   groupInput: {
-    marginHorizontal: 16,
-    marginBottom: 8,
-    padding: 12,
-    borderRadius: 10,
-    backgroundColor: '#F5F5F5',
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.sm,
+    padding: spacing.md,
+    borderRadius: radii.sm,
+    backgroundColor: colors.surface,
+    fontFamily: fonts.regular,
     fontSize: 15,
+    color: colors.textPrimary,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E5E5',
+    borderBottomColor: colors.border,
   },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#6C63FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-    overflow: 'hidden',
+  avatarWrap: {
+    marginRight: spacing.md,
   },
-  avatarImg: { width: 44, height: 44 },
-  initials: { color: '#fff', fontWeight: '700', fontSize: 16 },
   info: { flex: 1 },
-  name: { fontSize: 15, fontWeight: '600', color: '#111' },
-  username: { fontSize: 13, color: '#888' },
+  name: {
+    ...typography.headingSm,
+    color: colors.textPrimary,
+  },
+  username: {
+    ...typography.bodySm,
+    color: colors.textSecondary,
+  },
   check: {
     width: 24,
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#DDD',
+    borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  checkSelected: { backgroundColor: '#6C63FF', borderColor: '#6C63FF' },
-  checkMark: { color: '#fff', fontSize: 13, fontWeight: '700' },
-  empty: { textAlign: 'center', color: '#888', marginTop: 40, fontSize: 15 },
+  checkSelected: { backgroundColor: colors.primary, borderColor: colors.primary },
+  checkMark: {
+    color: colors.textInverse,
+    fontSize: 13,
+    fontFamily: fonts.bold,
+  },
+  empty: {
+    ...typography.bodyMd,
+    textAlign: 'center',
+    color: colors.textSecondary,
+    marginTop: spacing['5xl'],
+  },
 });
