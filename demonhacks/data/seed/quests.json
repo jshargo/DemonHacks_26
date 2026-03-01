@@ -5,11 +5,12 @@
     "description": "Hit Chicago's most iconic food spots in one epic day. From deep-dish pizza to Chicago-style hot dogs, this quest takes you through the flavors that define the city.",
     "difficulty": "easy",
     "estimated_time": "3 hours",
+    "xp_reward": 100,
     "stops": [
-      { "spot_name": "Lou Malnati's Pizzeria", "stop_order": 1, "hint": "Head to River North for the original butter crust experience." },
-      { "spot_name": "Portillo's", "stop_order": 2, "hint": "Just a short walk away — grab an Italian beef combo." },
-      { "spot_name": "Garrett Popcorn", "stop_order": 3, "hint": "Walk south on Michigan Ave. Follow your nose to the Chicago Mix." },
-      { "spot_name": "Revival Food Hall", "stop_order": 4, "hint": "Underground food paradise on Clark St. Perfect for dessert." }
+      { "spot_name": "Lou Malnati's Pizzeria", "stop_order": 1, "hint": "Head to River North for the original butter crust experience.", "xp_reward": 25, "category": "food_drink", "address": "439 N Wells St, Chicago, IL 60654" },
+      { "spot_name": "Portillo's", "stop_order": 2, "hint": "Just a short walk away — grab an Italian beef combo.", "xp_reward": 25, "category": "food_drink", "address": "100 W Ontario St, Chicago, IL 60654" },
+      { "spot_name": "Garrett Popcorn", "stop_order": 3, "hint": "Walk south on Michigan Ave. Follow your nose to the Chicago Mix.", "xp_reward": 25, "category": "food_drink", "address": "625 N Michigan Ave, Chicago, IL 60611" },
+      { "spot_name": "Revival Food Hall", "stop_order": 4, "hint": "Underground food paradise on Clark St. Perfect for dessert.", "xp_reward": 25, "category": "food_drink", "address": "125 S Clark St, Chicago, IL 60603" }
     ]
   },
   {
@@ -18,12 +19,13 @@
     "description": "Explore Chicago's vibrant street art scene from Pilsen's murals to Wicker Park's creative energy. Bring your camera!",
     "difficulty": "medium",
     "estimated_time": "4 hours",
+    "xp_reward": 200,
     "stops": [
-      { "spot_name": "Pilsen Murals", "stop_order": 1, "hint": "Start at 18th & Ashland and walk east along 18th Street." },
-      { "spot_name": "Thalia Hall", "stop_order": 2, "hint": "Beautiful historic building right in the heart of Pilsen." },
-      { "spot_name": "Wicker Park Vintage Shops", "stop_order": 3, "hint": "Take the Blue Line north to Damen. Browse the shops along Milwaukee Ave." },
-      { "spot_name": "Big Star", "stop_order": 4, "hint": "Reward yourself with tacos at this Wicker Park institution." },
-      { "spot_name": "The Violet Hour", "stop_order": 5, "hint": "End the night at this hidden cocktail bar — look for the mural on Damen Ave." }
+      { "spot_name": "Pilsen Murals", "stop_order": 1, "hint": "Start at 18th & Ashland and walk east along 18th Street.", "xp_reward": 25, "category": "arts_culture", "address": "18th St & Ashland Ave, Chicago, IL 60608" },
+      { "spot_name": "Thalia Hall", "stop_order": 2, "hint": "Beautiful historic building right in the heart of Pilsen.", "xp_reward": 25, "category": "entertainment", "address": "1807 S Allport St, Chicago, IL 60608" },
+      { "spot_name": "Wicker Park Vintage Shops", "stop_order": 3, "hint": "Take the Blue Line north to Damen. Browse the shops along Milwaukee Ave.", "xp_reward": 25, "category": "shopping", "address": "1566 N Milwaukee Ave, Chicago, IL 60622" },
+      { "spot_name": "Big Star", "stop_order": 4, "hint": "Reward yourself with tacos at this Wicker Park institution.", "xp_reward": 25, "category": "food_drink", "address": "1531 N Damen Ave, Chicago, IL 60622" },
+      { "spot_name": "The Violet Hour", "stop_order": 5, "hint": "End the night at this hidden cocktail bar — look for the mural on Damen Ave.", "xp_reward": 25, "category": "food_drink", "address": "1520 N Damen Ave, Chicago, IL 60622" }
     ]
   },
   {
@@ -32,13 +34,14 @@
     "description": "A full day along Chicago's stunning Lake Michigan shoreline. Parks, beaches, wildlife, and the best skyline views in the city.",
     "difficulty": "medium",
     "estimated_time": "5 hours",
+    "xp_reward": 200,
     "stops": [
-      { "spot_name": "Millennium Park", "stop_order": 1, "hint": "Start at The Bean for the ultimate Chicago photo op." },
-      { "spot_name": "Chicago Riverwalk", "stop_order": 2, "hint": "Walk north to the river. Grab a coffee and stroll along the water." },
-      { "spot_name": "Navy Pier", "stop_order": 3, "hint": "Continue east to the pier. Ride the Ferris wheel for lakefront views." },
-      { "spot_name": "Lakefront Trail", "stop_order": 4, "hint": "Head north on the trail. Rent a bike for the best experience." },
-      { "spot_name": "Montrose Beach", "stop_order": 5, "hint": "Keep going north to Montrose. Relax on the beach and enjoy the skyline." },
-      { "spot_name": "Lincoln Park Zoo", "stop_order": 6, "hint": "Cut west into Lincoln Park. The zoo is free and open year-round!" }
+      { "spot_name": "Millennium Park", "stop_order": 1, "hint": "Start at The Bean for the ultimate Chicago photo op.", "xp_reward": 25, "category": "outdoors", "address": "201 E Randolph St, Chicago, IL 60602" },
+      { "spot_name": "Chicago Riverwalk", "stop_order": 2, "hint": "Walk north to the river. Grab a coffee and stroll along the water.", "xp_reward": 25, "category": "outdoors", "address": "Chicago Riverwalk, Chicago, IL 60601" },
+      { "spot_name": "Navy Pier", "stop_order": 3, "hint": "Continue east to the pier. Ride the Ferris wheel for lakefront views.", "xp_reward": 25, "category": "entertainment", "address": "600 E Grand Ave, Chicago, IL 60611" },
+      { "spot_name": "Lakefront Trail", "stop_order": 4, "hint": "Head north on the trail. Rent a bike for the best experience.", "xp_reward": 25, "category": "outdoors", "address": "Lake Shore Dr, Chicago, IL 60611" },
+      { "spot_name": "Montrose Beach", "stop_order": 5, "hint": "Keep going north to Montrose. Relax on the beach and enjoy the skyline.", "xp_reward": 25, "category": "outdoors", "address": "4400 N Lake Shore Dr, Chicago, IL 60640" },
+      { "spot_name": "Lincoln Park Zoo", "stop_order": 6, "hint": "Cut west into Lincoln Park. The zoo is free and open year-round!", "xp_reward": 25, "category": "outdoors", "address": "2001 N Clark St, Chicago, IL 60614" }
     ]
   },
   {
@@ -47,12 +50,13 @@
     "description": "Chicago is the birthplace of the skyscraper. Walk along the river and Loop to see iconic buildings from the 1890s to today — no boat ticket required.",
     "difficulty": "easy",
     "estimated_time": "3 hours",
+    "xp_reward": 100,
     "stops": [
-      { "spot_name": "Chicago Architecture Center", "stop_order": 1, "hint": "Start here on Michigan Ave to get oriented with the city's architectural history." },
-      { "spot_name": "Wrigley Building", "stop_order": 2, "hint": "Cross the Michigan Ave bridge. The white terra-cotta towers glow at night." },
-      { "spot_name": "Tribune Tower", "stop_order": 3, "hint": "Right next door — look for fragments of famous buildings embedded in the walls." },
-      { "spot_name": "Marina City", "stop_order": 4, "hint": "The iconic 'corn cob' towers on State St. One of Chicago's most photographed buildings." },
-      { "spot_name": "Willis Tower Skydeck", "stop_order": 5, "hint": "Head south on Wacker Dr. Step onto The Ledge for a 103-floor glass-bottom view." }
+      { "spot_name": "Chicago Architecture Center", "stop_order": 1, "hint": "Start here on Michigan Ave to get oriented with the city's architectural history.", "xp_reward": 25, "category": "arts_culture", "address": "111 E Wacker Dr, Chicago, IL 60601" },
+      { "spot_name": "Wrigley Building", "stop_order": 2, "hint": "Cross the Michigan Ave bridge. The white terra-cotta towers glow at night.", "xp_reward": 25, "category": "arts_culture", "address": "400-410 N Michigan Ave, Chicago, IL 60611" },
+      { "spot_name": "Tribune Tower", "stop_order": 3, "hint": "Right next door — look for fragments of famous buildings embedded in the walls.", "xp_reward": 25, "category": "arts_culture", "address": "435 N Michigan Ave, Chicago, IL 60611" },
+      { "spot_name": "Marina City", "stop_order": 4, "hint": "The iconic 'corn cob' towers on State St. One of Chicago's most photographed buildings.", "xp_reward": 25, "category": "arts_culture", "address": "300 N State St, Chicago, IL 60654" },
+      { "spot_name": "Skydeck Chicago (Willis Tower)", "stop_order": 5, "hint": "Head south on Wacker Dr. Step onto The Ledge for a 103-floor glass-bottom view.", "xp_reward": 25, "category": "entertainment", "address": "233 S Wacker Dr, Chicago, IL 60606" }
     ]
   },
   {
@@ -61,12 +65,13 @@
     "description": "Three world-class museums on one lakefront campus. Dinosaurs, galaxies, and an aquarium all in a single day — only in Chicago.",
     "difficulty": "hard",
     "estimated_time": "6 hours",
+    "xp_reward": 300,
     "stops": [
-      { "spot_name": "Field Museum of Natural History", "stop_order": 1, "hint": "Start with SUE, the largest T. rex ever found. Main hall, can't miss it." },
-      { "spot_name": "Shedd Aquarium", "stop_order": 2, "hint": "Walk east along the lakefront. Catch the beluga whale feeding if you can." },
-      { "spot_name": "Adler Planetarium", "stop_order": 3, "hint": "Keep walking to the tip of the peninsula — best skyline photo spot in Chicago." },
-      { "spot_name": "Soldier Field", "stop_order": 4, "hint": "Loop back past the home of the Chicago Bears. Check out the iconic colonnades." },
-      { "spot_name": "12th Street Beach", "stop_order": 5, "hint": "Hidden beach just south of the planetarium. Perfect for a break." }
+      { "spot_name": "Field Museum of Natural History", "stop_order": 1, "hint": "Start with SUE, the largest T. rex ever found. Main hall, can't miss it.", "xp_reward": 25, "category": "arts_culture", "address": "1400 S DuSable Lake Shore Dr, Chicago, IL 60605" },
+      { "spot_name": "Shedd Aquarium", "stop_order": 2, "hint": "Walk east along the lakefront. Catch the beluga whale feeding if you can.", "xp_reward": 25, "category": "arts_culture", "address": "1200 S DuSable Lake Shore Dr, Chicago, IL 60605" },
+      { "spot_name": "Adler Planetarium", "stop_order": 3, "hint": "Keep walking to the tip of the peninsula — best skyline photo spot in Chicago.", "xp_reward": 25, "category": "arts_culture", "address": "1300 S DuSable Lake Shore Dr, Chicago, IL 60605" },
+      { "spot_name": "Soldier Field", "stop_order": 4, "hint": "Loop back past the home of the Chicago Bears. Check out the iconic colonnades.", "xp_reward": 25, "category": "entertainment", "address": "1410 Special Olympics Dr, Chicago, IL 60605" },
+      { "spot_name": "12th Street Beach", "stop_order": 5, "hint": "Hidden beach just south of the planetarium. Perfect for a break.", "xp_reward": 25, "category": "outdoors", "address": "1200 S Linn White Dr, Chicago, IL 60605" }
     ]
   },
   {
@@ -75,12 +80,13 @@
     "description": "Chicago shaped modern blues and jazz. Follow the music from legendary South Side clubs to downtown jazz lounges.",
     "difficulty": "medium",
     "estimated_time": "5 hours",
+    "xp_reward": 200,
     "stops": [
-      { "spot_name": "Chess Records / Willie Dixon's Blues Heaven", "stop_order": 1, "hint": "2120 S Michigan Ave — where Muddy Waters, Chuck Berry, and the Stones recorded." },
-      { "spot_name": "Buddy Guy's Legends", "stop_order": 2, "hint": "Head north to Wabash Ave. Live blues every night from a living legend's club." },
-      { "spot_name": "Jazz Showcase", "stop_order": 3, "hint": "South Dearborn St. The oldest jazz club in the city, running since 1947." },
-      { "spot_name": "Green Mill Cocktail Lounge", "stop_order": 4, "hint": "Take the Red Line to Lawrence. Al Capone's favorite speakeasy — still swinging." },
-      { "spot_name": "Kingston Mines", "stop_order": 5, "hint": "Lincoln Park. Two stages, live blues till 4am. The real deal." }
+      { "spot_name": "Chess Records / Willie Dixon's Blues Heaven", "stop_order": 1, "hint": "2120 S Michigan Ave — where Muddy Waters, Chuck Berry, and the Stones recorded.", "xp_reward": 25, "category": "arts_culture", "address": "2120 S Michigan Ave, Chicago, IL 60616" },
+      { "spot_name": "Buddy Guy's Legends", "stop_order": 2, "hint": "Head north to Wabash Ave. Live blues every night from a living legend's club.", "xp_reward": 25, "category": "entertainment", "address": "700 S Wabash Ave, Chicago, IL 60605" },
+      { "spot_name": "Jazz Showcase", "stop_order": 3, "hint": "South Dearborn St. The oldest jazz club in the city, running since 1947.", "xp_reward": 25, "category": "entertainment", "address": "806 S Plymouth Ct, Chicago, IL 60605" },
+      { "spot_name": "Green Mill Cocktail Lounge", "stop_order": 4, "hint": "Take the Red Line to Lawrence. Al Capone's favorite speakeasy — still swinging.", "xp_reward": 25, "category": "entertainment", "address": "4802 N Broadway, Chicago, IL 60640" },
+      { "spot_name": "Kingston Mines", "stop_order": 5, "hint": "Lincoln Park. Two stages, live blues till 4am. The real deal.", "xp_reward": 25, "category": "entertainment", "address": "2548 N Halsted St, Chicago, IL 60614" }
     ]
   },
   {
@@ -89,12 +95,13 @@
     "description": "Go beyond the tourist trail. Secret gardens, underground pedways, speakeasy bars, and spots most visitors never find.",
     "difficulty": "hard",
     "estimated_time": "4 hours",
+    "xp_reward": 300,
     "stops": [
-      { "spot_name": "Chicago Pedway", "stop_order": 1, "hint": "Enter from the Metra station at Millennium Park. 40 blocks of underground tunnels." },
-      { "spot_name": "Lurie Garden", "stop_order": 2, "hint": "Hidden in plain sight at the south end of Millennium Park. A secret prairie oasis." },
-      { "spot_name": "The Dearborn", "stop_order": 3, "hint": "Look for the unmarked door on Dearborn St — classic speakeasy vibes." },
-      { "spot_name": "Graceland Cemetery", "stop_order": 4, "hint": "Take the Red Line north. An open-air museum of Victorian architecture and famous Chicagoans." },
-      { "spot_name": "Oz Park", "stop_order": 5, "hint": "Lincoln Park neighborhood. Statues of the Tin Man, Scarecrow, and Dorothy — a nod to L. Frank Baum's time in Chicago." }
+      { "spot_name": "Chicago Pedway", "stop_order": 1, "hint": "Enter from the Metra station at Millennium Park. 40 blocks of underground tunnels.", "xp_reward": 25, "category": "outdoors", "address": "Millennium Station, 151 E Randolph St, Chicago, IL 60601" },
+      { "spot_name": "Lurie Garden", "stop_order": 2, "hint": "Hidden in plain sight at the south end of Millennium Park. A secret prairie oasis.", "xp_reward": 25, "category": "outdoors", "address": "220 E Monroe St, Chicago, IL 60602" },
+      { "spot_name": "The Dearborn", "stop_order": 3, "hint": "Look for the unmarked door on Dearborn St — classic speakeasy vibes.", "xp_reward": 25, "category": "food_drink", "address": "145 N Dearborn St, Chicago, IL 60602" },
+      { "spot_name": "Graceland Cemetery", "stop_order": 4, "hint": "Take the Red Line north. An open-air museum of Victorian architecture and famous Chicagoans.", "xp_reward": 25, "category": "outdoors", "address": "4001 N Clark St, Chicago, IL 60613" },
+      { "spot_name": "Oz Park", "stop_order": 5, "hint": "Lincoln Park neighborhood. Statues of the Tin Man, Scarecrow, and Dorothy — a nod to L. Frank Baum's time in Chicago.", "xp_reward": 25, "category": "outdoors", "address": "2021 N Burling St, Chicago, IL 60614" }
     ]
   }
 ]
