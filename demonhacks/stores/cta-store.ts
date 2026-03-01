@@ -11,7 +11,8 @@ interface CTAState {
   showDivvyStations: boolean;
   showPedwayRoutes: boolean;
   showTicketmasterEvents: boolean;
-  ticketmasterDateFilter: 'all' | 'today' | 'tomorrow' | 'week';
+  ticketmasterDateFilter: 'today' | 'tomorrow' | 'week';
+  ticketmasterGenreFilter: Set<string>;
 
   // Live train data
   trains: CTATrain[];
