@@ -22,8 +22,8 @@ export function useFriends() {
       .from('friendships')
       .select(`
         *,
-        requester:requester_id(id, username, display_name, avatar_url),
-        addressee:addressee_id(id, username, display_name, avatar_url)
+        requester:requester_id(*),
+        addressee:addressee_id(*)
       `)
       .or(`requester_id.eq.${userId},addressee_id.eq.${userId}`);
 

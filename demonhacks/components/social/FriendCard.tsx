@@ -6,9 +6,10 @@ interface Props {
   profile: UserProfile;
   onMessage: (profile: UserProfile) => void;
   onUnfriend?: (userId: string) => void;
+  onPress?: () => void;
 }
 
-export function FriendCard({ profile, onMessage, onUnfriend }: Props) {
+export function FriendCard({ profile, onMessage, onUnfriend, onPress }: Props) {
   const [menuVisible, setMenuVisible] = useState(false);
 
   const initials = (profile.display_name ?? profile.username)
@@ -28,6 +29,7 @@ export function FriendCard({ profile, onMessage, onUnfriend }: Props) {
     <>
       <Pressable
         style={styles.row}
+        onPress={onPress}
         onLongPress={openMenu}
         // @ts-ignore — onContextMenu is a valid web prop
         onContextMenu={openMenu}
