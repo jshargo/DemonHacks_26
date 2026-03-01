@@ -112,16 +112,25 @@ export default function MapViewComponent({
     const map = mapRef.current?.getMap();
     if (!map) return;
 
-    // Configure Standard basemap
-    map.setConfigProperty('basemap', 'showPointOfInterestLabels', true);
-    map.setConfigProperty('basemap', 'showTransitLabels', false);
-    map.setConfigProperty('basemap', 'showRoadLabels', false);
+    const configureMap = () => {
+      // Configure Standard basemap
+      map.setConfigProperty('basemap', 'showPointOfInterestLabels', true);
+      map.setConfigProperty('basemap', 'showTransitLabels', false);
+      map.setConfigProperty('basemap', 'showRoadLabels', false);
 
-    // Set initial light preset from Chicago time
-    const preset = getChicagoLightPreset();
-    map.setConfigProperty('basemap', 'lightPreset', preset);
-    setLightPreset(preset);
-    setMapLoaded(true);
+      // Set initial light preset from Chicago time
+      const preset = getChicagoLightPreset();
+      map.setConfigProperty('basemap', 'lightPreset', preset);
+      setLightPreset(preset);
+      setMapLoaded(true);
+    };
+
+    // Standard style may still be loading when onLoad fires — wait for it
+    if (map.isStyleLoaded()) {
+      configureMap();
+    } else {
+      map.once('style.load', configureMap);
+    }
   }, [setLightPreset, setMapLoaded]);
 
   // ─── Subscribe to light preset changes (every 5 min) ───
