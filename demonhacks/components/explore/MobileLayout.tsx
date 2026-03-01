@@ -1,12 +1,10 @@
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
-import BottomSheet, {
-  BottomSheetFlatList,
-  type BottomSheetFlatListMethods,
-} from '@gorhom/bottom-sheet';
+import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import { useExploreStore } from '@/stores/explore-store';
 import { useCollectionStore } from '@/stores/collection-store';
 import { useAuthStore } from '@/stores/auth-store';
+import { useMapStore } from '@/stores/map-store';
 import { useDiscoverFeed } from '@/hooks/useDiscoverFeed';
 import { getPinLabel } from '@/lib/mock-data';
 import type { MapPin as MapPinType, MapBounds, PinLabel, DiscoverItem, SearchResult } from '@/lib/types';
@@ -17,16 +15,15 @@ import DetailPanel from './DetailPanel';
 import { POIDetailPanel } from './SearchBar';
 import MapViewComponent from '@/components/map/MapView';
 import { useSearchStore } from '@/stores/search-store';
-import { createSearchSession, searchRetrieve } from '@/lib/mapbox-search';
 
 const SNAP_POINTS = ['12%', '50%', '90%'];
 const BOUNDS_DEBOUNCE_MS = 300;
 
 export default function MobileLayout() {
   const bottomSheetRef = useRef<BottomSheet>(null);
-  const listRef = useRef<BottomSheetFlatListMethods>(null);
   const boundsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const feedSelectionSeqRef = useRef(0);
+  const savedViewportRef = useRef<{ lat: number; lng: number; zoom: number } | null>(null);
+  const [flyTarget, setFlyTarget] = useState<{ lat: number; lng: number; zoom?: number } | null>(null);
 
   const { items, loading } = useDiscoverFeed();
 
@@ -39,14 +36,12 @@ export default function MobileLayout() {
 
   const searchResult = useSearchStore((s) => s.selectedResult);
   const setSelectedResult = useSearchStore((s) => s.setSelectedResult);
-  const rotateSessionToken = useSearchStore((s) => s.rotateSessionToken);
   const clearSelectedResult = useSearchStore((s) => s.clearSelectedResult);
 
   const isSaved = useCollectionStore((s) => s.isSaved);
   const addItem = useCollectionStore((s) => s.addItem);
   const removeItem = useCollectionStore((s) => s.removeItem);
-  const collections = useCollectionStore((s) => s.collections);
-  const collectionItems = useCollectionStore((s) => s.items);
+  const findSavedItem = useCollectionStore((s) => s.findSavedItem);
   const session = useAuthStore((s) => s.session);
 
   // Convert DiscoverItems → MapPins (only items with coordinates)
@@ -83,45 +78,32 @@ export default function MobileLayout() {
     [setMapBounds],
   );
 
-  const handleScrollToIndexFailed = useCallback(
-    ({ index, averageItemLength }: { index: number; averageItemLength: number }) => {
-      listRef.current?.scrollToOffset({
-        offset: Math.max(0, index * averageItemLength),
-        animated: true,
-      });
-      setTimeout(() => {
-        listRef.current?.scrollToIndex({ index, animated: true, viewOffset: 16 });
-      }, 80);
+  /** Snapshot current viewport and open the detail panel */
+  const openWithViewportSave = useCallback(
+    (item: DiscoverItem) => {
+      const v = useMapStore.getState().viewport;
+      savedViewportRef.current = { lat: v.latitude, lng: v.longitude, zoom: v.zoom };
+      openDetail(item);
+      setFlyTarget({ lat: item.lat, lng: item.lng });
     },
-    [],
+    [openDetail],
   );
 
+  // Pin click → open detail directly (Airbnb pattern)
   const handlePinPress = useCallback(
     (pin: MapPinType) => {
       const item = items.find((i) => i.id === pin.id);
       if (!item) return;
-
-      closeDetail();
+      openWithViewportSave(item);
+      bottomSheetRef.current?.snapToIndex(2); // 90% — show detail
       setHoveredPinId(pin.id);
-      bottomSheetRef.current?.snapToIndex(1); // Show list view
-
-      const index = items.findIndex((i) => i.id === item.id);
-      if (index >= 0) {
-        try {
-          listRef.current?.scrollToIndex({ index, animated: true, viewOffset: 16 });
-        } catch {
-          handleScrollToIndexFailed({ index, averageItemLength: 260 });
-        }
-      }
     },
-    [closeDetail, handleScrollToIndexFailed, items, setHoveredPinId],
+    [items, openWithViewportSave, setHoveredPinId],
   );
 
   const handleItemPress = useCallback(
     (item: DiscoverItem) => {
-      const requestSeq = ++feedSelectionSeqRef.current;
-
-      const optimisticResult: SearchResult | null =
+      const result: SearchResult | null =
         item.lat !== 0 && item.lng !== 0
           ? {
               mapbox_id: item.mapboxId ?? item.id,
@@ -136,58 +118,50 @@ export default function MobileLayout() {
             }
           : null;
 
-      // Optimistic path: open detail and move map immediately.
-      openDetail(item);
+      openWithViewportSave(item);
       bottomSheetRef.current?.snapToIndex(2);
       setHoveredPinId(item.id);
-      setSelectedResult(optimisticResult);
-
-      if (!item.mapboxId) return;
-
-      const retrieveSessionToken = item.mapboxSessionToken?.trim() || createSearchSession();
-      void searchRetrieve(item.mapboxId, retrieveSessionToken)
-        .then((retrieved) => {
-          if (!retrieved || requestSeq !== feedSelectionSeqRef.current) return;
-
-          openDetail({
-            ...item,
-            lat: retrieved.lat,
-            lng: retrieved.lng,
-            subcategory: item.subcategory ?? retrieved.category ?? null,
-            websiteUrl: item.websiteUrl ?? retrieved.website ?? null,
-          });
-          setSelectedResult(retrieved);
-          rotateSessionToken();
-        })
-        .catch((err) => {
-          console.warn('[MobileLayout] failed to retrieve feed POI:', err);
-        });
+      setSelectedResult(result);
     },
-    [openDetail, rotateSessionToken, setHoveredPinId, setSelectedResult],
+    [openWithViewportSave, setHoveredPinId, setSelectedResult],
   );
 
+  // Close detail → restore saved viewport
   const handleBack = useCallback(() => {
     closeDetail();
+    setHoveredPinId(null);
     bottomSheetRef.current?.snapToIndex(1); // Back to 50%
-  }, [closeDetail]);
+    const saved = savedViewportRef.current;
+    if (saved) {
+      setFlyTarget({ lat: saved.lat, lng: saved.lng, zoom: saved.zoom });
+      savedViewportRef.current = null;
+    } else {
+      setFlyTarget(null);
+    }
+  }, [closeDetail, setHoveredPinId]);
+
+  // Click empty map area → dismiss detail, stay in place
+  const handleMapBackgroundClick = useCallback(() => {
+    if (!detailItem) return;
+    closeDetail();
+    setHoveredPinId(null);
+    savedViewportRef.current = null;
+    bottomSheetRef.current?.snapToIndex(1); // Back to 50%
+  }, [detailItem, closeDetail, setHoveredPinId]);
 
   const handleToggleSave = useCallback(
     (item: DiscoverItem) => {
       if (!session) return;
-      const favorites = collections.find((c) => c.name === 'Favorites');
-      if (!favorites) return;
+      const userId = session.user.id;
 
-      const saved = isSaved(item.entityType, item.id);
-      if (saved) {
-        const ci = collectionItems.find(
-          (i) => i.item_type === item.entityType && i.item_id === item.id,
-        );
-        if (ci) removeItem(ci.id);
+      const existing = findSavedItem(item.id);
+      if (existing) {
+        removeItem(existing.id);
       } else {
-        addItem(favorites.id, item.entityType, item.id);
+        addItem(userId, item.entityType, item.id);
       }
     },
-    [session, collections, collectionItems, isSaved, addItem, removeItem],
+    [session, findSavedItem, addItem, removeItem],
   );
 
   const renderItem = useCallback(
@@ -195,7 +169,7 @@ export default function MobileLayout() {
       <DiscoverCard
         item={item}
         onPress={() => handleItemPress(item)}
-        isSaved={isSaved(item.entityType, item.id)}
+        isSaved={isSaved(item.id)}
         onToggleSave={() => handleToggleSave(item)}
       />
     ),
@@ -218,6 +192,8 @@ export default function MobileLayout() {
         onBoundsChange={handleBoundsChange}
         searchResult={searchResult}
         onSearchResultDismiss={clearSelectedResult}
+        flyToCoordinate={flyTarget}
+        onMapBackgroundClick={handleMapBackgroundClick}
       />
 
       {/* POI detail panel for search results */}
@@ -242,18 +218,16 @@ export default function MobileLayout() {
           <DetailPanel
             item={detailItem}
             onBack={handleBack}
-            isSaved={isSaved(detailItem.entityType, detailItem.id)}
+            isSaved={isSaved(detailItem.id)}
             onToggleSave={() => handleToggleSave(detailItem)}
           />
         ) : (
           <BottomSheetFlatList
-            ref={listRef}
             data={items}
             keyExtractor={(item: DiscoverItem) => item.id}
             renderItem={renderItem}
             contentContainerStyle={styles.sheetList}
             showsVerticalScrollIndicator={false}
-            onScrollToIndexFailed={handleScrollToIndexFailed}
           />
         )}
       </BottomSheet>

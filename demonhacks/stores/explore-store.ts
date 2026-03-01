@@ -18,6 +18,7 @@ interface ExploreState {
   setHoveredPinId: (id: string | null) => void;
   openDetail: (item: DiscoverItem) => void;
   closeDetail: () => void;
+  patchDetailItem: (patch: Partial<DiscoverItem>) => void;
 }
 
 export const useExploreStore = create<ExploreState>((set) => ({
@@ -37,4 +38,8 @@ export const useExploreStore = create<ExploreState>((set) => ({
   setHoveredPinId: (id) => set({ hoveredPinId: id }),
   openDetail: (item) => set({ detailItem: item }),
   closeDetail: () => set({ detailItem: null }),
+  patchDetailItem: (patch) =>
+    set((state) => ({
+      detailItem: state.detailItem ? { ...state.detailItem, ...patch } : null,
+    })),
 }));

@@ -1,104 +1,109 @@
 import { create } from 'zustand';
 import { supabase } from '@/lib/supabase';
-import type { Collection, CollectionItem, EntityType } from '@/lib/types';
+import type { SavedItem, SavedItemWithPlace, Place, EntityType } from '@/lib/types';
 
-interface CollectionState {
-  collections: Collection[];
-  items: CollectionItem[];
+interface SavedItemsState {
+  items: SavedItemWithPlace[];
   loading: boolean;
 
-  /** Fetch all collections for the current user */
-  fetchCollections: (userId: string) => Promise<void>;
+  /** Fetch all saved items for the current user (with place data) */
+  fetchSavedItems: (userId: string) => Promise<void>;
 
-  /** Fetch items in a specific collection */
-  fetchItems: (collectionId: string) => Promise<void>;
+  /** Save an item (place or event) */
+  addItem: (userId: string, itemType: EntityType, itemId: string) => Promise<void>;
 
-  /** Create a new named collection */
-  createCollection: (userId: string, name: string) => Promise<Collection | null>;
+  /** Remove a saved item */
+  removeItem: (savedItemId: string) => Promise<void>;
 
-  /** Add an item (place or event) to a collection */
-  addItem: (collectionId: string, itemType: EntityType, itemId: string) => Promise<void>;
+  /** Check if an entity is saved */
+  isSaved: (itemId: string) => boolean;
 
-  /** Remove an item from a collection */
-  removeItem: (itemId: string) => Promise<void>;
-
-  /** Check if an entity is saved in any collection */
-  isSaved: (itemType: EntityType, itemId: string) => boolean;
-
-  /** Delete a collection */
-  deleteCollection: (collectionId: string) => Promise<void>;
+  /** Find the saved_items row for an entity (for deletion) */
+  findSavedItem: (itemId: string) => SavedItemWithPlace | undefined;
 }
 
-export const useCollectionStore = create<CollectionState>((set, get) => ({
-  collections: [],
+export const useCollectionStore = create<SavedItemsState>((set, get) => ({
   items: [],
   loading: false,
 
-  fetchCollections: async (userId) => {
+  fetchSavedItems: async (userId) => {
     set({ loading: true });
-    const { data } = await supabase
-      .from('collections')
+
+    // Fetch saved items
+    const { data: savedItems, error } = await supabase
+      .from('saved_items')
       .select('*')
       .eq('user_id', userId)
-      .order('created_at');
+      .order('created_at', { ascending: false });
 
-    set({ collections: (data as Collection[]) ?? [], loading: false });
-  },
-
-  fetchItems: async (collectionId) => {
-    set({ loading: true });
-    const { data } = await supabase
-      .from('collection_items')
-      .select('*')
-      .eq('collection_id', collectionId)
-      .order('added_at', { ascending: false });
-
-    set({ items: (data as CollectionItem[]) ?? [], loading: false });
-  },
-
-  createCollection: async (userId, name) => {
-    const { data, error } = await supabase
-      .from('collections')
-      .insert({ user_id: userId, name })
-      .select()
-      .single();
-
-    if (!error && data) {
-      const collection = data as Collection;
-      set((state) => ({ collections: [...state.collections, collection] }));
-      return collection;
+    if (error || !savedItems) {
+      set({ items: [], loading: false });
+      return;
     }
-    return null;
-  },
 
-  addItem: async (collectionId, itemType, itemId) => {
-    const { data, error } = await supabase
-      .from('collection_items')
-      .insert({ collection_id: collectionId, item_type: itemType, item_id: itemId })
-      .select()
-      .single();
+    // Batch-fetch place data for saved places
+    const placeIds = (savedItems as SavedItem[])
+      .filter((si) => si.item_type === 'place')
+      .map((si) => si.item_id);
 
-    if (!error && data) {
-      set((state) => ({ items: [data as CollectionItem, ...state.items] }));
+    let placesMap: Record<string, Place> = {};
+    if (placeIds.length > 0) {
+      const { data: places } = await supabase
+        .from('places')
+        .select('*')
+        .in('id', placeIds);
+
+      if (places) {
+        for (const p of places as Place[]) {
+          placesMap[p.id] = p;
+        }
+      }
     }
-  },
 
-  removeItem: async (itemId) => {
-    await supabase.from('collection_items').delete().eq('id', itemId);
-    set((state) => ({ items: state.items.filter((i) => i.id !== itemId) }));
-  },
-
-  isSaved: (itemType, itemId) => {
-    return get().items.some(
-      (i) => i.item_type === itemType && i.item_id === itemId
-    );
-  },
-
-  deleteCollection: async (collectionId) => {
-    await supabase.from('collections').delete().eq('id', collectionId);
-    set((state) => ({
-      collections: state.collections.filter((c) => c.id !== collectionId),
-      items: state.items.filter((i) => i.collection_id !== collectionId),
+    // Merge
+    const enriched: SavedItemWithPlace[] = (savedItems as SavedItem[]).map((si) => ({
+      ...si,
+      place: si.item_type === 'place' ? placesMap[si.item_id] : undefined,
     }));
+
+    set({ items: enriched, loading: false });
+  },
+
+  addItem: async (userId, itemType, itemId) => {
+    const { data, error } = await supabase
+      .from('saved_items')
+      .insert({ user_id: userId, item_type: itemType, item_id: itemId })
+      .select()
+      .single();
+
+    if (!error && data) {
+      // Fetch place data if it's a place
+      let place: Place | undefined;
+      if (itemType === 'place') {
+        const { data: placeData } = await supabase
+          .from('places')
+          .select('*')
+          .eq('id', itemId)
+          .single();
+        place = placeData as Place | undefined;
+      }
+
+      set((state) => ({
+        items: [{ ...(data as SavedItem), place } as SavedItemWithPlace, ...state.items],
+      }));
+    }
+  },
+
+  removeItem: async (savedItemId) => {
+    await supabase.from('saved_items').delete().eq('id', savedItemId);
+    set((state) => ({ items: state.items.filter((i) => i.id !== savedItemId) }));
+  },
+
+  isSaved: (itemId) => {
+    return get().items.some((i) => i.item_id === itemId);
+  },
+
+  findSavedItem: (itemId) => {
+    return get().items.find((i) => i.item_id === itemId);
   },
 }));

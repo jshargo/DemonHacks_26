@@ -1,26 +1,26 @@
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useExploreStore } from '@/stores/explore-store';
 import { useCollectionStore } from '@/stores/collection-store';
 import { useAuthStore } from '@/stores/auth-store';
+import { useMapStore } from '@/stores/map-store';
 import { useDiscoverFeed } from '@/hooks/useDiscoverFeed';
 import { getPinLabel } from '@/lib/mock-data';
 import type { MapPin as MapPinType, MapBounds, PinLabel, DiscoverItem, SearchResult } from '@/lib/types';
 
 import TopBar from './TopBar';
-import CardFeed, { type CardFeedHandle } from './CardFeed';
+import CardFeed from './CardFeed';
 import DetailPanel from './DetailPanel';
 import { POIDetailPanel } from './SearchBar';
 import MapViewComponent from '@/components/map/MapView';
 import { useSearchStore } from '@/stores/search-store';
-import { createSearchSession, searchRetrieve } from '@/lib/mapbox-search';
 
 const BOUNDS_DEBOUNCE_MS = 300;
 
 export default function DesktopLayout() {
   const boundsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const feedRef = useRef<CardFeedHandle>(null);
-  const feedSelectionSeqRef = useRef(0);
+  const savedViewportRef = useRef<{ lat: number; lng: number; zoom: number } | null>(null);
+  const [flyTarget, setFlyTarget] = useState<{ lat: number; lng: number; zoom?: number } | null>(null);
 
   const { items, count, loading } = useDiscoverFeed();
 
@@ -33,14 +33,12 @@ export default function DesktopLayout() {
 
   const searchResult = useSearchStore((s) => s.selectedResult);
   const setSelectedResult = useSearchStore((s) => s.setSelectedResult);
-  const rotateSessionToken = useSearchStore((s) => s.rotateSessionToken);
   const clearSelectedResult = useSearchStore((s) => s.clearSelectedResult);
 
   const isSaved = useCollectionStore((s) => s.isSaved);
   const addItem = useCollectionStore((s) => s.addItem);
   const removeItem = useCollectionStore((s) => s.removeItem);
-  const collections = useCollectionStore((s) => s.collections);
-  const collectionItems = useCollectionStore((s) => s.items);
+  const findSavedItem = useCollectionStore((s) => s.findSavedItem);
   const session = useAuthStore((s) => s.session);
 
   // Convert DiscoverItems → MapPins (only items with coordinates)
@@ -78,26 +76,32 @@ export default function DesktopLayout() {
     [setMapBounds],
   );
 
-  // Pin click → open detail + scroll to card
+  /** Snapshot current viewport and open the detail panel */
+  const openWithViewportSave = useCallback(
+    (item: DiscoverItem) => {
+      const v = useMapStore.getState().viewport;
+      savedViewportRef.current = { lat: v.latitude, lng: v.longitude, zoom: v.zoom };
+      openDetail(item);
+      setFlyTarget({ lat: item.lat, lng: item.lng });
+    },
+    [openDetail],
+  );
+
+  // Pin click → open detail directly (Airbnb pattern)
   const handlePinPress = useCallback(
     (pin: MapPinType) => {
       const item = items.find((i) => i.id === pin.id);
-      if (item) {
-        // Keep feed visible and scroll to the corresponding card.
-        closeDetail();
-        feedRef.current?.scrollToItem(item.id);
-      }
+      if (!item) return;
+      openWithViewportSave(item);
       setHoveredPinId(pin.id);
     },
-    [items, closeDetail, setHoveredPinId],
+    [items, openWithViewportSave, setHoveredPinId],
   );
 
-  // Card press → open detail
+  // Card press → open detail (all data already in the item from Supabase)
   const handleItemPress = useCallback(
     (item: DiscoverItem) => {
-      const requestSeq = ++feedSelectionSeqRef.current;
-
-      const optimisticResult: SearchResult | null =
+      const result: SearchResult | null =
         item.lat !== 0 && item.lng !== 0
           ? {
               mapbox_id: item.mapboxId ?? item.id,
@@ -112,51 +116,46 @@ export default function DesktopLayout() {
             }
           : null;
 
-      // Optimistic path: update detail + search result immediately so camera movement is instant.
-      openDetail(item);
+      openWithViewportSave(item);
       setHoveredPinId(item.id);
-      setSelectedResult(optimisticResult);
-
-      if (!item.mapboxId) return;
-
-      const retrieveSessionToken = item.mapboxSessionToken?.trim() || createSearchSession();
-      void searchRetrieve(item.mapboxId, retrieveSessionToken)
-        .then((retrieved) => {
-          if (!retrieved || requestSeq !== feedSelectionSeqRef.current) return;
-
-          openDetail({
-            ...item,
-            lat: retrieved.lat,
-            lng: retrieved.lng,
-            subcategory: item.subcategory ?? retrieved.category ?? null,
-            websiteUrl: item.websiteUrl ?? retrieved.website ?? null,
-          });
-          setSelectedResult(retrieved);
-          rotateSessionToken();
-        })
-        .catch((err) => {
-          console.warn('[DesktopLayout] failed to retrieve feed POI:', err);
-        });
+      setSelectedResult(result);
     },
-    [openDetail, rotateSessionToken, setHoveredPinId, setSelectedResult],
+    [openWithViewportSave, setHoveredPinId, setSelectedResult],
   );
+
+  // Close detail → restore saved viewport
+  const handleBack = useCallback(() => {
+    closeDetail();
+    setHoveredPinId(null);
+    const saved = savedViewportRef.current;
+    if (saved) {
+      setFlyTarget({ lat: saved.lat, lng: saved.lng, zoom: saved.zoom });
+      savedViewportRef.current = null;
+    } else {
+      setFlyTarget(null);
+    }
+  }, [closeDetail, setHoveredPinId]);
+
+  // Click empty map area → dismiss detail, stay in place
+  const handleMapBackgroundClick = useCallback(() => {
+    if (!detailItem) return;
+    closeDetail();
+    setHoveredPinId(null);
+    savedViewportRef.current = null;
+  }, [detailItem, closeDetail, setHoveredPinId]);
 
   // Toggle save on detail panel
   const handleToggleSaveDetail = useCallback(() => {
     if (!detailItem || !session) return;
-    const favorites = collections.find((c) => c.name === 'Favorites');
-    if (!favorites) return;
+    const userId = session.user.id;
 
-    const saved = isSaved(detailItem.entityType, detailItem.id);
-    if (saved) {
-      const ci = collectionItems.find(
-        (i) => i.item_type === detailItem.entityType && i.item_id === detailItem.id,
-      );
-      if (ci) removeItem(ci.id);
+    const existing = findSavedItem(detailItem.id);
+    if (existing) {
+      removeItem(existing.id);
     } else {
-      addItem(favorites.id, detailItem.entityType, detailItem.id);
+      addItem(userId, detailItem.entityType, detailItem.id);
     }
-  }, [detailItem, session, collections, collectionItems, isSaved, addItem, removeItem]);
+  }, [detailItem, session, findSavedItem, addItem, removeItem]);
 
   return (
     <View style={styles.container}>
@@ -166,13 +165,12 @@ export default function DesktopLayout() {
         {detailItem ? (
           <DetailPanel
             item={detailItem}
-            onBack={closeDetail}
-            isSaved={isSaved(detailItem.entityType, detailItem.id)}
+            onBack={handleBack}
+            isSaved={isSaved(detailItem.id)}
             onToggleSave={handleToggleSaveDetail}
           />
         ) : (
           <CardFeed
-            ref={feedRef}
             items={items}
             count={count}
             onItemPress={handleItemPress}
@@ -196,6 +194,8 @@ export default function DesktopLayout() {
           onBoundsChange={handleBoundsChange}
           searchResult={searchResult}
           onSearchResultDismiss={clearSelectedResult}
+          flyToCoordinate={flyTarget}
+          onMapBackgroundClick={handleMapBackgroundClick}
         />
         {searchResult && (
           <POIDetailPanel result={searchResult} onDismiss={clearSelectedResult} />

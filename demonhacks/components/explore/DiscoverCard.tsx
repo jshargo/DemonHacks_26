@@ -1,4 +1,4 @@
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, Image, StyleSheet } from 'react-native';
 import type { DiscoverItem } from '@/lib/types';
 import { PLACE_CATEGORIES, ENTITY_TYPES } from '@/lib/constants';
 import SaveButton from '@/components/collections/SaveButton';
@@ -56,9 +56,13 @@ export default function DiscoverCard({
       onHoverIn={onHover}
       onHoverOut={onHoverEnd}
     >
-      {/* Image Placeholder */}
+      {/* Image */}
       <View style={styles.imageContainer}>
-        <View style={styles.imagePlaceholder} />
+        {item.imageUrl ? (
+          <Image source={{ uri: item.imageUrl }} style={styles.image} resizeMode="cover" />
+        ) : (
+          <View style={styles.imagePlaceholder} />
+        )}
 
         {/* Category Badge */}
         <View style={[styles.badge, { backgroundColor: badgeColor }]}>
@@ -131,6 +135,11 @@ const styles = StyleSheet.create({
   imageContainer: {
     position: 'relative',
     aspectRatio: 3 / 2,
+  },
+  image: {
+    flex: 1,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
   },
   imagePlaceholder: {
     flex: 1,

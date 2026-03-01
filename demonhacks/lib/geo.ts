@@ -6,6 +6,18 @@
  * legacy data or raw SQL results that return point strings.
  */
 
+import { CHICAGO_BOUNDS } from './constants';
+
+/**
+ * Check whether a coordinate pair falls within the Chicago bounding box.
+ * Uses the same CHICAGO_BOUNDS constant that constrains the map viewport.
+ */
+export function isInsideChicago(lat: number, lng: number): boolean {
+  const [sw, ne] = CHICAGO_BOUNDS;
+  // CHICAGO_BOUNDS is [lng, lat] format: [[swLng, swLat], [neLng, neLat]]
+  return lng >= sw[0] && lng <= ne[0] && lat >= sw[1] && lat <= ne[1];
+}
+
 /**
  * Parse a PostgreSQL `point` column value into lat/lng.
  *

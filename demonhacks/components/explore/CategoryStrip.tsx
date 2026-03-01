@@ -12,6 +12,8 @@ const CATEGORIES: CategoryDef[] = [
   { key: 'all', label: 'All', emoji: '🗺' },
   { key: 'food_drink', label: 'Food & Drink', emoji: '🍽' },
   { key: 'outdoors', label: 'Outdoors', emoji: '🌳' },
+  { key: 'entertainment', label: 'Entertainment', emoji: '🎭' },
+  { key: 'arts_culture', label: 'Arts & Culture', emoji: '🎨' },
   { key: 'events', label: 'Events', emoji: '🎫' },
   { key: 'shopping', label: 'Shopping', emoji: '🛍' },
   { key: 'volunteering', label: 'Volunteering', emoji: '🤝' },

@@ -3,41 +3,34 @@ import { useCollectionStore } from '@/stores/collection-store';
 import { useAuthStore } from '@/stores/auth-store';
 import type { EntityType } from '@/lib/types';
 
-/** Convenience hook to fetch and manage the current user's collections */
+/** Convenience hook to fetch and manage the current user's saved items */
 export function useCollections() {
   const session = useAuthStore((s) => s.session);
   const {
-    collections,
     items,
     loading,
-    fetchCollections,
-    fetchItems,
-    createCollection,
+    fetchSavedItems,
     addItem,
     removeItem,
-    deleteCollection,
     isSaved,
+    findSavedItem,
   } = useCollectionStore();
 
   const userId = session?.user?.id;
 
   useEffect(() => {
     if (userId) {
-      fetchCollections(userId);
+      fetchSavedItems(userId);
     }
   }, [userId]);
 
   return {
-    collections,
     items,
     loading,
-    fetchItems,
-    createCollection: (name: string) =>
-      userId ? createCollection(userId, name) : Promise.resolve(null),
-    addItem: (collectionId: string, itemType: EntityType, itemId: string) =>
-      addItem(collectionId, itemType, itemId),
+    addItem: (itemType: EntityType, itemId: string) =>
+      userId ? addItem(userId, itemType, itemId) : Promise.resolve(),
     removeItem,
-    deleteCollection,
     isSaved,
+    findSavedItem,
   };
 }

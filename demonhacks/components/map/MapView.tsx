@@ -65,6 +65,10 @@ interface MapViewProps {
   searchResult?: SearchResult | null;
   /** Called when search result pin is dismissed */
   onSearchResultDismiss?: () => void;
+  /** Coordinate to fly the camera to (e.g. when detail opens or closes) */
+  flyToCoordinate?: { lat: number; lng: number; zoom?: number } | null;
+  /** Called when empty map area is clicked (not a pin or train) */
+  onMapBackgroundClick?: () => void;
 }
 
 export default function MapViewComponent({
@@ -80,9 +84,13 @@ export default function MapViewComponent({
   onBoundsChange,
   searchResult,
   onSearchResultDismiss,
+  flyToCoordinate,
+  onMapBackgroundClick,
 }: MapViewProps) {
   const mapRef = useRef<MapRef>(null);
-  const hoveredFeatureId = useRef<number | null>(null);
+  // Guard: when a pin is clicked, its onClick fires before the Map onClick.
+  // This flag prevents the Map onClick from treating a pin click as a background click.
+  const pinClickedRef = useRef(false);
 
   const {
     viewport,
@@ -93,7 +101,6 @@ export default function MapViewComponent({
     setLightPreset,
     mapLoaded,
     setMapLoaded,
-    setHoveredNeighborhood,
   } = useMapStore();
 
   const selectTrain = useCTAStore((s) => s.selectTrain);
@@ -175,6 +182,16 @@ export default function MapViewComponent({
     });
   }, [searchResult]);
 
+  // ─── Fly to coordinate (detail open/close) ───
+  useEffect(() => {
+    if (!flyToCoordinate || !mapRef.current) return;
+    mapRef.current.flyTo({
+      center: [flyToCoordinate.lng, flyToCoordinate.lat],
+      zoom: flyToCoordinate.zoom ?? Math.max(mapRef.current.getZoom(), 14),
+      duration: 800,
+    });
+  }, [flyToCoordinate]);
+
   // ─── Viewport sync + bounds reporting ───
   const handleMove = useCallback(
     (evt: ViewStateChangeEvent) => {
@@ -204,65 +221,34 @@ export default function MapViewComponent({
     [setViewport, onBoundsChange],
   );
 
-  // ─── Neighborhood hover + train cursor ───
+  // ─── Train cursor ───
   const handleMouseMove = useCallback(
     (evt: MapMouseEvent) => {
       const map = mapRef.current?.getMap();
       if (!map) return;
 
-      // Clear previous hover
-      if (hoveredFeatureId.current !== null) {
-        map.setFeatureState(
-          { source: 'neighborhoods', id: hoveredFeatureId.current },
-          { hover: false },
-        );
-      }
-
-      // Check for train feature hover (cursor change)
       const trainFeature = evt.features?.find((f) => f.layer?.id === 'cta-trains');
-      if (trainFeature) {
-        map.getCanvas().style.cursor = 'pointer';
-        hoveredFeatureId.current = null;
-        setHoveredNeighborhood(null);
-        return;
-      }
-
-      const feature = evt.features?.[0];
-      if (feature && feature.id !== undefined) {
-        hoveredFeatureId.current = feature.id as number;
-        map.setFeatureState(
-          { source: 'neighborhoods', id: feature.id },
-          { hover: true },
-        );
-        setHoveredNeighborhood(feature.properties?.name ?? null);
-        map.getCanvas().style.cursor = 'pointer';
-      } else {
-        hoveredFeatureId.current = null;
-        setHoveredNeighborhood(null);
-        map.getCanvas().style.cursor = '';
-      }
+      map.getCanvas().style.cursor = trainFeature ? 'pointer' : '';
     },
-    [setHoveredNeighborhood],
+    [],
   );
 
   const handleMouseLeave = useCallback(() => {
     const map = mapRef.current?.getMap();
     if (!map) return;
-
-    if (hoveredFeatureId.current !== null) {
-      map.setFeatureState(
-        { source: 'neighborhoods', id: hoveredFeatureId.current },
-        { hover: false },
-      );
-      hoveredFeatureId.current = null;
-    }
-    setHoveredNeighborhood(null);
     map.getCanvas().style.cursor = '';
-  }, [setHoveredNeighborhood]);
+  }, []);
 
-  // ─── Train click handler ───
+  // ─── Map click handler (trains + background dismiss) ───
   const handleClick = useCallback(
     (evt: MapMouseEvent) => {
+      // A pin's DOM onClick fires before the map's canvas onClick.
+      // If a pin was just clicked, skip — it's not a background click.
+      if (pinClickedRef.current) {
+        pinClickedRef.current = false;
+        return;
+      }
+
       const trainFeature = evt.features?.find((f) => f.layer?.id === 'cta-trains');
       if (trainFeature && trainFeature.properties) {
         const p = trainFeature.properties;
@@ -280,9 +266,12 @@ export default function MapViewComponent({
           arrT: String(p.arrT ?? ''),
         };
         selectTrain(train);
+        return;
       }
+      // No interactive feature clicked — dismiss selection
+      onMapBackgroundClick?.();
     },
-    [selectTrain],
+    [selectTrain, onMapBackgroundClick],
   );
 
   // ─── Native fallback ───
@@ -296,7 +285,7 @@ export default function MapViewComponent({
 
   // Build interactive layer IDs
   const interactiveLayerIds = mapLoaded
-    ? ['neighborhood-fill', ...(showLiveTrains ? ['cta-trains'] : [])]
+    ? [...(showLiveTrains ? ['cta-trains'] : [])]
     : [];
 
   return (
@@ -389,7 +378,7 @@ export default function MapViewComponent({
                 label={pinLabels.get(pin.id)!}
                 isSelected={selectedPinId === pin.id}
                 isHighlighted={highlightedPinId === pin.id}
-                onClick={() => onPinPress?.(pin)}
+                onClick={() => { pinClickedRef.current = true; onPinPress?.(pin); }}
                 onMouseEnter={() => onPinHover?.(pin.id)}
                 onMouseLeave={() => onPinHoverEnd?.()}
               />
@@ -397,7 +386,7 @@ export default function MapViewComponent({
               <AnimatedPin
                 entityType={pin.entityType}
                 index={index}
-                onClick={() => onPinPress?.(pin)}
+                onClick={() => { pinClickedRef.current = true; onPinPress?.(pin); }}
               />
             )}
           </Marker>

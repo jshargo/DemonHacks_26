@@ -5,7 +5,7 @@
 export type EntityType = 'place' | 'event';
 
 /** Place categories matching the schema CHECK constraint */
-export type PlaceCategory = 'food_drink' | 'outdoors' | 'shopping' | 'volunteering' | 'other';
+export type PlaceCategory = 'food_drink' | 'outdoors' | 'shopping' | 'volunteering' | 'entertainment' | 'arts_culture' | 'other';
 
 // ─── Places ─────────────────────────────────────────────────────────────────
 
@@ -15,8 +15,6 @@ export interface Place {
   name: string;
   slug: string;
   category: PlaceCategory;
-  subcategory: string | null;
-  tags: string[];
   description: string | null;
   address: string | null;
   lat: number;
@@ -24,9 +22,7 @@ export interface Place {
   image_url: string | null;
   website_url: string | null;
   phone: string | null;
-  hours: Record<string, string> | null;
-  price_range: '$' | '$$' | '$$$' | '$$$$' | null;
-  rating: number | null;
+  mapbox_id: string | null;
   is_featured: boolean;
   created_at: string;
   updated_at: string;
@@ -127,23 +123,20 @@ export interface QuestProgress {
   checked_in_at: string;
 }
 
-// ─── Collections ────────────────────────────────────────────────────────────
+// ─── Saved Items ────────────────────────────────────────────────────────────
 
-/** A named user collection (public.collections) */
-export interface Collection {
+/** A saved item (public.saved_items) — flat per-user saves */
+export interface SavedItem {
   id: string;
   user_id: string;
-  name: string;
+  item_type: EntityType;
+  item_id: string;
   created_at: string;
 }
 
-/** An item saved to a collection (public.collection_items) */
-export interface CollectionItem {
-  id: string;
-  collection_id: string;
-  item_type: EntityType;
-  item_id: string;
-  added_at: string;
+/** Saved item enriched with place data for display */
+export interface SavedItemWithPlace extends SavedItem {
+  place?: Place;
 }
 
 // ─── Map Viewport ───────────────────────────────────────────────────────────
@@ -159,7 +152,7 @@ export interface MapViewport {
 // ─── Discover Page ─────────────────────────────────────────────────────────
 
 /** Category filter for the discover page (superset of PlaceCategory + events) */
-export type DiscoverCategory = 'all' | 'food_drink' | 'outdoors' | 'events' | 'shopping' | 'volunteering';
+export type DiscoverCategory = 'all' | 'food_drink' | 'outdoors' | 'events' | 'shopping' | 'volunteering' | 'entertainment' | 'arts_culture';
 
 /** Enriched feed item for the discover page, derived from places or events */
 export interface DiscoverItem {

@@ -3,6 +3,7 @@
 
 import { create } from 'zustand';
 import { createSearchSession, searchRetrieve } from '@/lib/mapbox-search';
+import { materializeMapboxPlace } from '@/lib/materialization';
 import type { SearchSuggestion, SearchResult } from '@/lib/types';
 
 let retrieveRequestSeq = 0;
@@ -65,6 +66,21 @@ export const useSearchStore = create<SearchState>((set, get) => ({
       suggestions: [],
       sessionToken: createSearchSession(),
     });
+
+    // Materialize the place into Supabase (fire-and-forget)
+    if (result) {
+      materializeMapboxPlace({
+        mapbox_id: suggestion.mapbox_id,
+        name: result.name,
+        address: result.full_address,
+        lat: result.lat,
+        lng: result.lng,
+        category: result.category,
+        website: result.website,
+      }).catch((err) => {
+        console.warn('[search-store] materialize failed:', err);
+      });
+    }
   },
 
   setSelectedResult: (result) =>

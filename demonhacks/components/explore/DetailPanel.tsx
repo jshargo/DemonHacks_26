@@ -1,4 +1,4 @@
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, Image, StyleSheet } from 'react-native';
 import type { DiscoverItem } from '@/lib/types';
 import { PLACE_CATEGORIES, ENTITY_TYPES } from '@/lib/constants';
 import SaveButton from '@/components/collections/SaveButton';
@@ -49,9 +49,13 @@ export default function DetailPanel({ item, onBack, isSaved, onToggleSave }: Det
         <Text style={styles.backText}>← Back to results</Text>
       </Pressable>
 
-      {/* Image placeholder */}
+      {/* Image */}
       <View style={styles.imageContainer}>
-        <View style={styles.imagePlaceholder} />
+        {item.imageUrl ? (
+          <Image source={{ uri: item.imageUrl }} style={styles.image} resizeMode="cover" />
+        ) : (
+          <View style={styles.imagePlaceholder} />
+        )}
         <View style={[styles.badge, { backgroundColor: badgeColor }]}>
           <Text style={styles.badgeText}>{badgeLabel}</Text>
         </View>
@@ -152,6 +156,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     marginBottom: 16,
+  },
+  image: {
+    flex: 1,
   },
   imagePlaceholder: {
     flex: 1,
