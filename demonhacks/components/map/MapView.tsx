@@ -3,7 +3,7 @@
 // neighborhood hover overlay, auto-rotate, compass in 3D mode,
 // CTA transit overlays with live train tracking.
 
-import { useRef, useCallback, useEffect } from 'react';
+import { useRef, useCallback, useEffect, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
 import Map, {
   Marker,
@@ -32,6 +32,9 @@ import CTARoutesLayer from './CTARoutesLayer';
 import CTAStopsLayer from './CTAStopsLayer';
 import CTATrainLayer from './CTATrainLayer';
 import CTAToggle from './CTAToggle';
+import DivvyStationsLayer from './DivvyStationsLayer';
+import BikeRoutesLayer from './BikeRoutesLayer';
+import BikeToggle from './BikeToggle';
 import TrainPopup from './TrainPopup';
 
 /** Camera settings for 3D tilted view */
@@ -63,6 +66,7 @@ export default function MapViewComponent({ pins, loading, onPinPress }: MapViewP
 
   const selectTrain = useCTAStore((s) => s.selectTrain);
   const showLiveTrains = useCTAStore((s) => s.showLiveTrains);
+  const [showBikeRoutes, setShowBikeRoutes] = useState(false);
 
   // ─── Auto-rotate in 3D mode ───
   useAutoRotate({ mapRef, enabled: is3D });
@@ -233,6 +237,11 @@ export default function MapViewComponent({ pins, loading, onPinPress }: MapViewP
       {/* CTA Toggle Buttons */}
       {mapLoaded && <CTAToggle />}
 
+      {/* Bike Routes Toggle — separate, bottom-left */}
+      {mapLoaded && (
+        <BikeToggle active={showBikeRoutes} onPress={() => setShowBikeRoutes((v) => !v)} />
+      )}
+
       {/* 3D Toggle Button */}
       <View style={styles.toggleContainer}>
         <Pressable
@@ -280,6 +289,12 @@ export default function MapViewComponent({ pins, loading, onPinPress }: MapViewP
         {mapLoaded && <CTARoutesLayer />}
         {mapLoaded && <CTAStopsLayer />}
         {mapLoaded && <CTATrainLayer />}
+
+        {/* Divvy bike stations */}
+        {mapLoaded && <DivvyStationsLayer />}
+
+        {/* Chicago bike routes */}
+        {mapLoaded && <BikeRoutesLayer visible={showBikeRoutes} />}
 
         {/* Train detail popup */}
         {mapLoaded && <TrainPopup />}

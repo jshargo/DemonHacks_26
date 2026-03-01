@@ -8,6 +8,7 @@ interface CTAState {
   showBusRoutes: boolean;
   showBusStops: boolean;
   showLiveTrains: boolean;
+  showDivvyStations: boolean;
 
   // Live train data
   trains: CTATrain[];
@@ -24,6 +25,7 @@ interface CTAState {
   toggleBusRoutes: () => void;
   toggleBusStops: () => void;
   toggleLiveTrains: () => void;
+  toggleDivvyStations: () => void;
   setTrains: (trains: CTATrain[]) => void;
   selectTrain: (train: CTATrain | null) => void;
   setTrainDetail: (detail: CTATrainDetail | null) => void;
@@ -37,7 +39,7 @@ export const useCTAStore = create<CTAState>((set, get) => ({
   showBusRoutes: false,
   showBusStops: false,
   showLiveTrains: false,
-
+  showDivvyStations: false,
   trains: [],
   prevTrains: new Map(),
   lastFetchTime: 0,
@@ -72,6 +74,8 @@ export const useCTAStore = create<CTAState>((set, get) => ({
       }
       return { showLiveTrains: next };
     }),
+
+  toggleDivvyStations: () => set((s) => ({ showDivvyStations: !s.showDivvyStations })),
 
   setTrains: (trains) =>
     set((s) => {
