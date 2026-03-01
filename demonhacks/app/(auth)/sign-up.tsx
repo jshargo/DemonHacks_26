@@ -1,10 +1,13 @@
-// Sign-up screen
-// Owner: Person 1 (Auth + Profiles)
-
 import { useState } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { Link } from 'expo-router';
+import { Mail, Lock, AtSign, UserCircle } from 'lucide-react-native';
+
 import { useAuthStore } from '@/stores/auth-store';
+import { Wordmark } from '@/components/ui/Wordmark';
+import { TextInput } from '@/components/ui/TextInput';
+import { Button } from '@/components/ui/Button';
+import { colors, typography, spacing, fonts } from '@/lib/theme';
 
 export default function SignUpScreen() {
   const [email, setEmail] = useState('');
@@ -18,73 +21,128 @@ export default function SignUpScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Create Account</Text>
-      <Text style={styles.subtitle}>Join the Chicago adventure</Text>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.inner}>
+          <View style={styles.header}>
+            <Wordmark size={32} />
+            <Text style={styles.title}>Join ExploreChi</Text>
+            <Text style={styles.subtitle}>
+              Discover everything Chicago has to offer
+            </Text>
+          </View>
 
-      {error && <Text style={styles.error}>{error}</Text>}
+          {error && <Text style={styles.error}>{error}</Text>}
 
-      <TextInput
-        style={styles.input}
-        placeholder="Username (required)"
-        value={username}
-        onChangeText={setUsername}
-        autoCapitalize="none"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Display Name"
-        value={displayName}
-        onChangeText={setDisplayName}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
+          <View style={styles.form}>
+            <TextInput
+              label="Username"
+              placeholder="Pick a unique username"
+              value={username}
+              onChangeText={setUsername}
+              autoCapitalize="none"
+              leftIcon={<AtSign size={18} color={colors.textTertiary} />}
+            />
+            <TextInput
+              label="Display Name"
+              placeholder="How you want to appear"
+              value={displayName}
+              onChangeText={setDisplayName}
+              leftIcon={<UserCircle size={18} color={colors.textTertiary} />}
+            />
+            <TextInput
+              label="Email"
+              placeholder="you@example.com"
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              leftIcon={<Mail size={18} color={colors.textTertiary} />}
+            />
+            <TextInput
+              label="Password"
+              placeholder="Choose a password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              leftIcon={<Lock size={18} color={colors.textTertiary} />}
+            />
+          </View>
 
-      <Pressable style={styles.button} onPress={handleSignUp} disabled={loading}>
-        <Text style={styles.buttonText}>{loading ? 'Creating account...' : 'Sign Up'}</Text>
-      </Pressable>
+          <Button
+            title={loading ? 'Creating account...' : 'Sign Up'}
+            variant="primary"
+            size="lg"
+            onPress={handleSignUp}
+            disabled={loading}
+            loading={loading}
+            fullWidth
+          />
 
-      <Link href="/(auth)/sign-in" style={styles.link}>
-        <Text style={styles.linkText}>Already have an account? Sign In</Text>
-      </Link>
-    </View>
+          <Link href="/(auth)/sign-in" style={styles.link}>
+            <Text style={styles.linkText}>
+              Already have an account? <Text style={styles.linkBold}>Sign In</Text>
+            </Text>
+          </Link>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, justifyContent: 'center', backgroundColor: '#fff' },
-  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 4 },
-  subtitle: { fontSize: 16, color: '#666', marginBottom: 32 },
-  error: { color: '#e74c3c', marginBottom: 12, fontSize: 14 },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 14,
-    fontSize: 16,
-    marginBottom: 12,
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
   },
-  button: {
-    backgroundColor: '#333',
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginBottom: 16,
+  scroll: {
+    flexGrow: 1,
+    justifyContent: 'center',
   },
-  buttonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
-  link: { marginTop: 16, alignSelf: 'center' },
-  linkText: { color: '#4285F4', fontSize: 14 },
+  inner: {
+    padding: spacing['2xl'],
+    maxWidth: 420,
+    width: '100%' as unknown as number,
+    alignSelf: 'center',
+  },
+  header: {
+    marginBottom: spacing['3xl'],
+  },
+  title: {
+    ...typography.displayMd,
+    color: colors.textPrimary,
+    marginTop: spacing.xl,
+  },
+  subtitle: {
+    ...typography.bodyLg,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
+  },
+  error: {
+    ...typography.bodyMd,
+    color: colors.error,
+    marginBottom: spacing.md,
+  },
+  form: {
+    gap: spacing.lg,
+    marginBottom: spacing['2xl'],
+  },
+  link: {
+    marginTop: spacing.xl,
+    alignSelf: 'center',
+  },
+  linkText: {
+    ...typography.bodyMd,
+    color: colors.textSecondary,
+  },
+  linkBold: {
+    fontFamily: fonts.bold,
+    color: colors.primary,
+  },
 });

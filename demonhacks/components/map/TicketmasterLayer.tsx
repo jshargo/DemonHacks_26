@@ -527,7 +527,7 @@ const styles = StyleSheet.create({
     venueName: {
         fontSize: 15,
         fontWeight: '700',
-        color: '#1a1a2e',
+        color: '#1A1A1A',
         marginBottom: 2,
     },
     venueMetaRow: {
@@ -574,7 +574,7 @@ const styles = StyleSheet.create({
     eventName: {
         fontSize: 13,
         fontWeight: '600',
-        color: '#1a1a2e',
+        color: '#1A1A1A',
     },
     eventDate: {
         fontSize: 11,

@@ -1,4 +1,5 @@
 import { Pressable, Text, StyleSheet } from 'react-native';
+import { colors, fonts, radii, spacing } from '@/lib/theme';
 
 interface SubcategoryChipProps {
   label: string;
@@ -26,26 +27,26 @@ export function SubcategoryChip({ label, selected, onPress, style }: Subcategory
 const styles = StyleSheet.create({
   chip: {
     paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingVertical: spacing.sm,
+    borderRadius: radii.xl,
     borderWidth: 1.5,
-    borderColor: '#DDDDDD',
-    backgroundColor: '#FFFFFF',
-    margin: 4,
+    borderColor: colors.border,
+    backgroundColor: colors.white,
+    margin: spacing.xs,
   },
   chipSelected: {
-    backgroundColor: '#222222',
-    borderColor: '#222222',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   chipPressed: {
     opacity: 0.75,
   },
   label: {
+    fontFamily: fonts.medium,
     fontSize: 13,
-    fontWeight: '500',
-    color: '#222222',
+    color: colors.textPrimary,
   },
   labelSelected: {
-    color: '#FFFFFF',
+    color: colors.textInverse,
   },
 });

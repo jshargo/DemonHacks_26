@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, Modal, Pressable } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, Pressable } from 'react-native';
 import type { UserProfile } from '@/lib/types';
+import { colors, fonts, typography, spacing, radii } from '@/lib/theme';
+import { Avatar } from '@/components/ui/Avatar';
+import { Button } from '@/components/ui/Button';
 
 interface Props {
   profile: UserProfile;
@@ -11,12 +14,7 @@ interface Props {
 export function FriendCard({ profile, onMessage, onUnfriend }: Props) {
   const [menuVisible, setMenuVisible] = useState(false);
 
-  const initials = (profile.display_name ?? profile.username)
-    .split(' ')
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
+  const displayName = profile.display_name ?? profile.username;
 
   const openMenu = (e?: any) => {
     if (!onUnfriend) return;
@@ -32,20 +30,19 @@ export function FriendCard({ profile, onMessage, onUnfriend }: Props) {
         // @ts-ignore — onContextMenu is a valid web prop
         onContextMenu={openMenu}
       >
-        <View style={styles.avatar}>
-          {profile.avatar_url ? (
-            <Image source={{ uri: profile.avatar_url }} style={styles.avatarImg} />
-          ) : (
-            <Text style={styles.initials}>{initials}</Text>
-          )}
+        <View style={styles.avatarWrap}>
+          <Avatar imageUrl={profile.avatar_url} name={displayName} size="md" />
         </View>
         <View style={styles.info}>
-          <Text style={styles.name}>{profile.display_name ?? profile.username}</Text>
+          <Text style={styles.name}>{displayName}</Text>
           <Text style={styles.username}>@{profile.username}</Text>
         </View>
-        <TouchableOpacity style={styles.msgBtn} onPress={() => onMessage(profile)}>
-          <Text style={styles.msgBtnText}>Message</Text>
-        </TouchableOpacity>
+        <Button
+          title="Message"
+          variant="primary"
+          size="sm"
+          onPress={() => onMessage(profile)}
+        />
       </Pressable>
 
       <Modal
@@ -56,7 +53,7 @@ export function FriendCard({ profile, onMessage, onUnfriend }: Props) {
       >
         <Pressable style={styles.overlay} onPress={() => setMenuVisible(false)}>
           <View style={styles.menu}>
-            <Text style={styles.menuName}>{profile.display_name ?? profile.username}</Text>
+            <Text style={styles.menuName}>{displayName}</Text>
             <View style={styles.divider} />
             <TouchableOpacity
               style={styles.menuItem}
@@ -78,60 +75,57 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E5E5',
+    borderBottomColor: colors.border,
   },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#6C63FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-    overflow: 'hidden',
+  avatarWrap: {
+    marginRight: spacing.md,
   },
-  avatarImg: { width: 44, height: 44 },
-  initials: { color: '#fff', fontWeight: '700', fontSize: 16 },
   info: { flex: 1 },
-  name: { fontSize: 15, fontWeight: '600', color: '#111' },
-  username: { fontSize: 13, color: '#888', marginTop: 2 },
-  msgBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 20,
-    backgroundColor: '#6C63FF',
+  name: {
+    ...typography.headingSm,
+    color: colors.textPrimary,
   },
-  msgBtnText: { color: '#fff', fontWeight: '600', fontSize: 13 },
+  username: {
+    ...typography.bodySm,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
   // Context menu
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.35)',
+    backgroundColor: colors.overlay,
     justifyContent: 'center',
     alignItems: 'center',
   },
   menu: {
-    backgroundColor: '#fff',
-    borderRadius: 14,
+    backgroundColor: colors.white,
+    borderRadius: radii.lg,
     width: 240,
     overflow: 'hidden',
   },
   menuName: {
-    fontSize: 13,
-    color: '#888',
+    ...typography.bodySm,
+    color: colors.textSecondary,
     textAlign: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
   },
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: '#E5E5E5' },
+  divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border },
   menuItem: {
     paddingVertical: 14,
     alignItems: 'center',
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#E5E5E5',
+    borderTopColor: colors.border,
   },
-  menuItemDanger: { fontSize: 16, color: '#FF3B30', fontWeight: '600' },
-  menuItemCancel: { fontSize: 16, color: '#6C63FF', fontWeight: '600' },
+  menuItemDanger: {
+    ...typography.headingSm,
+    color: colors.error,
+  },
+  menuItemCancel: {
+    ...typography.headingSm,
+    color: colors.primary,
+  },
 });

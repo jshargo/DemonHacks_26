@@ -5,6 +5,7 @@ import { useCollectionStore } from '@/stores/collection-store';
 import { useAuthStore } from '@/stores/auth-store';
 import type { DiscoverItem } from '@/lib/types';
 import DiscoverCard from './DiscoverCard';
+import { colors, typography, spacing } from '@/lib/theme';
 
 interface CardFeedProps {
   items: DiscoverItem[];
@@ -82,20 +83,19 @@ export default function CardFeed({ items, count, onItemPress, numColumns = 1 }: 
 
 const styles = StyleSheet.create({
   list: {
-    padding: 16,
-    paddingBottom: 32,
+    padding: spacing.lg,
+    paddingBottom: spacing['3xl'],
   },
   header: {
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   countText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1a1a2e',
-    marginBottom: 8,
+    ...typography.headingMd,
+    color: colors.textPrimary,
+    marginBottom: spacing.sm,
   },
   columnWrapper: {
-    gap: 12,
+    gap: spacing.md,
   },
   columnItem: {
     flex: 1,

@@ -14,6 +14,7 @@ import DetailPanel from './DetailPanel';
 import { POIDetailPanel } from './SearchBar';
 import MapViewComponent from '@/components/map/MapView';
 import { useSearchStore } from '@/stores/search-store';
+import { colors } from '@/lib/theme';
 
 const BOUNDS_DEBOUNCE_MS = 300;
 
@@ -192,7 +193,7 @@ export default function DesktopLayout() {
     <View style={styles.container}>
       {/* Left panel: TopBar + (CardFeed or DetailPanel) */}
       <View style={styles.leftPanel}>
-        <TopBar />
+        <TopBar showWordmark />
         {detailItem ? (
           <DetailPanel
             item={detailItem}
@@ -242,9 +243,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   leftPanel: {
-    flex: 1,
-    borderRightWidth: 1,
-    borderRightColor: '#eee',
+    width: '40%' as unknown as number,
+    borderRightWidth: StyleSheet.hairlineWidth,
+    borderRightColor: colors.borderLight,
   },
   rightPanel: {
     flex: 1,

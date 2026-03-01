@@ -21,6 +21,8 @@ import { useAuthStore } from '@/stores/auth-store';
 import { supabase } from '@/lib/supabase';
 import { CategoryCard } from '@/components/onboarding/CategoryCard';
 import { ChipGroup } from '@/components/onboarding/ChipGroup';
+import { Header } from '@/components/ui/Header';
+import { colors, fonts, typography, spacing, radii } from '@/lib/theme';
 
 export default function EditPreferencesScreen() {
   const router = useRouter();
@@ -70,20 +72,19 @@ export default function EditPreferencesScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.headerBtn}>
-          <Text style={styles.cancelText}>Cancel</Text>
-        </Pressable>
-        <Text style={styles.title}>My Interests</Text>
-        <Pressable onPress={handleSave} disabled={saving} style={styles.headerBtn}>
-          {saving ? (
-            <ActivityIndicator size="small" color="#222" />
-          ) : (
-            <Text style={styles.saveText}>Save</Text>
-          )}
-        </Pressable>
-      </View>
+      <Header
+        title="My Interests"
+        onBack={() => router.back()}
+        rightAction={
+          <Pressable onPress={handleSave} disabled={saving}>
+            {saving ? (
+              <ActivityIndicator size="small" color={colors.primary} />
+            ) : (
+              <Text style={styles.saveText}>Save</Text>
+            )}
+          </Pressable>
+        }
+      />
 
       <ScrollView
         contentContainerStyle={styles.content}
@@ -116,7 +117,7 @@ export default function EditPreferencesScreen() {
         {chosenCategories.length > 0 && (
           <>
             <Text style={[styles.sectionHeading, styles.subHeadingGap]}>Refine your picks</Text>
-            <Text style={styles.sectionSub}>Pick subcategories per interest — all optional</Text>
+            <Text style={styles.sectionSub}>Pick subcategories per interest -- all optional</Text>
 
             {chosenCategories.map((category) => {
               const selectedSubs = selectedSubcategories[category.id] ?? [];
@@ -143,40 +144,60 @@ export default function EditPreferencesScreen() {
           </>
         )}
 
-        <View style={{ height: 40 }} />
+        <View style={{ height: spacing['4xl'] }} />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#fff' },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E0E0E0',
+  safe: {
+    flex: 1,
+    backgroundColor: colors.white,
   },
-  headerBtn: { minWidth: 60 },
-  title: { fontSize: 17, fontWeight: '600', color: '#222' },
-  cancelText: { fontSize: 16, color: '#666' },
-  saveText: { fontSize: 16, fontWeight: '600', color: '#222', textAlign: 'right' },
-  content: { paddingHorizontal: 16, paddingTop: 20 },
-  sectionHeading: { fontSize: 20, fontWeight: '700', color: '#222', marginBottom: 4 },
-  subHeadingGap: { marginTop: 8 },
-  sectionSub: { fontSize: 14, color: '#717171', marginBottom: 16 },
-  grid: { paddingBottom: 8 },
-  subSection: { marginBottom: 24 },
+  saveText: {
+    ...typography.headingSm,
+    color: colors.primary,
+  },
+  content: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.xl,
+  },
+  sectionHeading: {
+    ...typography.headingLg,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
+  },
+  subHeadingGap: {
+    marginTop: spacing.sm,
+  },
+  sectionSub: {
+    ...typography.bodyMd,
+    color: colors.textSecondary,
+    marginBottom: spacing.lg,
+  },
+  grid: {
+    paddingBottom: spacing.sm,
+  },
+  subSection: {
+    marginBottom: spacing['2xl'],
+  },
   subSectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: spacing.sm + 2,
   },
-  subSectionTitle: { fontSize: 15, fontWeight: '600', color: '#222' },
-  subCounter: { fontSize: 12, color: '#AAAAAA' },
-  subCounterAtLimit: { color: '#222', fontWeight: '600' },
+  subSectionTitle: {
+    ...typography.headingSm,
+    color: colors.textPrimary,
+  },
+  subCounter: {
+    ...typography.bodySm,
+    color: colors.textTertiary,
+  },
+  subCounterAtLimit: {
+    color: colors.primary,
+    fontFamily: fonts.bold,
+  },
 });

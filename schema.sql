@@ -84,6 +84,7 @@ CREATE TABLE public.places (
   lng double precision NOT NULL,
   location USER-DEFINED DEFAULT (st_setsrid(st_makepoint(lng, lat), 4326))::geography,
   image_url text,
+  photo_urls text[] NOT NULL DEFAULT '{}',
   website_url text,
   phone text,
   is_featured boolean NOT NULL DEFAULT false,

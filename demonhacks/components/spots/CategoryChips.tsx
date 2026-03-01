@@ -1,5 +1,6 @@
 import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { ENTITY_TYPES, ENTITY_TYPE_KEYS, PLACE_CATEGORIES, PLACE_CATEGORY_KEYS } from '@/lib/constants';
+import { colors, fonts, spacing, radii } from '@/lib/theme';
 import type { EntityType, PlaceCategory } from '@/lib/types';
 
 interface CategoryChipsProps {
@@ -58,22 +59,22 @@ export default function CategoryChips({
 }
 
 const styles = StyleSheet.create({
-  container: { paddingHorizontal: 12, paddingVertical: 8 },
+  container: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
   chip: {
     paddingHorizontal: 14,
     paddingVertical: 6,
-    borderRadius: 20,
+    borderRadius: radii.full,
     borderWidth: 1,
-    borderColor: '#ddd',
-    marginRight: 8,
-    backgroundColor: '#fff',
+    borderColor: colors.border,
+    marginRight: spacing.sm,
+    backgroundColor: colors.white,
   },
-  label: { fontSize: 13, color: '#333' },
-  activeLabel: { color: '#fff' },
+  label: { fontSize: 13, fontFamily: fonts.medium, color: colors.textPrimary },
+  activeLabel: { color: colors.textInverse },
   divider: {
     width: 1,
-    backgroundColor: '#ddd',
-    marginRight: 8,
+    backgroundColor: colors.border,
+    marginRight: spacing.sm,
     marginVertical: 4,
   },
 });
