@@ -153,3 +153,80 @@ export interface MapViewport {
   pitch?: number;
   bearing?: number;
 }
+
+// ─── Discover Page ─────────────────────────────────────────────────────────
+
+/** Category filter for the discover page (superset of PlaceCategory + events) */
+export type DiscoverCategory = 'all' | 'food_drink' | 'outdoors' | 'events' | 'shopping' | 'volunteering';
+
+/** Enriched feed item for the discover page, derived from places or events */
+export interface DiscoverItem {
+  id: string;
+  entityType: EntityType;
+  name: string;
+  lat: number;
+  lng: number;
+  category: PlaceCategory | null;
+  subcategory: string | null;
+  description: string | null;
+  imageUrl: string | null;
+  neighborhood: string;
+  rating: number | null;
+  priceRange: '$' | '$$' | '$$$' | '$$$$' | null;
+  tags: string[];
+  startsAt: string | null;
+  endsAt: string | null;
+  venueName: string | null;
+  attendingCount: number | null;
+  websiteUrl: string | null;
+  /** Mapbox ID for POIs sourced from Mapbox Search Box (used by /retrieve) */
+  mapboxId?: string;
+  /** Search Box session token used when this result list was fetched */
+  mapboxSessionToken?: string;
+  /** Formatted address from Mapbox (shown when description is unavailable) */
+  placeFormatted?: string;
+}
+
+/** Label displayed inside an Airbnb-style pill pin on the map */
+export interface PinLabel {
+  text: string;
+  type: 'date' | 'price' | 'rating';
+}
+
+/** Geographic bounding box for viewport-based filtering */
+export interface MapBounds {
+  north: number;
+  south: number;
+  east: number;
+  west: number;
+}
+
+// ─── Mapbox Search Box API ─────────────────────────────────────────────────
+
+/** Autocomplete suggestion from Mapbox Search Box /suggest endpoint */
+export interface SearchSuggestion {
+  mapbox_id: string;
+  name: string;
+  feature_type: string;       // 'poi' | 'address' | 'place' | 'street'
+  place_formatted: string;    // "123 Main St, Chicago, IL"
+  category?: string;
+  poi_categories?: string[];
+  maki?: string;              // Mapbox icon identifier
+  lat?: number;
+  lng?: number;
+}
+
+/** Full POI details from Mapbox Search Box /retrieve endpoint */
+export interface SearchResult {
+  mapbox_id: string;
+  name: string;
+  address: string;
+  full_address: string;
+  lat: number;
+  lng: number;
+  category?: string;
+  poi_categories?: string[];
+  phone?: string;
+  website?: string;
+  hours?: Record<string, string>;
+}

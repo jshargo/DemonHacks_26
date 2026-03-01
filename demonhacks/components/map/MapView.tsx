@@ -22,10 +22,11 @@ import { useCTAStore } from '@/stores/cta-store';
 import { useAutoRotate } from '@/hooks/useAutoRotate';
 import { useCTATrainIcons } from '@/hooks/useCTATrainIcons';
 import { useCTATrains } from '@/hooks/useCTATrains';
-import type { MapPin as MapPinType } from '@/lib/types';
+import type { MapPin as MapPinType, PinLabel, MapBounds, SearchResult } from '@/lib/types';
 import type { CTATrain } from '@/lib/cta';
 
 import AnimatedPin from './AnimatedPin';
+import LabelPin from './LabelPin';
 import CityMaskLayer from './CityMaskLayer';
 import NeighborhoodLayer from './NeighborhoodLayer';
 import CTARoutesLayer from './CTARoutesLayer';
@@ -43,9 +44,40 @@ interface MapViewProps {
   pins: MapPinType[];
   loading?: boolean;
   onPinPress?: (pin: MapPinType) => void;
+  /** 'animated' (default) = bouncing circle pins; 'label' = Airbnb-style pill pins */
+  pinStyle?: 'animated' | 'label';
+  /** Pin label content for label-style pins, keyed by pin ID */
+  pinLabels?: Map<string, PinLabel>;
+  /** ID of pin to highlight (hovered from card feed) */
+  highlightedPinId?: string;
+  /** ID of selected pin (detail open) */
+  selectedPinId?: string;
+  /** Called when mouse enters a pin */
+  onPinHover?: (pinId: string) => void;
+  /** Called when mouse leaves a pin */
+  onPinHoverEnd?: () => void;
+  /** Called when map viewport bounds change */
+  onBoundsChange?: (bounds: MapBounds) => void;
+  /** Search result to display as a pin and fly to */
+  searchResult?: SearchResult | null;
+  /** Called when search result pin is dismissed */
+  onSearchResultDismiss?: () => void;
 }
 
-export default function MapViewComponent({ pins, loading, onPinPress }: MapViewProps) {
+export default function MapViewComponent({
+  pins,
+  loading,
+  onPinPress,
+  pinStyle = 'animated',
+  pinLabels,
+  highlightedPinId,
+  selectedPinId,
+  onPinHover,
+  onPinHoverEnd,
+  onBoundsChange,
+  searchResult,
+  onSearchResultDismiss,
+}: MapViewProps) {
   const mapRef = useRef<MapRef>(null);
   const hoveredFeatureId = useRef<number | null>(null);
 
@@ -77,8 +109,9 @@ export default function MapViewComponent({ pins, loading, onPinPress }: MapViewP
     if (!map) return;
 
     // Configure Standard basemap
-    map.setConfigProperty('basemap', 'showPointOfInterestLabels', false);
+    map.setConfigProperty('basemap', 'showPointOfInterestLabels', true);
     map.setConfigProperty('basemap', 'showTransitLabels', false);
+    map.setConfigProperty('basemap', 'showRoadLabels', false);
 
     // Set initial light preset from Chicago time
     const preset = getChicagoLightPreset();
@@ -119,7 +152,17 @@ export default function MapViewComponent({ pins, loading, onPinPress }: MapViewP
     }
   }, [is3D, lightPreset]);
 
-  // ─── Viewport sync ───
+  // ─── Fly to search result ───
+  useEffect(() => {
+    if (!searchResult || !mapRef.current) return;
+    mapRef.current.flyTo({
+      center: [searchResult.lng, searchResult.lat],
+      zoom: 15,
+      duration: 1500,
+    });
+  }, [searchResult]);
+
+  // ─── Viewport sync + bounds reporting ───
   const handleMove = useCallback(
     (evt: ViewStateChangeEvent) => {
       setViewport({
@@ -129,8 +172,23 @@ export default function MapViewComponent({ pins, loading, onPinPress }: MapViewP
         pitch: evt.viewState.pitch,
         bearing: evt.viewState.bearing,
       });
+
+      if (onBoundsChange) {
+        const map = mapRef.current?.getMap();
+        if (map) {
+          const b = map.getBounds();
+          if (b) {
+            onBoundsChange({
+              north: b.getNorth(),
+              south: b.getSouth(),
+              east: b.getEast(),
+              west: b.getWest(),
+            });
+          }
+        }
+      }
     },
-    [setViewport],
+    [setViewport, onBoundsChange],
   );
 
   // ─── Neighborhood hover + train cursor ───
@@ -294,7 +352,7 @@ export default function MapViewComponent({ pins, loading, onPinPress }: MapViewP
           />
         )}
 
-        {/* Animated pins */}
+        {/* Map pins — animated circles or Airbnb-style labels */}
         {pins.map((pin, index) => (
           <Marker
             key={`${pin.entityType}-${pin.id}`}
@@ -302,13 +360,40 @@ export default function MapViewComponent({ pins, loading, onPinPress }: MapViewP
             longitude={pin.lng}
             anchor="center"
           >
-            <AnimatedPin
-              entityType={pin.entityType}
-              index={index}
-              onClick={() => onPinPress?.(pin)}
-            />
+            {pinStyle === 'label' && pinLabels?.has(pin.id) ? (
+              <LabelPin
+                label={pinLabels.get(pin.id)!}
+                isSelected={selectedPinId === pin.id}
+                isHighlighted={highlightedPinId === pin.id}
+                onClick={() => onPinPress?.(pin)}
+                onMouseEnter={() => onPinHover?.(pin.id)}
+                onMouseLeave={() => onPinHoverEnd?.()}
+              />
+            ) : (
+              <AnimatedPin
+                entityType={pin.entityType}
+                index={index}
+                onClick={() => onPinPress?.(pin)}
+              />
+            )}
           </Marker>
         ))}
+
+        {/* Search result pin */}
+        {searchResult && (
+          <Marker
+            key={`search-${searchResult.mapbox_id}`}
+            latitude={searchResult.lat}
+            longitude={searchResult.lng}
+            anchor="center"
+          >
+            <LabelPin
+              label={{ text: searchResult.name, type: 'rating' }}
+              isSelected
+              onClick={onSearchResultDismiss}
+            />
+          </Marker>
+        )}
       </Map>
     </View>
   );
