@@ -31,8 +31,6 @@ function QuestCard({ quest, onPress }: { quest: LocalQuest; onPress: () => void 
       style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
       onPress={onPress}
     >
-      <View style={[styles.cardStripe, { backgroundColor: diffColor }]} />
-
       <View style={styles.cardBody}>
         <View style={styles.cardTopRow}>
           <Text style={styles.cardName} numberOfLines={1}>{quest.name}</Text>
@@ -124,7 +122,6 @@ const styles = StyleSheet.create({
   },
 
   card: {
-    flexDirection: 'row',
     backgroundColor: colors.white,
     borderRadius: radii.lg,
     marginHorizontal: spacing.lg,
@@ -136,9 +133,7 @@ const styles = StyleSheet.create({
     opacity: 0.92,
     transform: [{ scale: 0.985 }],
   },
-  cardStripe: {
-    width: 5,
-  },
+
   cardBody: {
     flex: 1,
     padding: spacing.lg,
