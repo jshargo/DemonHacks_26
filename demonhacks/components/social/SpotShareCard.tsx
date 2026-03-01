@@ -22,9 +22,9 @@ export function SpotShareCard({ metadata, type, isMe }: Props) {
       <View style={styles.info}>
         <Text style={styles.label}>{type === 'event' ? 'Event' : 'Spot'}</Text>
         <Text style={styles.name} numberOfLines={2}>{metadata.name}</Text>
-        {metadata.address && (
+        {metadata.address ? (
           <Text style={styles.address} numberOfLines={1}>{metadata.address}</Text>
-        )}
+        ) : null}
       </View>
     </View>
   );

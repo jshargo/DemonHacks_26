@@ -64,10 +64,10 @@ export default function RootLayout() {
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
       const style = document.createElement('style');
       style.textContent = `
-        @font-face { font-family: 'Satoshi-Regular'; src: url('/assets/fonts/Satoshi-Regular.otf') format('opentype'); font-weight: 400; font-display: swap; }
-        @font-face { font-family: 'Satoshi-Medium'; src: url('/assets/fonts/Satoshi-Medium.otf') format('opentype'); font-weight: 500; font-display: swap; }
-        @font-face { font-family: 'Satoshi-Bold'; src: url('/assets/fonts/Satoshi-Bold.otf') format('opentype'); font-weight: 700; font-display: swap; }
-        @font-face { font-family: 'Satoshi-Black'; src: url('/assets/fonts/Satoshi-Black.otf') format('opentype'); font-weight: 900; font-display: swap; }
+        @font-face { font-family: 'Satoshi-Regular'; src: url('/fonts/Satoshi-Regular.otf') format('opentype'); font-weight: 400; font-display: swap; }
+        @font-face { font-family: 'Satoshi-Medium'; src: url('/fonts/Satoshi-Medium.otf') format('opentype'); font-weight: 500; font-display: swap; }
+        @font-face { font-family: 'Satoshi-Bold'; src: url('/fonts/Satoshi-Bold.otf') format('opentype'); font-weight: 700; font-display: swap; }
+        @font-face { font-family: 'Satoshi-Black'; src: url('/fonts/Satoshi-Black.otf') format('opentype'); font-weight: 900; font-display: swap; }
       `;
       document.head.appendChild(style);
       return () => { document.head.removeChild(style); };

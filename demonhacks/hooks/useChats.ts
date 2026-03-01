@@ -24,7 +24,10 @@ export function useChats() {
 
     const { data, error } = await supabase.rpc('get_my_chats');
     if (error) console.warn('loadChats error:', error.message);
-    if (data) setChats(data as any[]);
+    if (data) {
+      const parsed = typeof data === 'string' ? JSON.parse(data) : data;
+      setChats(Array.isArray(parsed) ? parsed : []);
+    }
     setChatsLoading(false);
   }, [userId]);
 

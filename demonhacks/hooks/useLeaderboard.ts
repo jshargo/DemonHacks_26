@@ -78,5 +78,12 @@ export function useLeaderboard() {
     loadLeaderboard();
   }, [xpVersion]);
 
+  // Re-fetch when friends list changes so leaderboard includes them
+  useEffect(() => {
+    if (userId && friends.length > 0) {
+      loadLeaderboard();
+    }
+  }, [friends.length, userId]);
+
   return { entries, loading, loadLeaderboard };
 }

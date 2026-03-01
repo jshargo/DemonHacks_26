@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 
+import { useAuthStore } from '@/stores/auth-store';
 import { useSocialStore } from '@/stores/social-store';
 import { useFriends } from '@/hooks/useFriends';
 import { useChats } from '@/hooks/useChats';
@@ -69,6 +70,7 @@ export default function SocialScreen() {
   const [tab, setTab] = useState<Tab>('chats');
   const [newChatVisible, setNewChatVisible] = useState(false);
 
+  const userId = useAuthStore((s) => s.session?.user?.id);
   const { friends, pendingReceived, chats } = useSocialStore();
   const { loadFriends, acceptRequest, declineRequest, unfriend } = useFriends();
   const { loadChats, openOrCreateDM, createGroupChat } = useChats();
@@ -81,12 +83,13 @@ export default function SocialScreen() {
   });
 
   useEffect(() => {
+    if (!userId) return;
     loadFriends();
     loadChats();
     loadLeaderboard();
     const poll = setInterval(loadChats, 5000);
     return () => clearInterval(poll);
-  }, []);
+  }, [userId]);
 
   const handleOpenChat = (chat: Chat) => {
     router.push(`/chat/${chat.id}`);
