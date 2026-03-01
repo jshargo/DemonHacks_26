@@ -36,6 +36,7 @@ import CTAToggle from './CTAToggle';
 import DivvyStationsLayer from './DivvyStationsLayer';
 import BikeRoutesLayer from './BikeRoutesLayer';
 import BikeToggle from './BikeToggle';
+import PedwayRoutesLayer from './PedwayRoutesLayer';
 import TrainPopup from './TrainPopup';
 import TicketmasterLayer from './TicketmasterLayer';
 
@@ -355,6 +356,9 @@ export default function MapViewComponent({
 
         {/* Chicago bike routes */}
         {mapLoaded && <BikeRoutesLayer visible={showBikeRoutes} />}
+
+        {/* Chicago Pedway underground routes */}
+        {mapLoaded && <PedwayRoutesLayer />}
 
         {/* Train detail popup */}
         {mapLoaded && <TrainPopup />}

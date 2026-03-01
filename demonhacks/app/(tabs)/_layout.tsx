@@ -32,7 +32,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="quests"
         options={{
-          title: 'Events',
+          title: 'Quests',
           tabBarIcon: ({ color }) => (
             <SymbolView
               name={{ ios: 'flag', android: 'flag', web: 'flag' }}
