@@ -1,273 +1,185 @@
--- =============================================================================
--- Chicago Event Discovery Map — Production Schema
--- DemonHacks '26
--- =============================================================================
--- This schema is the canonical reference for all Supabase tables.
--- Run against a fresh Supabase project (PostGIS is pre-enabled).
--- =============================================================================
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
 
--- ─── Extensions ─────────────────────────────────────────────────────────────
-
-create extension if not exists postgis;
-
--- ─── Profiles ───────────────────────────────────────────────────────────────
--- Extends Supabase auth.users with public profile data.
-
-create table public.profiles (
-  id          uuid primary key references auth.users(id) on delete cascade,
-  username    text not null unique,
+CREATE TABLE public.chat_members (
+  chat_id uuid NOT NULL,
+  user_id uuid NOT NULL,
+  joined_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT chat_members_pkey PRIMARY KEY (chat_id, user_id),
+  CONSTRAINT chat_members_chat_id_fkey FOREIGN KEY (chat_id) REFERENCES public.chats(id),
+  CONSTRAINT chat_members_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.chats (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  type text NOT NULL CHECK (type = ANY (ARRAY['direct'::text, 'group'::text])),
+  name text,
+  created_by uuid,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT chats_pkey PRIMARY KEY (id),
+  CONSTRAINT chats_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.checkins (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  place_id uuid,
+  event_id uuid,
+  quest_step_id uuid,
+  lat double precision,
+  lng double precision,
+  xp_earned integer NOT NULL DEFAULT 10 CHECK (xp_earned >= 0 AND xp_earned <= 200),
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT checkins_pkey PRIMARY KEY (id),
+  CONSTRAINT checkins_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id),
+  CONSTRAINT checkins_place_id_fkey FOREIGN KEY (place_id) REFERENCES public.places(id),
+  CONSTRAINT checkins_event_id_fkey FOREIGN KEY (event_id) REFERENCES public.events(id),
+  CONSTRAINT checkins_quest_step_id_fkey FOREIGN KEY (quest_step_id) REFERENCES public.quest_steps(id)
+);
+CREATE TABLE public.events (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  slug text NOT NULL UNIQUE,
+  description text,
+  place_id uuid,
+  lat double precision NOT NULL,
+  lng double precision NOT NULL,
+  location USER-DEFINED DEFAULT (st_setsrid(st_makepoint(lng, lat), 4326))::geography,
+  image_url text,
+  starts_at timestamp with time zone NOT NULL,
+  ends_at timestamp with time zone NOT NULL,
+  is_featured boolean NOT NULL DEFAULT false,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT events_pkey PRIMARY KEY (id),
+  CONSTRAINT events_place_id_fkey FOREIGN KEY (place_id) REFERENCES public.places(id)
+);
+CREATE TABLE public.friendships (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  requester_id uuid NOT NULL,
+  addressee_id uuid NOT NULL,
+  status text DEFAULT 'pending'::text CHECK (status = ANY (ARRAY['pending'::text, 'accepted'::text, 'declined'::text])),
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT friendships_pkey PRIMARY KEY (id),
+  CONSTRAINT friendships_requester_id_fkey FOREIGN KEY (requester_id) REFERENCES public.profiles(id),
+  CONSTRAINT friendships_addressee_id_fkey FOREIGN KEY (addressee_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.messages (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  chat_id uuid NOT NULL,
+  sender_id uuid NOT NULL,
+  type text DEFAULT 'text'::text CHECK (type = ANY (ARRAY['text'::text, 'spot'::text, 'event'::text])),
+  content text,
+  metadata jsonb,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT messages_pkey PRIMARY KEY (id),
+  CONSTRAINT messages_chat_id_fkey FOREIGN KEY (chat_id) REFERENCES public.chats(id),
+  CONSTRAINT messages_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.places (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  slug text NOT NULL UNIQUE,
+  category USER-DEFINED NOT NULL DEFAULT 'other'::place_category_enum,
+  description text,
+  address text,
+  lat double precision NOT NULL,
+  lng double precision NOT NULL,
+  location USER-DEFINED DEFAULT (st_setsrid(st_makepoint(lng, lat), 4326))::geography,
+  image_url text,
+  website_url text,
+  phone text,
+  is_featured boolean NOT NULL DEFAULT false,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  mapbox_id text UNIQUE,
+  CONSTRAINT places_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.profiles (
+  id uuid NOT NULL,
+  username text NOT NULL UNIQUE,
   display_name text,
-  avatar_url  text,
-  bio         text,
-  created_at  timestamptz not null default now(),
-  updated_at  timestamptz not null default now()
+  avatar_url text,
+  bio text,
+  xp integer NOT NULL DEFAULT 0,
+  indoors_bias USER-DEFINED NOT NULL DEFAULT 'mixed'::indoors_bias_enum,
+  crowd_level USER-DEFINED NOT NULL DEFAULT 'anything'::crowd_level_enum,
+  age_gate USER-DEFINED NOT NULL DEFAULT 'no_pref'::age_gate_enum,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  onboarding_completed boolean NOT NULL DEFAULT false,
+  hide_location boolean DEFAULT false,
+  hide_quest_progress boolean DEFAULT false,
+  CONSTRAINT profiles_pkey PRIMARY KEY (id),
+  CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
 );
-
--- ─── Places ─────────────────────────────────────────────────────────────────
--- Static venues: restaurants, bars, parks, shops, volunteer orgs, etc.
--- Category distinguishes the SPEC's five non-event categories.
-
-create table public.places (
-  id           uuid primary key default gen_random_uuid(),
-  name         text not null,
-  slug         text not null unique,
-  category     text not null check (category in (
-                 'food_drink', 'outdoors', 'shopping', 'volunteering', 'other'
-               )),
-  subcategory  text,                          -- e.g. 'pizza', 'cocktail-bar', 'park'
-  tags         text[] not null default '{}',
-  description  text,
-  address      text,
-  lat          double precision not null,
-  lng          double precision not null,
-  location     geography(Point, 4326) generated always as
-               (st_setsrid(st_makepoint(lng, lat), 4326)::geography) stored,
-  image_url    text,
-  website_url  text,
-  phone        text,
-  hours        jsonb,                         -- e.g. {"mon":"9am-5pm", ...}
-  price_range  text check (price_range in ('$', '$$', '$$$', '$$$$')),
-  rating       numeric(2,1) check (rating >= 0 and rating <= 5),
-  is_featured  boolean not null default false,
-  created_at   timestamptz not null default now(),
-  updated_at   timestamptz not null default now()
+CREATE TABLE public.quest_steps (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  quest_id uuid NOT NULL,
+  step_order smallint NOT NULL DEFAULT 1,
+  title text NOT NULL,
+  description text,
+  target_type USER-DEFINED NOT NULL,
+  target_id uuid NOT NULL,
+  xp_reward integer NOT NULL DEFAULT 25,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT quest_steps_pkey PRIMARY KEY (id),
+  CONSTRAINT quest_steps_quest_id_fkey FOREIGN KEY (quest_id) REFERENCES public.quests(id)
 );
-
--- ─── Events ─────────────────────────────────────────────────────────────────
--- Time-bound happenings: concerts, comedy, festivals, art openings, etc.
-
-create table public.events (
-  id              uuid primary key default gen_random_uuid(),
-  name            text not null,
-  slug            text not null unique,
-  description     text,
-  place_id        uuid references public.places(id) on delete set null,
-  venue_name      text,                       -- denormalized for events at non-place venues
-  lat             double precision not null,
-  lng             double precision not null,
-  location        geography(Point, 4326) generated always as
-                  (st_setsrid(st_makepoint(lng, lat), 4326)::geography) stored,
-  image_url       text,
-  starts_at       timestamptz not null,
-  ends_at         timestamptz not null,
-  max_capacity    integer,
-  attending_count integer not null default 0 check (attending_count >= 0),
-  ticket_url      text,
-  is_featured     boolean not null default false,
-  created_at      timestamptz not null default now()
+CREATE TABLE public.quests (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  title text NOT NULL,
+  slug text NOT NULL UNIQUE,
+  description text,
+  xp_reward integer NOT NULL DEFAULT 100,
+  image_url text,
+  is_active boolean NOT NULL DEFAULT true,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT quests_pkey PRIMARY KEY (id)
 );
-
--- ─── Event Attendees ────────────────────────────────────────────────────────
--- RSVP / attendance tracking.
-
-create table public.event_attendees (
-  event_id   uuid not null references public.events(id) on delete cascade,
-  user_id    uuid not null references public.profiles(id) on delete cascade,
-  created_at timestamptz not null default now(),
-  primary key (event_id, user_id)
+CREATE TABLE public.saved_items (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  item_type USER-DEFINED NOT NULL,
+  item_id uuid NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT saved_items_pkey PRIMARY KEY (id),
+  CONSTRAINT saved_items_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id)
 );
-
--- ─── Quests ─────────────────────────────────────────────────────────────────
--- Curated multi-stop exploration routes.
-
-create table public.quests (
-  id             uuid primary key default gen_random_uuid(),
-  title          text not null,
-  slug           text not null unique,
-  description    text,
-  image_url      text,
-  difficulty     text not null default 'easy' check (difficulty in ('easy', 'medium', 'hard')),
-  estimated_time text,                        -- human-readable, e.g. '3 hours'
-  is_active      boolean not null default true,
-  created_at     timestamptz not null default now()
+CREATE TABLE public.signals (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  place_id uuid,
+  event_id uuid,
+  signal USER-DEFINED NOT NULL,
+  note text CHECK (char_length(note) <= 140),
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  expires_at timestamp with time zone NOT NULL DEFAULT (now() + '06:00:00'::interval),
+  CONSTRAINT signals_pkey PRIMARY KEY (id),
+  CONSTRAINT signals_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id),
+  CONSTRAINT signals_place_id_fkey FOREIGN KEY (place_id) REFERENCES public.places(id),
+  CONSTRAINT signals_event_id_fkey FOREIGN KEY (event_id) REFERENCES public.events(id)
 );
-
--- ─── Quest Stops ────────────────────────────────────────────────────────────
--- Ordered stops within a quest. Direct FK to places — enforces referential integrity.
-
-create table public.quest_stops (
-  id         uuid primary key default gen_random_uuid(),
-  quest_id   uuid not null references public.quests(id) on delete cascade,
-  place_id   uuid not null references public.places(id) on delete cascade,
-  stop_order smallint not null,
-  hint       text,
-  created_at timestamptz not null default now(),
-  unique (quest_id, stop_order)
+CREATE TABLE public.spatial_ref_sys (
+  srid integer NOT NULL CHECK (srid > 0 AND srid <= 998999),
+  auth_name character varying,
+  auth_srid integer,
+  srtext character varying,
+  proj4text character varying,
+  CONSTRAINT spatial_ref_sys_pkey PRIMARY KEY (srid)
 );
-
--- ─── Quest Progress ─────────────────────────────────────────────────────────
--- Tracks which stops a user has checked into for quest completion.
-
-create table public.quest_progress (
-  id            uuid primary key default gen_random_uuid(),
-  user_id       uuid not null references public.profiles(id) on delete cascade,
-  quest_id      uuid not null references public.quests(id) on delete cascade,
-  quest_stop_id uuid not null references public.quest_stops(id) on delete cascade,
-  checked_in_at timestamptz not null default now(),
-  unique (user_id, quest_stop_id)
+CREATE TABLE public.user_onboarding_preferences (
+  user_id uuid NOT NULL,
+  selected_categories ARRAY NOT NULL DEFAULT '{}'::text[],
+  selected_subcategories jsonb NOT NULL DEFAULT '{}'::jsonb,
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT user_onboarding_preferences_pkey PRIMARY KEY (user_id),
+  CONSTRAINT user_onboarding_preferences_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id)
 );
-
--- ─── Collections ────────────────────────────────────────────────────────────
--- Named user collections (e.g. "Date Night", "Coffee Spots", "Favorites").
-
-create table public.collections (
-  id         uuid primary key default gen_random_uuid(),
-  user_id    uuid not null references public.profiles(id) on delete cascade,
-  name       text not null default 'Favorites',
-  created_at timestamptz not null default now()
+CREATE TABLE public.user_preferences (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  pref_type USER-DEFINED NOT NULL,
+  category USER-DEFINED,
+  tag USER-DEFINED,
+  weight smallint NOT NULL DEFAULT 2 CHECK (weight >= 1 AND weight <= 3),
+  CONSTRAINT user_preferences_pkey PRIMARY KEY (id),
+  CONSTRAINT user_preferences_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id)
 );
-
--- ─── Collection Items ───────────────────────────────────────────────────────
--- Items saved to a collection. Polymorphic: can be a place or an event.
-
-create table public.collection_items (
-  id            uuid primary key default gen_random_uuid(),
-  collection_id uuid not null references public.collections(id) on delete cascade,
-  item_type     text not null check (item_type in ('place', 'event')),
-  item_id       uuid not null,                -- references places.id or events.id
-  added_at      timestamptz not null default now(),
-  unique (collection_id, item_type, item_id)
-);
-
--- =============================================================================
--- Indexes
--- =============================================================================
-
--- Spatial indexes for proximity queries (ST_DWithin, ST_Distance)
-create index idx_places_location on public.places using gist (location);
-create index idx_events_location on public.events using gist (location);
-
--- Category filtering on map
-create index idx_places_category on public.places (category);
-create index idx_places_is_featured on public.places (is_featured) where is_featured = true;
-
--- Event time filtering (upcoming events)
-create index idx_events_starts_at on public.events (starts_at);
-create index idx_events_is_featured on public.events (is_featured) where is_featured = true;
-
--- Quest retrieval
-create index idx_quest_stops_quest_order on public.quest_stops (quest_id, stop_order);
-create index idx_quests_is_active on public.quests (is_active) where is_active = true;
-
--- User-scoped lookups
-create index idx_quest_progress_user on public.quest_progress (user_id, quest_id);
-create index idx_collections_user on public.collections (user_id);
-create index idx_collection_items_collection on public.collection_items (collection_id);
-create index idx_event_attendees_user on public.event_attendees (user_id);
-
--- =============================================================================
--- Row-Level Security (RLS)
--- =============================================================================
-
-alter table public.profiles enable row level security;
-alter table public.places enable row level security;
-alter table public.events enable row level security;
-alter table public.event_attendees enable row level security;
-alter table public.quests enable row level security;
-alter table public.quest_stops enable row level security;
-alter table public.quest_progress enable row level security;
-alter table public.collections enable row level security;
-alter table public.collection_items enable row level security;
-
--- Profiles: anyone can read, only self can update
-create policy "Profiles are publicly readable"
-  on public.profiles for select using (true);
-create policy "Users can update their own profile"
-  on public.profiles for update using (auth.uid() = id);
-create policy "Users can insert their own profile"
-  on public.profiles for insert with check (auth.uid() = id);
-
--- Places: public read, admin-only write (via service role / dashboard)
-create policy "Places are publicly readable"
-  on public.places for select using (true);
-
--- Events: public read, admin-only write
-create policy "Events are publicly readable"
-  on public.events for select using (true);
-
--- Event attendees: public read, authenticated users can RSVP/un-RSVP themselves
-create policy "Attendees are publicly readable"
-  on public.event_attendees for select using (true);
-create policy "Users can RSVP to events"
-  on public.event_attendees for insert with check (auth.uid() = user_id);
-create policy "Users can cancel their RSVP"
-  on public.event_attendees for delete using (auth.uid() = user_id);
-
--- Quests & stops: public read, admin-only write
-create policy "Quests are publicly readable"
-  on public.quests for select using (true);
-create policy "Quest stops are publicly readable"
-  on public.quest_stops for select using (true);
-
--- Quest progress: users can only read/write their own
-create policy "Users can read their own quest progress"
-  on public.quest_progress for select using (auth.uid() = user_id);
-create policy "Users can check into quest stops"
-  on public.quest_progress for insert with check (auth.uid() = user_id);
-
--- Collections: users can only CRUD their own
-create policy "Users can read their own collections"
-  on public.collections for select using (auth.uid() = user_id);
-create policy "Users can create collections"
-  on public.collections for insert with check (auth.uid() = user_id);
-create policy "Users can update their own collections"
-  on public.collections for update using (auth.uid() = user_id);
-create policy "Users can delete their own collections"
-  on public.collections for delete using (auth.uid() = user_id);
-
--- Collection items: inherit access from parent collection
-create policy "Users can read their own collection items"
-  on public.collection_items for select
-  using (exists (
-    select 1 from public.collections c
-    where c.id = collection_id and c.user_id = auth.uid()
-  ));
-create policy "Users can add items to their collections"
-  on public.collection_items for insert
-  with check (exists (
-    select 1 from public.collections c
-    where c.id = collection_id and c.user_id = auth.uid()
-  ));
-create policy "Users can remove items from their collections"
-  on public.collection_items for delete
-  using (exists (
-    select 1 from public.collections c
-    where c.id = collection_id and c.user_id = auth.uid()
-  ));
-
--- =============================================================================
--- Helper: auto-create default "Favorites" collection on profile creation
--- =============================================================================
-
-create or replace function public.handle_new_user()
-returns trigger as $$
-begin
-  insert into public.collections (user_id, name)
-  values (new.id, 'Favorites');
-  return new;
-end;
-$$ language plpgsql security definer;
-
-create trigger on_profile_created
-  after insert on public.profiles
-  for each row execute function public.handle_new_user();

@@ -1,4 +1,4 @@
-import { useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
+import { useCallback } from 'react';
 import { View, Text, FlatList, Switch, StyleSheet, type ListRenderItemInfo } from 'react-native';
 import { useExploreStore } from '@/stores/explore-store';
 import { useCollectionStore } from '@/stores/collection-store';
@@ -13,16 +13,7 @@ interface CardFeedProps {
   numColumns?: number;
 }
 
-export interface CardFeedHandle {
-  scrollToItem: (itemId: string) => void;
-}
-
-const CardFeed = forwardRef<CardFeedHandle, CardFeedProps>(function CardFeed(
-  { items, count, onItemPress, numColumns = 1 },
-  ref,
-) {
-  const listRef = useRef<FlatList<DiscoverItem>>(null);
-
+export default function CardFeed({ items, count, onItemPress, numColumns = 1 }: CardFeedProps) {
   const searchAsIMove = useExploreStore((s) => s.searchAsIMove);
   const setSearchAsIMove = useExploreStore((s) => s.setSearchAsIMove);
   const hoveredPinId = useExploreStore((s) => s.hoveredPinId);
@@ -31,58 +22,22 @@ const CardFeed = forwardRef<CardFeedHandle, CardFeedProps>(function CardFeed(
   const isSaved = useCollectionStore((s) => s.isSaved);
   const addItem = useCollectionStore((s) => s.addItem);
   const removeItem = useCollectionStore((s) => s.removeItem);
-  const collections = useCollectionStore((s) => s.collections);
-  const collectionItems = useCollectionStore((s) => s.items);
+  const findSavedItem = useCollectionStore((s) => s.findSavedItem);
   const session = useAuthStore((s) => s.session);
-
-  const handleScrollToIndexFailed = useCallback(
-    ({ index, averageItemLength }: { index: number; averageItemLength: number }) => {
-      listRef.current?.scrollToOffset({
-        offset: Math.max(0, index * averageItemLength),
-        animated: true,
-      });
-
-      setTimeout(() => {
-        listRef.current?.scrollToIndex({ index, animated: true, viewOffset: 16 });
-      }, 80);
-    },
-    [],
-  );
-
-  /** Scroll to a specific item by ID (called when a pin is clicked on the map) */
-  const scrollToItem = useCallback(
-    (itemId: string) => {
-      const index = items.findIndex((i) => i.id === itemId);
-      if (index < 0 || !listRef.current) return;
-
-      try {
-        listRef.current.scrollToIndex({ index, animated: true, viewOffset: 16 });
-      } catch {
-        handleScrollToIndexFailed({ index, averageItemLength: 260 });
-      }
-    },
-    [handleScrollToIndexFailed, items],
-  );
-
-  useImperativeHandle(ref, () => ({ scrollToItem }), [scrollToItem]);
 
   const handleToggleSave = useCallback(
     (item: DiscoverItem) => {
       if (!session) return;
-      const favorites = collections.find((c) => c.name === 'Favorites');
-      if (!favorites) return;
+      const userId = session.user.id;
 
-      const saved = isSaved(item.entityType, item.id);
-      if (saved) {
-        const ci = collectionItems.find(
-          (i) => i.item_type === item.entityType && i.item_id === item.id,
-        );
-        if (ci) removeItem(ci.id);
+      const existing = findSavedItem(item.id);
+      if (existing) {
+        removeItem(existing.id);
       } else {
-        addItem(favorites.id, item.entityType, item.id);
+        addItem(userId, item.entityType, item.id);
       }
     },
-    [session, collections, collectionItems, isSaved, addItem, removeItem],
+    [session, findSavedItem, addItem, removeItem],
   );
 
   const renderItem = useCallback(
@@ -94,7 +49,7 @@ const CardFeed = forwardRef<CardFeedHandle, CardFeedProps>(function CardFeed(
           onHover={() => setHoveredItemId(item.id)}
           onHoverEnd={() => setHoveredItemId(null)}
           isHighlighted={hoveredPinId === item.id}
-          isSaved={isSaved(item.entityType, item.id)}
+          isSaved={isSaved(item.id)}
           onToggleSave={() => handleToggleSave(item)}
         />
       </View>
@@ -122,7 +77,6 @@ const CardFeed = forwardRef<CardFeedHandle, CardFeedProps>(function CardFeed(
 
   return (
     <FlatList
-      ref={listRef}
       data={items}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
@@ -132,12 +86,9 @@ const CardFeed = forwardRef<CardFeedHandle, CardFeedProps>(function CardFeed(
       numColumns={numColumns}
       columnWrapperStyle={numColumns > 1 ? styles.columnWrapper : undefined}
       showsVerticalScrollIndicator={false}
-      onScrollToIndexFailed={handleScrollToIndexFailed}
     />
   );
-});
-
-export default CardFeed;
+}
 
 const styles = StyleSheet.create({
   list: {

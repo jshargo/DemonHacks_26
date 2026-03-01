@@ -36,6 +36,8 @@ export const PLACE_CATEGORIES: Record<PlaceCategory, { label: string; color: str
   food_drink:    { label: 'Food & Drink',    color: '#FF6B35', icon: 'restaurant' },
   outdoors:      { label: 'Outdoors',        color: '#00C49A', icon: 'nature' },
   shopping:      { label: 'Shopping',        color: '#F77F00', icon: 'shopping-bag' },
+  entertainment: { label: 'Entertainment',   color: '#9B5DE5', icon: 'theater' },
+  arts_culture:  { label: 'Arts & Culture',  color: '#00BBF9', icon: 'museum' },
   volunteering:  { label: 'Volunteering',    color: '#E63946', icon: 'volunteer' },
   other:         { label: 'Other',           color: '#888888', icon: 'pin' },
 };

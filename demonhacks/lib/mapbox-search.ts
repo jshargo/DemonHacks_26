@@ -7,6 +7,7 @@
 
 import { MAPBOX_ACCESS_TOKEN } from './mapbox';
 import { CHICAGO_CENTER, CHICAGO_BOUNDS } from './constants';
+import { isInsideChicago } from './geo';
 import type { SearchSuggestion, SearchResult, DiscoverCategory, MapBounds } from './types';
 
 const BASE_URL = 'https://api.mapbox.com/search/searchbox/v1';
@@ -102,11 +103,13 @@ interface RetrieveOptions {
 }
 
 type MapboxDiscoverCategory = DiscoverCategory;
-type PoiFilterCategory = 'all' | 'food_drink' | 'outdoors' | 'shopping';
+type PoiFilterCategory = 'all' | 'food_drink' | 'outdoors' | 'entertainment' | 'arts_culture' | 'shopping';
 
 const MAPBOX_CATEGORY_CANDIDATES: Record<Exclude<PoiFilterCategory, 'all'>, readonly string[]> = {
   food_drink: ['restaurant', 'cafe', 'coffee_shop', 'bar', 'bakery', 'fast_food', 'ice_cream'],
   outdoors: ['park', 'garden', 'playground', 'nature_reserve', 'trailhead', 'sports_center', 'beach'],
+  entertainment: ['nightclub', 'cinema', 'theatre', 'bowling_alley', 'amusement_park', 'stadium', 'concert_hall'],
+  arts_culture: ['museum', 'art_gallery', 'library', 'historic_site', 'memorial', 'cultural_center'],
   shopping: ['shopping_mall', 'market', 'supermarket', 'clothing_store', 'book_store', 'gift_shop', 'department_store'],
 };
 
@@ -114,6 +117,8 @@ const DISCOVER_DEFAULT_QUERY: Record<MapboxDiscoverCategory, string> = {
   all: 'places',
   food_drink: 'restaurant',
   outdoors: 'park',
+  entertainment: 'entertainment',
+  arts_culture: 'museum',
   shopping: 'shopping',
   events: 'event venue',
   volunteering: 'community center',
@@ -123,6 +128,8 @@ const DISCOVER_FALLBACK_QUERY: Record<MapboxDiscoverCategory, string> = {
   all: 'restaurant',
   food_drink: 'food',
   outdoors: 'outdoors',
+  entertainment: 'nightclub',
+  arts_culture: 'gallery',
   shopping: 'store',
   events: 'theater',
   volunteering: 'nonprofit',
@@ -346,17 +353,14 @@ async function getPoiCategoryCatalog(): Promise<Set<string>> {
 }
 
 function isPoiFilterCategory(category: DiscoverCategory): category is PoiFilterCategory {
-  return category === 'all' || category === 'food_drink' || category === 'outdoors' || category === 'shopping';
+  return category === 'all' || category in MAPBOX_CATEGORY_CANDIDATES;
 }
 
 function getPoiCategoryCandidates(category: PoiFilterCategory): string[] {
   if (category === 'all') {
     return [...new Set(Object.values(MAPBOX_CATEGORY_CANDIDATES).flat())];
   }
-  if (category === 'food_drink' || category === 'outdoors' || category === 'shopping') {
-    return [...MAPBOX_CATEGORY_CANDIDATES[category]];
-  }
-  return [];
+  return [...(MAPBOX_CATEGORY_CANDIDATES[category as Exclude<PoiFilterCategory, 'all'>] ?? [])];
 }
 
 async function resolvePoiCategoryFilter(category: DiscoverCategory): Promise<string[]> {
@@ -410,7 +414,15 @@ export async function searchSuggest(
   if (!data?.suggestions?.length) return [];
   return data.suggestions
     .map(mapSuggestItem)
-    .filter((item): item is SearchSuggestion => item !== null);
+    .filter((item): item is SearchSuggestion => item !== null)
+    .filter((item) => {
+      // Filter out results outside Chicago bounds
+      if (item.lat != null && item.lng != null) {
+        return isInsideChicago(item.lat, item.lng);
+      }
+      // Keep items without coords (they'll get coords from /retrieve)
+      return true;
+    });
 }
 
 // ─── Retrieve ───────────────────────────────────────────────────────────────
@@ -485,6 +497,8 @@ export function isMapboxCategory(category: DiscoverCategory): boolean {
   return category === 'all'
     || category === 'food_drink'
     || category === 'outdoors'
+    || category === 'entertainment'
+    || category === 'arts_culture'
     || category === 'shopping'
     || category === 'events'
     || category === 'volunteering';

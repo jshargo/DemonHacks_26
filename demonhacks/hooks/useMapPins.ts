@@ -49,7 +49,7 @@ export function useMapPins(options?: UseMapPinsOptions) {
                 lat: p.lat,
                 lng: p.lng,
                 category: p.category,
-                subcategory: p.subcategory,
+                subcategory: null,
                 description: p.description,
                 imageUrl: p.image_url,
               });
