@@ -1,19 +1,74 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, TouchableOpacity, FlatList, StyleSheet, SafeAreaView,
+  Image, ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { useSocialStore } from '@/stores/social-store';
 import { useFriends } from '@/hooks/useFriends';
 import { useChats } from '@/hooks/useChats';
+import { useLeaderboard, type LeaderboardEntry } from '@/hooks/useLeaderboard';
 import { FriendCard } from '@/components/social/FriendCard';
 import { FriendRequestCard } from '@/components/social/FriendRequestCard';
 import { ChatListItem } from '@/components/social/ChatListItem';
 import { NewChatModal } from '@/components/social/NewChatModal';
 import type { Chat, UserProfile } from '@/lib/types';
 
-type Tab = 'chats' | 'friends';
+type Tab = 'chats' | 'friends' | 'leaderboard';
+
+const MEDAL_COLORS: Record<number, string> = {
+  1: '#FFD700',
+  2: '#C0C0C0',
+  3: '#CD7F32',
+};
+
+function LeaderboardRow({ entry }: { entry: LeaderboardEntry }) {
+  const medalColor = MEDAL_COLORS[entry.rank];
+  const initials = (entry.display_name ?? entry.username ?? '?')
+    .split(' ')
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+
+  return (
+    <View style={[styles.lbRow, entry.isCurrentUser && styles.lbRowHighlight]}>
+      <View style={[
+        styles.lbRank,
+        medalColor ? { backgroundColor: medalColor } : styles.lbRankDefault,
+      ]}>
+        <Text style={[
+          styles.lbRankText,
+          medalColor ? { color: '#fff' } : { color: '#888' },
+        ]}>
+          {entry.rank}
+        </Text>
+      </View>
+
+      <View style={styles.lbAvatar}>
+        {entry.avatar_url ? (
+          <Image source={{ uri: entry.avatar_url }} style={styles.lbAvatarImg} />
+        ) : (
+          <Text style={styles.lbInitials}>{initials}</Text>
+        )}
+      </View>
+
+      <View style={styles.lbInfo}>
+        <Text style={styles.lbName} numberOfLines={1}>
+          {entry.display_name ?? entry.username}
+          {entry.isCurrentUser ? ' (You)' : ''}
+        </Text>
+        <Text style={styles.lbUsername}>@{entry.username}</Text>
+      </View>
+
+      <View style={styles.lbXpContainer}>
+        <Text style={styles.lbXpValue}>{entry.xp.toLocaleString()}</Text>
+        <Text style={styles.lbXpLabel}>XP</Text>
+      </View>
+    </View>
+  );
+}
 
 export default function SocialScreen() {
   const router = useRouter();
@@ -23,6 +78,7 @@ export default function SocialScreen() {
   const { friends, pendingReceived, chats } = useSocialStore();
   const { loadFriends, acceptRequest, declineRequest, unfriend } = useFriends();
   const { loadChats, openOrCreateDM, createGroupChat } = useChats();
+  const { entries, loading: lbLoading, loadLeaderboard } = useLeaderboard();
 
   const sortedChats = [...chats].sort((a, b) => {
     const aTime = (a.last_message as any)?.created_at ?? a.created_at;
@@ -33,6 +89,7 @@ export default function SocialScreen() {
   useEffect(() => {
     loadFriends();
     loadChats();
+    loadLeaderboard();
     const poll = setInterval(loadChats, 5000);
     return () => clearInterval(poll);
   }, []);
@@ -42,14 +99,9 @@ export default function SocialScreen() {
   };
 
   const handleMessage = async (profile: UserProfile) => {
-    console.log('[handleMessage] called for', profile.id);
     const chatId = await openOrCreateDM(profile.id);
-    console.log('[handleMessage] chatId =', chatId);
     if (chatId) {
-      console.log('[handleMessage] navigating to /chat/' + chatId);
       router.push(`/chat/${chatId}` as any);
-    } else {
-      console.warn('[handleMessage] openOrCreateDM returned null');
     }
   };
 
@@ -101,6 +153,12 @@ export default function SocialScreen() {
             )}
           </View>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tabBtn, tab === 'leaderboard' && styles.tabBtnActive]}
+          onPress={() => { setTab('leaderboard'); loadLeaderboard(); }}
+        >
+          <Text style={[styles.tabText, tab === 'leaderboard' && styles.tabTextActive]}>Ranks</Text>
+        </TouchableOpacity>
       </View>
 
       {tab === 'chats' && (
@@ -110,7 +168,7 @@ export default function SocialScreen() {
           renderItem={({ item }) => <ChatListItem chat={item} onPress={handleOpenChat} />}
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyIcon}>💬</Text>
+              <Text style={styles.emptyIcon}>{'\uD83D\uDCAC'}</Text>
               <Text style={styles.emptyTitle}>No chats yet</Text>
               <Text style={styles.emptySubtitle}>Start a conversation with a friend</Text>
             </View>
@@ -150,7 +208,7 @@ export default function SocialScreen() {
           }
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyIcon}>👥</Text>
+              <Text style={styles.emptyIcon}>{'\uD83D\uDC65'}</Text>
               <Text style={styles.emptyTitle}>No friends yet</Text>
               <Text style={styles.emptySubtitle}>Search for people by username</Text>
               <TouchableOpacity
@@ -160,6 +218,29 @@ export default function SocialScreen() {
                 <Text style={styles.searchBtnText}>Find Friends</Text>
               </TouchableOpacity>
             </View>
+          }
+        />
+      )}
+
+      {tab === 'leaderboard' && (
+        <FlatList
+          data={entries}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => <LeaderboardRow entry={item} />}
+          contentContainerStyle={{ paddingBottom: 24 }}
+          ListEmptyComponent={
+            lbLoading ? (
+              <View style={styles.empty}>
+                <ActivityIndicator size="large" color="#6C63FF" />
+                <Text style={[styles.emptySubtitle, { marginTop: 12 }]}>Loading leaderboard...</Text>
+              </View>
+            ) : (
+              <View style={styles.empty}>
+                <Text style={styles.emptyIcon}>{'\uD83C\uDFC6'}</Text>
+                <Text style={styles.emptyTitle}>No rankings yet</Text>
+                <Text style={styles.emptySubtitle}>Complete quests to earn XP and climb the leaderboard</Text>
+              </View>
+            )
           }
         />
       )}
@@ -243,4 +324,77 @@ const styles = StyleSheet.create({
     backgroundColor: '#6C63FF',
   },
   searchBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+
+  // Leaderboard
+  lbRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E5E5E5',
+  },
+  lbRowHighlight: {
+    backgroundColor: '#6C63FF10',
+  },
+  lbRank: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  lbRankDefault: {
+    backgroundColor: '#F0F0F0',
+  },
+  lbRankText: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  lbAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#6C63FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+    overflow: 'hidden',
+  },
+  lbAvatarImg: {
+    width: 40,
+    height: 40,
+  },
+  lbInitials: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 15,
+  },
+  lbInfo: {
+    flex: 1,
+  },
+  lbName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111',
+  },
+  lbUsername: {
+    fontSize: 12,
+    color: '#888',
+    marginTop: 2,
+  },
+  lbXpContainer: {
+    alignItems: 'flex-end',
+  },
+  lbXpValue: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#6C63FF',
+  },
+  lbXpLabel: {
+    fontSize: 10,
+    color: '#999',
+    fontWeight: '600',
+  },
 });
