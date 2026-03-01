@@ -1,7 +1,8 @@
 // CTAToggle — Toggle buttons for CTA rail/bus/train overlays.
 // Positioned above the existing 3D toggle in the bottom-right corner.
+// The first button slot doubles as Pen when draw mode is active.
 
-import { View, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, Text, StyleSheet } from 'react-native';
 import { TrainFront, Bus, Train, Bike, Footprints, Ticket } from 'lucide-react-native';
 import { useCTAStore } from '@/stores/cta-store';
 import { colors, shadows, spacing, radii } from '@/lib/theme';
@@ -14,7 +15,17 @@ type ToggleConfig = {
   accentColor: string;
 };
 
-export default function CTAToggle() {
+interface CTAToggleProps {
+  /** Whether pen (draw) mode is active */
+  isDrawMode?: boolean;
+  /** Callback to toggle pen mode */
+  onToggleDrawMode?: () => void;
+}
+
+export default function CTAToggle({
+  isDrawMode = false,
+  onToggleDrawMode,
+}: CTAToggleProps) {
   const showRailLines = useCTAStore((s) => s.showRailLines);
   const showBusRoutes = useCTAStore((s) => s.showBusRoutes);
   const showLiveTrains = useCTAStore((s) => s.showLiveTrains);
@@ -75,7 +86,18 @@ export default function CTAToggle() {
 
   return (
     <View style={styles.container}>
-      {toggles.map(({ key, icon: Icon, isActive, onPress, accentColor }) => (
+      {/* Pen icon — always first (top of stack), never moves */}
+      <Pressable
+        style={[styles.btn, isDrawMode && styles.btnActive]}
+        onPress={onToggleDrawMode}
+        accessibilityLabel={isDrawMode ? 'Exit draw mode' : 'Enter draw mode'}
+        accessibilityRole="button"
+      >
+        <Text style={{ fontSize: 20 }}>✏️</Text>
+      </Pressable>
+
+      {/* Remaining buttons — hidden when pen mode is ON */}
+      {!isDrawMode && toggles.map(({ key, icon: Icon, isActive, onPress, accentColor }) => (
         <Pressable
           key={key}
           style={[styles.btn, isActive && styles.btnActive]}

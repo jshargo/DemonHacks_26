@@ -26,6 +26,7 @@ import { colors, shadows, spacing, radii, fonts } from '@/lib/theme';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import type { MapPin as MapPinType, PinLabel, MapBounds, SearchResult } from '@/lib/types';
 import type { CTATrain } from '@/lib/cta';
+import { useDrawStore } from '@/stores/draw-store';
 
 import AnimatedPin from './AnimatedPin';
 import LabelPin from './LabelPin';
@@ -41,6 +42,7 @@ import BikeToggle from './BikeToggle';
 import PedwayRoutesLayer from './PedwayRoutesLayer';
 import TrainPopup from './TrainPopup';
 import TicketmasterLayer from './TicketmasterLayer';
+import DrawControl from './DrawControl';
 
 /** Camera settings for 3D tilted view */
 const VIEW_3D = { pitch: 60, bearing: -17.6 } as const;
@@ -109,6 +111,12 @@ export default function MapViewComponent({
 
   const selectTrain = useCTAStore((s) => s.selectTrain);
   const showLiveTrains = useCTAStore((s) => s.showLiveTrains);
+
+  // ─── Draw mode (used only for cursor hint; drawing handled by DrawControl) ───
+  const isDrawMode = useDrawStore((s) => s.isDrawMode);
+  const toggleDrawMode = useDrawStore((s) => s.toggleDrawMode);
+  const drawnPolygon = useDrawStore((s) => s.drawnPolygon);
+  const isDrawing = useDrawStore((s) => s.isDrawing);
   const [showBikeRoutes, setShowBikeRoutes] = useState(false);
 
   // ─── Auto-rotate in 3D mode ───
@@ -253,6 +261,9 @@ export default function MapViewComponent({
         return;
       }
 
+      // Draw mode: clicks are consumed by the DrawControl overlay
+      if (isDrawMode) return;
+
       const trainFeature = evt.features?.find((f) => f.layer?.id === 'cta-trains');
       if (trainFeature && trainFeature.properties) {
         const p = trainFeature.properties;
@@ -275,7 +286,7 @@ export default function MapViewComponent({
       // No interactive feature clicked — dismiss selection
       onMapBackgroundClick?.();
     },
-    [selectTrain, onMapBackgroundClick],
+    [selectTrain, onMapBackgroundClick, isDrawMode],
   );
 
   // ─── Native fallback ───
@@ -287,32 +298,62 @@ export default function MapViewComponent({
     );
   }
 
-  // Build interactive layer IDs
-  const interactiveLayerIds = mapLoaded
+  // Build interactive layer IDs (disabled in draw mode)
+  const interactiveLayerIds = mapLoaded && !isDrawMode
     ? [...(showLiveTrains ? ['cta-trains'] : [])]
     : [];
 
+  // ─── 3-state marker visibility ───
+  // pen OFF → show all pins
+  // pen ON + actively drawing → show none
+  // pen ON + not drawing + polygon exists → show pins (already spatially filtered by useFilteredFeed)
+  // pen ON + not drawing + no polygon yet → show none (pen just turned on)
+  const showPins = !isDrawMode || (!isDrawing && drawnPolygon !== null);
+
   return (
     <View style={styles.container}>
-      {/* CTA Toggle Buttons */}
-      {mapLoaded && <CTAToggle />}
-
-      {/* Bike Routes Toggle — separate, bottom-left */}
+      {/* CTA toggle stack — pen icon lives in the train slot */}
       {mapLoaded && (
+        <CTAToggle
+          isDrawMode={isDrawMode}
+          onToggleDrawMode={toggleDrawMode}
+        />
+      )}
+
+      {/* Bike Routes Toggle — hidden in draw mode */}
+      {!isDrawMode && mapLoaded && (
         <BikeToggle active={showBikeRoutes} onPress={() => setShowBikeRoutes((v) => !v)} />
       )}
 
-      {/* 3D Toggle Button */}
-      <View style={styles.toggleContainer}>
-        <Pressable
-          style={[styles.toggleBtn, is3D && styles.toggleBtnActive]}
-          onPress={toggle3D}
-        >
-          <Text style={[styles.toggleIcon, is3D && styles.toggleIconActive]}>
-            {is3D ? '3D' : '2D'}
+      {/* 3D Toggle Button — hidden in draw mode */}
+      {!isDrawMode && (
+        <View style={styles.toggleContainer}>
+          <Pressable
+            style={[styles.toggleBtn, is3D && styles.toggleBtnActive]}
+            onPress={toggle3D}
+          >
+            <Text style={[styles.toggleIcon, is3D && styles.toggleIconActive]}>
+              {is3D ? '3D' : '2D'}
+            </Text>
+          </Pressable>
+        </View>
+      )}
+
+      {/* Draw mode hints */}
+      {isDrawMode && !isDrawing && !drawnPolygon && (
+        <View style={styles.drawHint}>
+          <Text style={styles.drawHintText}>
+            Click & drag to draw a boundary
           </Text>
-        </Pressable>
-      </View>
+        </View>
+      )}
+      {isDrawMode && drawnPolygon && (
+        <View style={styles.drawHint}>
+          <Text style={styles.drawHintText}>
+            Tap ✏️ again to clear & exit
+          </Text>
+        </View>
+      )}
 
       {loading && (
         <View style={styles.loadingOverlay}>
@@ -335,9 +376,9 @@ export default function MapViewComponent({
         onMove={handleMove}
         onLoad={handleLoad}
         interactiveLayerIds={interactiveLayerIds}
-        onMouseMove={mapLoaded ? handleMouseMove : undefined}
-        onMouseLeave={mapLoaded ? handleMouseLeave : undefined}
-        onClick={mapLoaded ? handleClick : undefined}
+        onMouseMove={mapLoaded && !isDrawMode ? handleMouseMove : undefined}
+        onMouseLeave={mapLoaded && !isDrawMode ? handleMouseLeave : undefined}
+        onClick={mapLoaded && !isDrawMode ? handleClick : undefined}
       >
         {/* City mask — hides everything outside Chicago; must render first (below neighborhoods) */}
         {mapLoaded && <CityMaskLayer />}
@@ -362,11 +403,14 @@ export default function MapViewComponent({
         {/* Chicago Pedway underground routes */}
         {mapLoaded && <PedwayRoutesLayer />}
 
-        {/* Train detail popup */}
-        {mapLoaded && <TrainPopup />}
+        {/* Train detail popup (hidden in draw mode) */}
+        {mapLoaded && !isDrawMode && <TrainPopup />}
 
-        {/* Compass — 3D mode only */}
-        {is3D && (
+        {/* Draw polygon layers (DrawControl manages map interactions) */}
+        {mapLoaded && <DrawControl mapRef={mapRef} />}
+
+        {/* Compass — 3D mode only, hidden in draw mode */}
+        {is3D && !isDrawMode && (
           <NavigationControl
             position="bottom-left"
             showCompass
@@ -375,8 +419,8 @@ export default function MapViewComponent({
           />
         )}
 
-        {/* Map pins — animated circles or Airbnb-style labels */}
-        {pins.map((pin, index) => {
+        {/* Map pins — visibility controlled by 3-state logic */}
+        {showPins && pins.map((pin, index) => {
           const isSelected = selectedPinId === pin.id;
           const isHighlighted = highlightedPinId === pin.id;
           return (
@@ -408,8 +452,8 @@ export default function MapViewComponent({
           );
         })}
 
-        {/* Search result pin */}
-        {searchResult && (
+        {/* Search result pin — hidden in draw mode */}
+        {showPins && searchResult && (
           <Marker
             key={`search-${searchResult.mapbox_id}`}
             latitude={searchResult.lat}
@@ -473,5 +517,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
     borderRadius: radii.full,
+  },
+  // ── Draw mode hint styles ─────────────────────────────────────────
+  drawHint: {
+    position: 'absolute',
+    top: 16,
+    left: '50%',
+    // @ts-ignore web-only transform
+    transform: [{ translateX: '-50%' }],
+    zIndex: 10,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  } as any,
+  drawHintText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600',
   },
 });
