@@ -37,6 +37,7 @@ import DivvyStationsLayer from './DivvyStationsLayer';
 import BikeRoutesLayer from './BikeRoutesLayer';
 import BikeToggle from './BikeToggle';
 import TrainPopup from './TrainPopup';
+import TicketmasterLayer from './TicketmasterLayer';
 
 /** Camera settings for 3D tilted view */
 const VIEW_3D = { pitch: 60, bearing: -17.6 } as const;
@@ -348,6 +349,9 @@ export default function MapViewComponent({
 
         {/* Divvy bike stations */}
         {mapLoaded && <DivvyStationsLayer />}
+
+        {/* Ticketmaster events */}
+        {mapLoaded && <TicketmasterLayer />}
 
         {/* Chicago bike routes */}
         {mapLoaded && <BikeRoutesLayer visible={showBikeRoutes} />}
