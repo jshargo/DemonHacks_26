@@ -19,16 +19,11 @@
 ## Demo
 
 <div align="center">
-  <table>
-    <tr>
-      <td>
-        <video src="demonhacks/assets/demo.mp4" width="600" controls>
-          Your browser does not support the video tag.
-        </video>
-      </td>
-    </tr>
-  </table>
-  <sub>🎬 Full walkthrough of ChiExplore — map exploration, quests, and collections</sub>
+  <a href="https://youtu.be/Za_1-ED3Iq4">
+    <img src="https://img.youtube.com/vi/Za_1-ED3Iq4/maxresdefault.jpg" alt="ChiExplore Demo" width="600" />
+  </a>
+  <br>
+  <sub>🎬 Click to watch the full ChiExplore walkthrough</sub>
 </div>
 
 ---
