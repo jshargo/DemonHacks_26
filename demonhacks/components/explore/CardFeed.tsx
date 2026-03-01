@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { View, Text, FlatList, Switch, Pressable, StyleSheet, type ListRenderItemInfo } from 'react-native';
+import { View, Text, FlatList, Pressable, StyleSheet, type ListRenderItemInfo } from 'react-native';
 import { useExploreStore } from '@/stores/explore-store';
 import { useCollectionStore } from '@/stores/collection-store';
 import { useAuthStore } from '@/stores/auth-store';
@@ -80,15 +80,6 @@ export default function CardFeed({ items, count, onItemPress, numColumns = 1 }: 
           )}
         </Pressable>
 
-        {/* Toggle */}
-        <View style={styles.toggleRow}>
-          <Text style={styles.toggleLabel}>Search as I move</Text>
-          <Switch
-            value={searchAsIMove}
-            onValueChange={setSearchAsIMove}
-            trackColor={{ false: '#ccc', true: '#1a1a2e' }}
-          />
-        </View>
       </View>
     </View>
   );
@@ -160,15 +151,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 10,
     fontWeight: '700',
-  },
-  toggleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  toggleLabel: {
-    fontSize: 13,
-    color: '#666',
   },
   columnWrapper: {
     gap: spacing.md,

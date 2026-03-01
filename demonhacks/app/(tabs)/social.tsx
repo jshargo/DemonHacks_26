@@ -196,6 +196,7 @@ export default function SocialScreen() {
                 profile={item.data as UserProfile}
                 onMessage={handleMessage}
                 onUnfriend={unfriend}
+                onPress={() => router.push(`/friends/${(item.data as UserProfile).id}` as any)}
               />
             );
           }}
