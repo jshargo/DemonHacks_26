@@ -83,6 +83,8 @@ export interface UserProfile {
   bio: string | null;
   location: string | null;
   onboarding_completed: boolean;
+  hide_location: boolean;
+  hide_quest_progress: boolean;
   created_at: string;
   updated_at: string;
 }
