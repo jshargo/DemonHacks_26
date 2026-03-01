@@ -541,6 +541,7 @@ class TicketmasterEvent(BaseModel):
     venueName: Optional[str] = None
     lat: Optional[float] = None
     lng: Optional[float] = None
+    segment: Optional[str] = None
     genre: Optional[str] = None
     subGenre: Optional[str] = None
 
@@ -570,6 +571,9 @@ async def get_ticketmaster_events(
     if cached:
         return cached
 
+    now = datetime.now(timezone.utc)
+    end = now + timedelta(days=7)
+
     params: dict[str, str | int] = {
         "apikey": TICKETMASTER_API_KEY,
         "latlong": f"{CHICAGO_LAT},{CHICAGO_LON}",
@@ -577,7 +581,8 @@ async def get_ticketmaster_events(
         "unit": "miles",
         "size": size,
         "sort": "date,asc",
-        "startDateTime": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "startDateTime": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "endDateTime": end.strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
     if keyword:
         params["keyword"] = keyword
@@ -614,13 +619,19 @@ async def get_ticketmaster_events(
         if not image_url and images:
             image_url = images[0].get("url")
 
-        # Extract genre/subgenre
+        # Extract classification hierarchy: segment -> genre -> subGenre
         classifications = ev.get("classifications", [])
+        segment = None
         genre = None
         sub_genre = None
         if classifications:
-            genre = classifications[0].get("genre", {}).get("name")
-            sub_genre = classifications[0].get("subGenre", {}).get("name")
+            c = classifications[0]
+            seg_name = c.get("segment", {}).get("name")
+            genre_name = c.get("genre", {}).get("name")
+            sub_genre_name = c.get("subGenre", {}).get("name")
+            segment = seg_name if seg_name and seg_name != "Undefined" else None
+            genre = genre_name if genre_name and genre_name != "Undefined" else None
+            sub_genre = sub_genre_name if sub_genre_name and sub_genre_name != "Undefined" else None
 
         # Extract start date
         dates = ev.get("dates", {}).get("start", {})
@@ -636,8 +647,9 @@ async def get_ticketmaster_events(
                 venueName=venue.get("name"),
                 lat=lat,
                 lng=lng,
-                genre=genre if genre != "Undefined" else None,
-                subGenre=sub_genre if sub_genre != "Undefined" else None,
+                segment=segment,
+                genre=genre,
+                subGenre=sub_genre,
             )
         )
 
