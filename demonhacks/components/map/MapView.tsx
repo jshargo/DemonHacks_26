@@ -1,6 +1,7 @@
 // MapView — Immersive 3D Chicago map with Mapbox Standard style
 // Features: real-time lighting, atmospheric fog, animated pins,
-// neighborhood hover overlay, auto-rotate, compass in 3D mode.
+// neighborhood hover overlay, auto-rotate, compass in 3D mode,
+// CTA transit overlays with live train tracking.
 
 import { useRef, useCallback, useEffect } from 'react';
 import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
@@ -17,12 +18,21 @@ import { MAPBOX_ACCESS_TOKEN, MAP_STYLE } from '@/lib/mapbox';
 import { DEFAULT_VIEWPORT, CHICAGO_BOUNDS, FOG_CONFIGS } from '@/lib/constants';
 import { getChicagoLightPreset, subscribeLightPreset } from '@/lib/chicago-light';
 import { useMapStore } from '@/stores/map-store';
+import { useCTAStore } from '@/stores/cta-store';
 import { useAutoRotate } from '@/hooks/useAutoRotate';
+import { useCTATrainIcons } from '@/hooks/useCTATrainIcons';
+import { useCTATrains } from '@/hooks/useCTATrains';
 import type { MapPin as MapPinType } from '@/lib/types';
+import type { CTATrain } from '@/lib/cta';
 
 import AnimatedPin from './AnimatedPin';
 import CityMaskLayer from './CityMaskLayer';
 import NeighborhoodLayer from './NeighborhoodLayer';
+import CTARoutesLayer from './CTARoutesLayer';
+import CTAStopsLayer from './CTAStopsLayer';
+import CTATrainLayer from './CTATrainLayer';
+import CTAToggle from './CTAToggle';
+import TrainPopup from './TrainPopup';
 
 /** Camera settings for 3D tilted view */
 const VIEW_3D = { pitch: 60, bearing: -17.6 } as const;
@@ -51,8 +61,15 @@ export default function MapViewComponent({ pins, loading, onPinPress }: MapViewP
     setHoveredNeighborhood,
   } = useMapStore();
 
+  const selectTrain = useCTAStore((s) => s.selectTrain);
+  const showLiveTrains = useCTAStore((s) => s.showLiveTrains);
+
   // ─── Auto-rotate in 3D mode ───
   useAutoRotate({ mapRef, enabled: is3D });
+
+  // ─── CTA train icons + live polling ───
+  useCTATrainIcons(mapRef, mapLoaded);
+  useCTATrains(mapRef);
 
   // ─── Map onLoad: configure Standard style ───
   const handleLoad = useCallback(() => {
@@ -116,7 +133,7 @@ export default function MapViewComponent({ pins, loading, onPinPress }: MapViewP
     [setViewport],
   );
 
-  // ─── Neighborhood hover ───
+  // ─── Neighborhood hover + train cursor ───
   const handleMouseMove = useCallback(
     (evt: MapMouseEvent) => {
       const map = mapRef.current?.getMap();
@@ -128,6 +145,15 @@ export default function MapViewComponent({ pins, loading, onPinPress }: MapViewP
           { source: 'neighborhoods', id: hoveredFeatureId.current },
           { hover: false },
         );
+      }
+
+      // Check for train feature hover (cursor change)
+      const trainFeature = evt.features?.find((f) => f.layer?.id === 'cta-trains');
+      if (trainFeature) {
+        map.getCanvas().style.cursor = 'pointer';
+        hoveredFeatureId.current = null;
+        setHoveredNeighborhood(null);
+        return;
       }
 
       const feature = evt.features?.[0];
@@ -163,6 +189,31 @@ export default function MapViewComponent({ pins, loading, onPinPress }: MapViewP
     map.getCanvas().style.cursor = '';
   }, [setHoveredNeighborhood]);
 
+  // ─── Train click handler ───
+  const handleClick = useCallback(
+    (evt: MapMouseEvent) => {
+      const trainFeature = evt.features?.find((f) => f.layer?.id === 'cta-trains');
+      if (trainFeature && trainFeature.properties) {
+        const p = trainFeature.properties;
+        const train: CTATrain = {
+          rn: String(p.rn),
+          rt: String(p.rt),
+          lat: (trainFeature.geometry as GeoJSON.Point).coordinates[1],
+          lon: (trainFeature.geometry as GeoJSON.Point).coordinates[0],
+          heading: Number(p.heading),
+          destNm: String(p.destNm),
+          nextStaNm: String(p.nextStaNm),
+          isDly: p.isDly === true || p.isDly === 'true',
+          isApp: p.isApp === true || p.isApp === 'true',
+          prdt: String(p.prdt ?? ''),
+          arrT: String(p.arrT ?? ''),
+        };
+        selectTrain(train);
+      }
+    },
+    [selectTrain],
+  );
+
   // ─── Native fallback ───
   if (Platform.OS !== 'web') {
     return (
@@ -172,8 +223,16 @@ export default function MapViewComponent({ pins, loading, onPinPress }: MapViewP
     );
   }
 
+  // Build interactive layer IDs
+  const interactiveLayerIds = mapLoaded
+    ? ['neighborhood-fill', ...(showLiveTrains ? ['cta-trains'] : [])]
+    : [];
+
   return (
     <View style={styles.container}>
+      {/* CTA Toggle Buttons */}
+      {mapLoaded && <CTAToggle />}
+
       {/* 3D Toggle Button */}
       <View style={styles.toggleContainer}>
         <Pressable
@@ -206,15 +265,24 @@ export default function MapViewComponent({ pins, loading, onPinPress }: MapViewP
         maxPitch={85}
         onMove={handleMove}
         onLoad={handleLoad}
-        interactiveLayerIds={mapLoaded ? ['neighborhood-fill'] : []}
+        interactiveLayerIds={interactiveLayerIds}
         onMouseMove={mapLoaded ? handleMouseMove : undefined}
         onMouseLeave={mapLoaded ? handleMouseLeave : undefined}
+        onClick={mapLoaded ? handleClick : undefined}
       >
         {/* City mask — hides everything outside Chicago; must render first (below neighborhoods) */}
         {mapLoaded && <CityMaskLayer />}
 
         {/* Neighborhood overlay — invisible until hovered */}
         {mapLoaded && <NeighborhoodLayer />}
+
+        {/* CTA transit overlays — rail lines, stations, bus routes/stops */}
+        {mapLoaded && <CTARoutesLayer />}
+        {mapLoaded && <CTAStopsLayer />}
+        {mapLoaded && <CTATrainLayer />}
+
+        {/* Train detail popup */}
+        {mapLoaded && <TrainPopup />}
 
         {/* Compass — 3D mode only */}
         {is3D && (
