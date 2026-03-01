@@ -19,13 +19,9 @@ export const CATEGORIES: Category[] = [
       'Afrobeats / Amapiano',
       'Classical / Orchestra',
       'Latin',
+      'Pop',
+      'Country',
     ],
-  },
-  {
-    id: 'comedy',
-    label: 'Comedy',
-    emoji: '😂',
-    subcategories: ['Comedy clubs'],
   },
   {
     id: 'sports',
@@ -43,29 +39,46 @@ export const CATEGORIES: Category[] = [
     ],
   },
   {
-    id: 'museums-arts',
-    label: 'Museums & Arts',
+    id: 'arts-culture',
+    label: 'Arts & Culture',
     emoji: '🎨',
     subcategories: [
       'Art museums',
       'Galleries',
-      'Theater / plays',
+      'Theater / musicals',
       'Film screenings',
       'Poetry / spoken word',
       'Architecture tours',
+      'Dance performances',
+      'Stand-up comedy',
+      'Improv / sketch',
+      'Open mic nights',
     ],
   },
   {
     id: 'food-drink',
     label: 'Food & Drink',
     emoji: '🍽️',
-    subcategories: ['Restaurants', 'Food halls', 'Brunch', 'Dessert spots', 'Bars'],
+    subcategories: [
+      'Restaurants',
+      'Food halls',
+      'Brunch spots',
+      'Dessert spots',
+      'Cocktail bars',
+      'Craft beer / breweries',
+      'Wine bars',
+    ],
   },
   {
-    id: 'coffee-study',
-    label: 'Coffee & Study',
+    id: 'coffee-cafes',
+    label: 'Coffee & Cafés',
     emoji: '☕',
-    subcategories: ['Coffee shops', 'Libraries', 'Board-game cafés'],
+    subcategories: [
+      'Coffee shops',
+      'Bakeries / pastries',
+      'Co-working spots',
+      'Board-game cafés',
+    ],
   },
   {
     id: 'outdoors',
@@ -77,13 +90,33 @@ export const CATEGORIES: Category[] = [
       'Scenic views / photo spots',
       'Picnic spots',
       'Gardens / conservatories',
+      'Hiking / trails',
     ],
   },
   {
     id: 'nightlife',
     label: 'Nightlife',
     emoji: '🌙',
-    subcategories: ['Dance clubs', 'Bar hopping areas', 'Karaoke', '18+ / 21+ venues'],
+    subcategories: [
+      'Dance clubs',
+      'Bar hopping areas',
+      'Rooftop bars',
+      'Karaoke',
+      '18+ / 21+ venues',
+    ],
+  },
+  {
+    id: 'markets-festivals',
+    label: 'Markets & Festivals',
+    emoji: '🎪',
+    subcategories: [
+      'Farmers markets',
+      'Flea markets / vintage',
+      'Street fairs',
+      'Night markets',
+      'Cultural festivals',
+      'Holiday markets',
+    ],
   },
   {
     id: 'family',
@@ -99,12 +132,6 @@ export const CATEGORIES: Category[] = [
     ],
   },
   {
-    id: 'markets-festivals',
-    label: 'Markets & Festivals',
-    emoji: '🎪',
-    subcategories: ['Cultural festivals'],
-  },
-  {
     id: 'fitness',
     label: 'Fitness & Wellness',
     emoji: '💪',
@@ -113,7 +140,7 @@ export const CATEGORIES: Category[] = [
       'Yoga',
       'Pilates',
       'Boxing / martial arts',
-      'Group classes',
+      'Group fitness classes',
       'Meditation / breathwork',
       'Sauna / spa',
     ],
@@ -121,3 +148,8 @@ export const CATEGORIES: Category[] = [
 ];
 
 export const MAX_CATEGORIES = 5;
+
+/** Max subcategories selectable for a given category: half the options + 1, rounded. */
+export function maxSubsForCategory(cat: Category): number {
+  return Math.round(cat.subcategories.length / 2) + 1;
+}
