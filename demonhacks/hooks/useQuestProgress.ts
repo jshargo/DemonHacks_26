@@ -25,35 +25,35 @@ interface QuestProgressState {
 const STORAGE_PREFIX = 'quest_progress_';
 const COMPLETED_PREFIX = 'quest_completed_';
 
-/** Persist checked-in stop orders to AsyncStorage */
-async function loadLocalProgress(questId: string): Promise<Set<number>> {
+/** Persist checked-in stop orders to AsyncStorage (keyed by userId to isolate per-user progress) */
+async function loadLocalProgress(questId: string, userId: string): Promise<Set<number>> {
   try {
-    const raw = await AsyncStorage.getItem(STORAGE_PREFIX + questId);
+    const raw = await AsyncStorage.getItem(STORAGE_PREFIX + userId + '_' + questId);
     if (raw) return new Set(JSON.parse(raw) as number[]);
   } catch {}
   return new Set();
 }
 
-async function saveLocalProgress(questId: string, completed: Set<number>) {
+async function saveLocalProgress(questId: string, userId: string, completed: Set<number>) {
   try {
     await AsyncStorage.setItem(
-      STORAGE_PREFIX + questId,
-      JSON.stringify([...completed]),
+      STORAGE_PREFIX + userId + '_' + questId,
+      JSON.stringify(Array.from(completed)),
     );
   } catch {}
 }
 
-async function loadQuestCompleted(questId: string): Promise<boolean> {
+async function loadQuestCompleted(questId: string, userId: string): Promise<boolean> {
   try {
-    return (await AsyncStorage.getItem(COMPLETED_PREFIX + questId)) === '1';
+    return (await AsyncStorage.getItem(COMPLETED_PREFIX + userId + '_' + questId)) === '1';
   } catch {
     return false;
   }
 }
 
-async function saveQuestCompleted(questId: string) {
+async function saveQuestCompleted(questId: string, userId: string) {
   try {
-    await AsyncStorage.setItem(COMPLETED_PREFIX + questId, '1');
+    await AsyncStorage.setItem(COMPLETED_PREFIX + userId + '_' + questId, '1');
   } catch {}
 }
 
@@ -68,7 +68,7 @@ export function useQuestProgress(localQuest: LocalQuest | null): QuestProgressSt
   const userId = useAuthStore((s) => s.session?.user?.id ?? null);
   const fetchProfile = useAuthStore((s) => s.fetchProfile);
   const bumpXpVersion = useAuthStore((s) => s.bumpXpVersion);
-  const { fetchQuestByTitle, fetchSteps, fetchProgress, checkIn, completeQuest, steps } =
+  const { fetchQuestByTitle, fetchSteps, fetchProgress, checkIn, completeQuest } =
     useQuestStore();
 
   const [completedStops, setCompletedStops] = useState<Set<number>>(new Set());
@@ -89,8 +89,8 @@ export function useQuestProgress(localQuest: LocalQuest | null): QuestProgressSt
       setLoading(true);
 
       // 1. Load local progress from AsyncStorage (always works)
-      const localProgress = await loadLocalProgress(localQuest.id);
-      const wasCompleted = await loadQuestCompleted(localQuest.id);
+      const localProgress = await loadLocalProgress(localQuest.id, userId ?? '');
+      const wasCompleted = await loadQuestCompleted(localQuest.id, userId ?? '');
       setCompletedStops(localProgress);
       setQuestCompleted(wasCompleted);
 
@@ -121,7 +121,7 @@ export function useQuestProgress(localQuest: LocalQuest | null): QuestProgressSt
             }
             if (merged) {
               setCompletedStops(new Set(localProgress));
-              await saveLocalProgress(localQuest.id, localProgress);
+              await saveLocalProgress(localQuest.id, userId ?? '', localProgress);
             }
           }
         } catch {
@@ -157,7 +157,7 @@ export function useQuestProgress(localQuest: LocalQuest | null): QuestProgressSt
       const next = new Set(completedStops);
       next.add(stopOrder);
       setCompletedStops(next);
-      await saveLocalProgress(localQuest.id, next);
+      await saveLocalProgress(localQuest.id, userId ?? '', next);
 
       // 2. Try to sync to Supabase if server quest is available
       if (userId && serverQuestIdRef.current) {
@@ -170,7 +170,7 @@ export function useQuestProgress(localQuest: LocalQuest | null): QuestProgressSt
             const localStop = localQuest.stops.find((s) => s.stop_order === stopOrder);
             const placeId = serverStep.target_type === 'place' ? serverStep.target_id : null;
             await checkIn(userId, serverStep.id, placeId, localStop?.xp_reward ?? 25);
-            fetchProfile();
+            await fetchProfile();
             bumpXpVersion();
           }
         } catch {
@@ -188,7 +188,7 @@ export function useQuestProgress(localQuest: LocalQuest | null): QuestProgressSt
     if (!localQuest || questCompleted) return false;
 
     setQuestCompleted(true);
-    await saveQuestCompleted(localQuest.id);
+    await saveQuestCompleted(localQuest.id, userId ?? '');
 
     // Try to award XP server-side
     if (userId && serverQuestIdRef.current) {

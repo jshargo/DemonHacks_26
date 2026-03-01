@@ -130,19 +130,8 @@ export const useQuestStore = create<QuestState>((set, get) => ({
     // Update local progress
     set((state) => ({ progress: [...state.progress, data as QuestCheckin] }));
 
-    // Increment user's XP in the profiles table
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('xp')
-      .eq('id', userId)
-      .single();
-
-    if (profile) {
-      await supabase
-        .from('profiles')
-        .update({ xp: (profile.xp ?? 0) + xpReward })
-        .eq('id', userId);
-    }
+    // Atomically increment XP via RPC (SECURITY DEFINER bypasses RLS)
+    await supabase.rpc('increment_xp', { user_id_param: userId, amount: xpReward });
 
     return true;
   },
@@ -151,19 +140,8 @@ export const useQuestStore = create<QuestState>((set, get) => ({
     // Prevent awarding completion XP twice
     if (get().completedQuestIds.has(questId)) return false;
 
-    // Increment user's XP with the quest completion bonus
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('xp')
-      .eq('id', userId)
-      .single();
-
-    if (!profile) return false;
-
-    const { error } = await supabase
-      .from('profiles')
-      .update({ xp: (profile.xp ?? 0) + bonusXp })
-      .eq('id', userId);
+    // Atomically increment XP via RPC (SECURITY DEFINER bypasses RLS)
+    const { error } = await supabase.rpc('increment_xp', { user_id_param: userId, amount: bonusXp });
 
     if (error) return false;
 

@@ -1,7 +1,7 @@
 // User profile screen — two-panel layout (left nav, right content)
 // Owner: Person 1 (Auth + Profiles)
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { useAuthStore } from '@/stores/auth-store';
 import { usePreferencesStore } from '@/stores/preferences-store';
 import { supabase } from '@/lib/supabase';
@@ -61,6 +61,13 @@ export default function ProfileScreen() {
     setHideLocation(profile?.hide_location ?? false);
     setHideQuestProgress(profile?.hide_quest_progress ?? false);
   }, [profile]);
+
+  // Re-fetch profile (including XP) every time the tab gains focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchProfile();
+    }, [fetchProfile])
+  );
 
   const handleSaveProfile = async () => {
     if (!username.trim()) {

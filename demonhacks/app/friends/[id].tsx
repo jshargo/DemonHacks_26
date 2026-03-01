@@ -29,6 +29,7 @@ export default function FriendProfileScreen() {
   );
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [questProgress, setQuestProgress] = useState<{ id: string; title: string; xp: number; steps: number }[]>([]);
+  const [computedXp, setComputedXp] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [messaging, setMessaging] = useState(false);
   const [friendLoading, setFriendLoading] = useState(false);
@@ -48,19 +49,24 @@ export default function FriendProfileScreen() {
     })();
   }, [id]);
 
-  // Fetch friend's quest progress
+  // Fetch friend's checkins — used for total XP and quest progress
   useEffect(() => {
     (async () => {
       const { data, error } = await supabase
         .from('checkins')
-        .select('xp_earned, quest_steps(quest_id, quests(id, title))')
-        .eq('user_id', id)
-        .not('quest_step_id', 'is', null);
-      if (error) { console.warn('quest progress fetch error:', error.message); return; }
+        .select('xp_earned, quest_step_id, quest_steps(quest_id, quests(id, title))')
+        .eq('user_id', id);
+      if (error) { console.warn('checkins fetch error:', error.message); return; }
       if (!data) return;
 
+      // Sum total XP from all checkins
+      const xpSum = (data as any[]).reduce((sum, row) => sum + (row.xp_earned ?? 0), 0);
+      setComputedXp(xpSum);
+
+      // Build quest progress from rows that have a linked quest
       const map = new Map<string, { id: string; title: string; xp: number; steps: number }>();
       for (const row of data as any[]) {
+        if (!row.quest_step_id) continue;
         const qs = row.quest_steps;
         if (!qs) continue;
         const quest = qs.quests;
@@ -166,9 +172,9 @@ export default function FriendProfileScreen() {
             <Text style={styles.metaText}>Joined {memberSince}</Text>
           </View>
         )}
-        {!profile.hide_quest_progress && profile.xp != null && (
+        {!profile.hide_quest_progress && (computedXp !== null ? computedXp > 0 : (profile.xp ?? 0) > 0) && (
           <View style={styles.metaChip}>
-            <Text style={styles.metaText}>{profile.xp.toLocaleString()} XP</Text>
+            <Text style={styles.metaText}>{(computedXp ?? profile.xp ?? 0).toLocaleString()} XP</Text>
           </View>
         )}
       </View>
