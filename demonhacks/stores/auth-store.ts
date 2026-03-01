@@ -44,6 +44,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         get().fetchProfile();
       } else if (event === 'SIGNED_OUT') {
         set({ profile: null });
+        usePreferencesStore.getState().resetPreferences();
       }
     });
 
