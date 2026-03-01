@@ -30,6 +30,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   initialize: () => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        // Mark preferences as loading BEFORE setting session,
+        // so the routing guard waits for preferences to arrive.
+        usePreferencesStore.setState({ preferencesLoading: true });
+      }
       set({ session, loading: false });
       if (session) get().fetchProfile();
     });

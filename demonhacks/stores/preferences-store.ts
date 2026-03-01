@@ -8,6 +8,8 @@ interface PreferencesState {
   selectedSubcategories: Record<string, string[]>;
   /** True once the user completes or skips onboarding */
   onboardingComplete: boolean;
+  /** True while preferences are being fetched from Supabase */
+  preferencesLoading: boolean;
 
   toggleCategory: (id: string) => void;
   toggleSubcategory: (categoryId: string, sub: string) => void;
@@ -24,6 +26,7 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
   selectedCategories: [],
   selectedSubcategories: {},
   onboardingComplete: false,
+  preferencesLoading: false,
 
   toggleCategory: (id) => {
     const current = get().selectedCategories;
@@ -57,19 +60,24 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
     set({ selectedCategories: [], selectedSubcategories: {}, onboardingComplete: false }),
 
   loadFromSupabase: async (userId) => {
-    const [{ data: profile }, { data: prefs }] = await Promise.all([
-      supabase.from('profiles').select('onboarding_completed').eq('id', userId).single(),
-      supabase
-        .from('user_onboarding_preferences')
-        .select('selected_categories, selected_subcategories')
-        .eq('user_id', userId)
-        .single(),
-    ]);
+    set({ preferencesLoading: true });
+    try {
+      const [{ data: profile }, { data: prefs }] = await Promise.all([
+        supabase.from('profiles').select('onboarding_completed').eq('id', userId).single(),
+        supabase
+          .from('user_onboarding_preferences')
+          .select('selected_categories, selected_subcategories')
+          .eq('user_id', userId)
+          .single(),
+      ]);
 
-    set({
-      onboardingComplete: profile?.onboarding_completed ?? false,
-      selectedCategories: prefs?.selected_categories ?? [],
-      selectedSubcategories: prefs?.selected_subcategories ?? {},
-    });
+      set({
+        onboardingComplete: profile?.onboarding_completed ?? false,
+        selectedCategories: prefs?.selected_categories ?? [],
+        selectedSubcategories: prefs?.selected_subcategories ?? {},
+      });
+    } finally {
+      set({ preferencesLoading: false });
+    }
   },
 }));

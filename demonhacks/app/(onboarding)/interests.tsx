@@ -47,7 +47,7 @@ export default function InterestsScreen() {
               emoji={item.emoji}
               label={item.label}
               selected={selectedCategories.includes(item.id)}
-              disabled={atLimit}
+              disabled={atLimit && !selectedCategories.includes(item.id)}
               onPress={() => toggleCategory(item.id)}
             />
           )}

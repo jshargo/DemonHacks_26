@@ -8,12 +8,13 @@ import { usePreferencesStore } from '@/stores/preferences-store';
 
 export function useProtectedRoute() {
   const { session, loading } = useAuthStore();
-  const { onboardingComplete } = usePreferencesStore();
+  const { onboardingComplete, preferencesLoading } = usePreferencesStore();
   const segments = useSegments();
   const router = useRouter();
 
   useEffect(() => {
-    if (loading) return;
+    // Wait for BOTH auth and preferences to finish loading
+    if (loading || preferencesLoading) return;
 
     const inAuthGroup = segments[0] === '(auth)';
     const inOnboardingGroup = segments[0] === '(onboarding)';
@@ -35,5 +36,5 @@ export function useProtectedRoute() {
       // Onboarding just finished — go to main app
       router.replace('/(tabs)');
     }
-  }, [session, loading, segments, onboardingComplete]);
+  }, [session, loading, preferencesLoading, segments, onboardingComplete]);
 }
