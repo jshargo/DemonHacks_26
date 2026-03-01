@@ -63,6 +63,8 @@ function RootLayoutNav() {
           <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
           <Stack.Screen name="quest/[id]" options={{ title: 'Quest', headerBackTitle: 'Back' }} />
           <Stack.Screen name="spot/[id]" options={{ title: 'Spot', headerBackTitle: 'Back' }} />
+          <Stack.Screen name="chat/[id]" options={{ title: 'Chat', headerBackTitle: 'Back' }} />
+          <Stack.Screen name="friends/search" options={{ title: 'Find Friends', headerBackTitle: 'Back' }} />
           <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
         </Stack>
       </ThemeProvider>

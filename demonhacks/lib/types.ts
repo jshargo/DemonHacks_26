@@ -232,3 +232,64 @@ export interface SearchResult {
   website?: string;
   hours?: Record<string, string>;
 }
+
+// ─── Social: Friends & Chat ──────────────────────────────────────────────────
+
+export type FriendshipStatus = 'pending' | 'accepted' | 'declined';
+export type ChatType = 'direct' | 'group';
+export type MessageType = 'text' | 'spot' | 'event';
+
+/** A friendship/friend request between two users (public.friendships) */
+export interface Friendship {
+  id: string;
+  requester_id: string;
+  addressee_id: string;
+  status: FriendshipStatus;
+  created_at: string;
+  // Joined profile data (optional)
+  requester?: UserProfile;
+  addressee?: UserProfile;
+}
+
+/** A chat conversation (public.chats) */
+export interface Chat {
+  id: string;
+  type: ChatType;
+  name: string | null;
+  created_by: string | null;
+  created_at: string;
+  // Joined data
+  members?: ChatMember[];
+  last_message?: Message | null;
+}
+
+/** A member of a chat (public.chat_members) */
+export interface ChatMember {
+  chat_id: string;
+  user_id: string;
+  joined_at: string;
+  profile?: UserProfile;
+}
+
+/** Metadata attached to a spot or event share message */
+export interface SharedSpotMetadata {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+  imageUrl: string | null;
+  category: string | null;
+  address: string | null;
+}
+
+/** A message in a chat (public.messages) */
+export interface Message {
+  id: string;
+  chat_id: string;
+  sender_id: string;
+  type: MessageType;
+  content: string | null;
+  metadata: SharedSpotMetadata | null;
+  created_at: string;
+  sender?: UserProfile;
+}
