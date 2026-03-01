@@ -49,6 +49,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+        // Block routing guard until preferences are loaded
+        usePreferencesStore.setState({ preferencesLoading: true });
+      }
       set({ session, loading: false, error: null });
 
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
