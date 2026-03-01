@@ -10,6 +10,7 @@ export default function CTAToggle() {
   const showLiveTrains = useCTAStore((s) => s.showLiveTrains);
   const showDivvyStations = useCTAStore((s) => s.showDivvyStations);
   const showPedwayRoutes = useCTAStore((s) => s.showPedwayRoutes);
+  const showTicketmasterEvents = useCTAStore((s) => s.showTicketmasterEvents);
   const toggleRailLines = useCTAStore((s) => s.toggleRailLines);
   const toggleBusRoutes = useCTAStore((s) => s.toggleBusRoutes);
   const toggleLiveTrains = useCTAStore((s) => s.toggleLiveTrains);
