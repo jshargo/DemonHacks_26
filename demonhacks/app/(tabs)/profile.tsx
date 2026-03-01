@@ -165,6 +165,12 @@ export default function ProfileScreen() {
             </Text>
           )}
 
+          {/* XP badge */}
+          <View style={styles.xpBadge}>
+            <Text style={styles.xpValue}>{(profile?.xp ?? 0).toLocaleString()}</Text>
+            <Text style={styles.xpLabel}>XP</Text>
+          </View>
+
           <Divider spacing={spacing.md} />
 
           {/* Quick info */}
@@ -430,6 +436,26 @@ const styles = StyleSheet.create({
     color: colors.textTertiary,
     textAlign: 'center',
     marginTop: 2,
+  },
+  xpBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#6C63FF15',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 12,
+    marginTop: 8,
+    gap: 4,
+  },
+  xpValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#6C63FF',
+  },
+  xpLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#6C63FF',
   },
   infoLine: {
     ...typography.caption,
