@@ -1,14 +1,15 @@
 import { useEffect } from 'react';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Platform } from 'react-native';
 
-import { useColorScheme } from '@/components/useColorScheme';
 import { useAuthStore } from '@/stores/auth-store';
 import { useProtectedRoute } from '@/components/auth/AuthGate';
+import { colors, fonts } from '@/lib/theme';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -18,8 +19,26 @@ export const unstable_settings = {
 
 SplashScreen.preventAutoHideAsync();
 
+// ExploreChi light theme (no dark mode)
+const ExploreChiTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: colors.primary,
+    background: colors.background,
+    card: colors.white,
+    text: colors.textPrimary,
+    border: colors.borderLight,
+    notification: colors.error,
+  },
+};
+
 export default function RootLayout() {
   const [loaded, error] = useFonts({
+    'Satoshi-Regular': require('../assets/fonts/Satoshi-Regular.otf'),
+    'Satoshi-Medium': require('../assets/fonts/Satoshi-Medium.otf'),
+    'Satoshi-Bold': require('../assets/fonts/Satoshi-Bold.otf'),
+    'Satoshi-Black': require('../assets/fonts/Satoshi-Black.otf'),
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
@@ -35,6 +54,22 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
+  // Inject @font-face declarations for web so CSS-based components
+  // (like LabelPin's injected styles) can also use Satoshi
+  useEffect(() => {
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      const style = document.createElement('style');
+      style.textContent = `
+        @font-face { font-family: 'Satoshi-Regular'; src: url('/assets/fonts/Satoshi-Regular.otf') format('opentype'); font-weight: 400; font-display: swap; }
+        @font-face { font-family: 'Satoshi-Medium'; src: url('/assets/fonts/Satoshi-Medium.otf') format('opentype'); font-weight: 500; font-display: swap; }
+        @font-face { font-family: 'Satoshi-Bold'; src: url('/assets/fonts/Satoshi-Bold.otf') format('opentype'); font-weight: 700; font-display: swap; }
+        @font-face { font-family: 'Satoshi-Black'; src: url('/assets/fonts/Satoshi-Black.otf') format('opentype'); font-weight: 900; font-display: swap; }
+      `;
+      document.head.appendChild(style);
+      return () => { document.head.removeChild(style); };
+    }
+  }, []);
+
   // Initialize Supabase auth listener
   useEffect(() => {
     const cleanup = initialize();
@@ -49,15 +84,20 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
-
   // Protect routes — redirects to sign-in if not authenticated
   useProtectedRoute();
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack>
+      <ThemeProvider value={ExploreChiTheme}>
+        <Stack
+          screenOptions={{
+            headerStyle: { backgroundColor: colors.white },
+            headerTintColor: colors.primary,
+            headerTitleStyle: { fontFamily: fonts.bold },
+            headerShadowVisible: false,
+          }}
+        >
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />

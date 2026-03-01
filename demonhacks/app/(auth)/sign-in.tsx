@@ -1,14 +1,13 @@
-// TODO: Sign-in screen
-// Owner: Person 1 (Auth + Profiles)
-// - Email + password form
-// - Google OAuth button
-// - Link to sign-up
-
 import { useState } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { Link } from 'expo-router';
+import { Mail, Lock } from 'lucide-react-native';
+
 import { useAuthStore } from '@/stores/auth-store';
-import GoogleSignIn from '@/components/auth/GoogleSignIn';
+import { Wordmark } from '@/components/ui/Wordmark';
+import { TextInput } from '@/components/ui/TextInput';
+import { Button } from '@/components/ui/Button';
+import { colors, typography, spacing, fonts } from '@/lib/theme';
 
 export default function SignInScreen() {
   const [email, setEmail] = useState('');
@@ -20,62 +19,104 @@ export default function SignInScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Welcome Back</Text>
-      <Text style={styles.subtitle}>Sign in to explore Chicago</Text>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <View style={styles.inner}>
+        <View style={styles.header}>
+          <Wordmark size={32} />
+          <Text style={styles.title}>Welcome back</Text>
+          <Text style={styles.subtitle}>Sign in to explore Chicago</Text>
+        </View>
 
-      {error && <Text style={styles.error}>{error}</Text>}
+        {error && <Text style={styles.error}>{error}</Text>}
 
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
+        <View style={styles.form}>
+          <TextInput
+            label="Email"
+            placeholder="you@example.com"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            leftIcon={<Mail size={18} color={colors.textTertiary} />}
+          />
+          <TextInput
+            label="Password"
+            placeholder="Your password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            leftIcon={<Lock size={18} color={colors.textTertiary} />}
+          />
+        </View>
 
-      <Pressable style={styles.button} onPress={handleSignIn} disabled={loading}>
-        <Text style={styles.buttonText}>{loading ? 'Signing in...' : 'Sign In'}</Text>
-      </Pressable>
+        <Button
+          title={loading ? 'Signing in...' : 'Sign In'}
+          variant="primary"
+          size="lg"
+          onPress={handleSignIn}
+          disabled={loading}
+          loading={loading}
+          fullWidth
+        />
 
-      <GoogleSignIn onPress={() => {/* TODO: Google OAuth */}} />
-
-      <Link href="/(auth)/sign-up" style={styles.link}>
-        <Text style={styles.linkText}>Don't have an account? Sign Up</Text>
-      </Link>
-    </View>
+        <Link href="/(auth)/sign-up" style={styles.link}>
+          <Text style={styles.linkText}>
+            Don't have an account? <Text style={styles.linkBold}>Sign Up</Text>
+          </Text>
+        </Link>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, justifyContent: 'center', backgroundColor: '#fff' },
-  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 4 },
-  subtitle: { fontSize: 16, color: '#666', marginBottom: 32 },
-  error: { color: '#e74c3c', marginBottom: 12, fontSize: 14 },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 14,
-    fontSize: 16,
-    marginBottom: 12,
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
   },
-  button: {
-    backgroundColor: '#333',
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginBottom: 16,
+  inner: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: spacing['2xl'],
+    maxWidth: 420,
+    width: '100%' as unknown as number,
+    alignSelf: 'center',
   },
-  buttonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
-  link: { marginTop: 16, alignSelf: 'center' },
-  linkText: { color: '#4285F4', fontSize: 14 },
+  header: {
+    marginBottom: spacing['3xl'],
+  },
+  title: {
+    ...typography.displayMd,
+    color: colors.textPrimary,
+    marginTop: spacing.xl,
+  },
+  subtitle: {
+    ...typography.bodyLg,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
+  },
+  error: {
+    ...typography.bodyMd,
+    color: colors.error,
+    marginBottom: spacing.md,
+  },
+  form: {
+    gap: spacing.lg,
+    marginBottom: spacing['2xl'],
+  },
+  link: {
+    marginTop: spacing.xl,
+    alignSelf: 'center',
+  },
+  linkText: {
+    ...typography.bodyMd,
+    color: colors.textSecondary,
+  },
+  linkBold: {
+    fontFamily: fonts.bold,
+    color: colors.primary,
+  },
 });

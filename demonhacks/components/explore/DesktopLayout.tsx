@@ -11,9 +11,12 @@ import type { MapPin as MapPinType, MapBounds, PinLabel, DiscoverItem, SearchRes
 import TopBar from './TopBar';
 import CardFeed from './CardFeed';
 import DetailPanel from './DetailPanel';
+import FiltersModal from './FiltersModal';
 import { POIDetailPanel } from './SearchBar';
 import MapViewComponent from '@/components/map/MapView';
 import { useSearchStore } from '@/stores/search-store';
+import { colors } from '@/lib/theme';
+import { useFilteredFeed } from '@/hooks/useFilteredFeed';
 
 const BOUNDS_DEBOUNCE_MS = 300;
 
@@ -52,7 +55,8 @@ export default function DesktopLayout() {
   const savedViewportRef = useRef<{ lat: number; lng: number; zoom: number } | null>(null);
   const [flyTarget, setFlyTarget] = useState<{ lat: number; lng: number; zoom?: number } | null>(null);
 
-  const { items, count, loading } = useDiscoverFeed();
+  const { items: rawItems, count: rawCount, loading } = useDiscoverFeed();
+  const { filteredItems: items, filteredCount: count } = useFilteredFeed(rawItems);
 
   const detailItem = useExploreStore((s) => s.detailItem);
   const openDetail = useExploreStore((s) => s.openDetail);
@@ -135,16 +139,16 @@ export default function DesktopLayout() {
       const result: SearchResult | null =
         item.lat !== 0 && item.lng !== 0
           ? {
-              mapbox_id: item.mapboxId ?? item.id,
-              name: item.name,
-              address: item.placeFormatted ?? '',
-              full_address: item.placeFormatted ?? '',
-              lat: item.lat,
-              lng: item.lng,
-              category: item.subcategory ?? undefined,
-              poi_categories: item.subcategory ? [item.subcategory] : [],
-              website: item.websiteUrl ?? undefined,
-            }
+            mapbox_id: item.mapboxId ?? item.id,
+            name: item.name,
+            address: item.placeFormatted ?? '',
+            full_address: item.placeFormatted ?? '',
+            lat: item.lat,
+            lng: item.lng,
+            category: item.subcategory ?? undefined,
+            poi_categories: item.subcategory ? [item.subcategory] : [],
+            website: item.websiteUrl ?? undefined,
+          }
           : null;
 
       openWithViewportSave(item);
@@ -190,9 +194,12 @@ export default function DesktopLayout() {
 
   return (
     <View style={styles.container}>
+      {/* Filters modal overlay */}
+      <FiltersModal />
+
       {/* Left panel: TopBar + (CardFeed or DetailPanel) */}
       <View style={styles.leftPanel}>
-        <TopBar />
+        <TopBar showWordmark />
         {detailItem ? (
           <DetailPanel
             item={detailItem}
@@ -242,9 +249,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   leftPanel: {
-    flex: 1,
-    borderRightWidth: 1,
-    borderRightColor: '#eee',
+    width: '40%' as unknown as number,
+    borderRightWidth: StyleSheet.hairlineWidth,
+    borderRightColor: colors.borderLight,
   },
   rightPanel: {
     flex: 1,

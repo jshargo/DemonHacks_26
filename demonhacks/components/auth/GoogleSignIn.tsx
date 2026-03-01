@@ -1,10 +1,5 @@
-// TODO: Google OAuth sign-in button
-// Owner: Person 1 (Auth + Profiles)
-// - Uses expo-auth-session for Google OAuth
-// - Calls Supabase signInWithOAuth on success
-// - Shows branded Google sign-in button
-
 import { Pressable, Text, StyleSheet } from 'react-native';
+import { colors, fonts, spacing, radii } from '@/lib/theme';
 
 interface GoogleSignInProps {
   onPress: () => void;
@@ -12,7 +7,10 @@ interface GoogleSignInProps {
 
 export default function GoogleSignIn({ onPress }: GoogleSignInProps) {
   return (
-    <Pressable style={styles.button} onPress={onPress}>
+    <Pressable
+      style={({ pressed }) => [styles.button, pressed && styles.pressed]}
+      onPress={onPress}
+    >
       <Text style={styles.label}>Continue with Google</Text>
     </Pressable>
   );
@@ -20,11 +18,20 @@ export default function GoogleSignIn({ onPress }: GoogleSignInProps) {
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '#4285F4',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
+    backgroundColor: colors.surface,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing['2xl'],
+    borderRadius: radii.md,
     alignItems: 'center',
   },
-  label: { color: '#fff', fontWeight: '600', fontSize: 15 },
+  pressed: {
+    backgroundColor: colors.surfaceHover,
+  },
+  label: {
+    color: colors.textPrimary,
+    fontFamily: fonts.bold,
+    fontSize: 15,
+  },
 });

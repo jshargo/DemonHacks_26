@@ -69,6 +69,7 @@ function supabasePlaceToDiscoverItem(place: Place): DiscoverItem {
     subcategory: null,
     description: place.description,
     imageUrl: place.image_url,
+    photoUrls: place.photo_urls ?? [],
     neighborhood: place.address ?? '',
     rating: null,
     priceRange: null,

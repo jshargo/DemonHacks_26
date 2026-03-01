@@ -20,6 +20,7 @@ export interface Place {
   lat: number;
   lng: number;
   image_url: string | null;
+  photo_urls: string[];
   website_url: string | null;
   phone: string | null;
   mapbox_id: string | null;
@@ -177,6 +178,7 @@ export interface DiscoverItem {
   subcategory: string | null;
   description: string | null;
   imageUrl: string | null;
+  photoUrls: string[];
   neighborhood: string;
   rating: number | null;
   priceRange: '$' | '$$' | '$$$' | '$$$$' | null;

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
 import type { SharedSpotMetadata } from '@/lib/types';
+import { colors, fonts, typography, spacing, radii } from '@/lib/theme';
 
 interface Props {
   metadata: SharedSpotMetadata;
@@ -31,24 +32,37 @@ export function SpotShareCard({ metadata, type, isMe }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 14,
+    borderRadius: radii.lg,
     overflow: 'hidden',
     width: 240,
     borderWidth: 1,
   },
-  cardMe: { borderColor: '#9B94FF', backgroundColor: '#EEF' },
-  cardThem: { borderColor: '#E0E0E0', backgroundColor: '#FFF' },
+  cardMe: { borderColor: colors.primary + '66', backgroundColor: colors.primaryLight },
+  cardThem: { borderColor: colors.border, backgroundColor: colors.white },
   image: { width: '100%', height: 110 },
   imagePlaceholder: {
     width: '100%',
     height: 110,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
   placeholderIcon: { fontSize: 36 },
-  info: { padding: 10 },
-  label: { fontSize: 11, color: '#6C63FF', fontWeight: '600', textTransform: 'uppercase', marginBottom: 2 },
-  name: { fontSize: 14, fontWeight: '700', color: '#111', marginBottom: 2 },
-  address: { fontSize: 12, color: '#888' },
+  info: { padding: spacing.md },
+  label: {
+    ...typography.labelSm,
+    color: colors.primary,
+    textTransform: 'uppercase',
+    marginBottom: 2,
+  },
+  name: {
+    ...typography.labelLg,
+    fontFamily: fonts.bold,
+    color: colors.textPrimary,
+    marginBottom: 2,
+  },
+  address: {
+    ...typography.bodySm,
+    color: colors.textSecondary,
+  },
 });

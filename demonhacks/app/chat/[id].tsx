@@ -9,6 +9,7 @@ import { useSocialStore } from '@/stores/social-store';
 import { useChats } from '@/hooks/useChats';
 import { MessageBubble } from '@/components/social/MessageBubble';
 import { useAuthStore } from '@/stores/auth-store';
+import { colors, fonts, typography, spacing, radii } from '@/lib/theme';
 
 export default function ChatScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -96,6 +97,7 @@ export default function ChatScreen() {
             value={input}
             onChangeText={setInput}
             placeholder="Message..."
+            placeholderTextColor={colors.textTertiary}
             multiline
             returnKeyType="send"
             onSubmitEditing={handleSend}
@@ -114,42 +116,51 @@ export default function ChatScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#fff' },
+  safe: { flex: 1, backgroundColor: colors.background },
   flex: { flex: 1 },
   messageList: {
-    paddingHorizontal: 12,
-    paddingVertical: 16,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.lg,
     flexGrow: 1,
   },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 80 },
-  emptyText: { color: '#888', fontSize: 15 },
+  emptyText: {
+    ...typography.bodyMd,
+    color: colors.textSecondary,
+  },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#E5E5E5',
-    gap: 8,
+    borderTopColor: colors.borderLight,
+    gap: spacing.sm,
   },
   input: {
     flex: 1,
     minHeight: 40,
     maxHeight: 120,
-    backgroundColor: '#F0F0F0',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    backgroundColor: colors.surface,
+    borderRadius: radii.full,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    fontFamily: fonts.regular,
     fontSize: 15,
+    color: colors.textPrimary,
   },
   sendBtn: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: '#6C63FF',
+    borderRadius: radii.full,
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  sendBtnDis: { backgroundColor: '#CCC' },
-  sendIcon: { color: '#fff', fontSize: 20, fontWeight: '700' },
+  sendBtnDis: { backgroundColor: colors.border },
+  sendIcon: {
+    color: colors.textInverse,
+    fontSize: 20,
+    fontFamily: fonts.bold,
+  },
 });

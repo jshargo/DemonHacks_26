@@ -1,10 +1,5 @@
-// TODO: GPS-verified check-in button
-// Owner: Person 3 (Quests + Check-ins)
-// - Shows "Check In" when user is within CHECK_IN_RADIUS_METERS of the stop
-// - Disabled with distance hint when too far away
-// - Uses useCheckIn hook for proximity verification
-
 import { Pressable, Text, StyleSheet } from 'react-native';
+import { colors, fonts, spacing, radii } from '@/lib/theme';
 
 interface CheckInButtonProps {
   isWithinRange: boolean;
@@ -44,13 +39,13 @@ export default function CheckInButton({
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '#00C49A',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
+    backgroundColor: colors.success,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing['2xl'],
+    borderRadius: radii.md,
     alignItems: 'center',
   },
-  disabled: { backgroundColor: '#ccc' },
-  completed: { backgroundColor: '#999' },
-  label: { color: '#fff', fontWeight: '600', fontSize: 15 },
+  disabled: { backgroundColor: colors.border },
+  completed: { backgroundColor: colors.textTertiary },
+  label: { color: colors.textInverse, fontFamily: fonts.bold, fontSize: 15 },
 });

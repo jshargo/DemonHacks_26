@@ -5,9 +5,7 @@ import { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  TextInput,
   Pressable,
-  Image,
   ScrollView,
   FlatList,
   Switch,
@@ -15,12 +13,19 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/stores/auth-store';
 import { usePreferencesStore } from '@/stores/preferences-store';
 import { supabase } from '@/lib/supabase';
 import { CATEGORIES, MAX_CATEGORIES, maxSubsForCategory } from '@/lib/categories';
 import { CategoryCard } from '@/components/onboarding/CategoryCard';
 import { ChipGroup } from '@/components/onboarding/ChipGroup';
+import { Avatar } from '@/components/ui/Avatar';
+import { Button } from '@/components/ui/Button';
+import { TextInput } from '@/components/ui/TextInput';
+import { Divider } from '@/components/ui/Divider';
+import { Bookmark } from 'lucide-react-native';
+import { colors, fonts, typography, spacing, radii } from '@/lib/theme';
 
 type Section = 'profile' | 'interests' | 'privacy';
 
@@ -30,6 +35,7 @@ function formatMemberSince(dateStr: string | undefined) {
 }
 
 export default function ProfileScreen() {
+  const router = useRouter();
   const { session, profile, fetchProfile, signOut } = useAuthStore();
   const { selectedCategories, selectedSubcategories, toggleCategory, setSubInterests } =
     usePreferencesStore();
@@ -124,12 +130,8 @@ export default function ProfileScreen() {
     setSubInterests(categoryId, next);
   };
 
-  const avatarInitial = (
-    profile?.display_name?.[0] ??
-    profile?.username?.[0] ??
-    session?.user?.email?.[0] ??
-    '?'
-  ).toUpperCase();
+  const displayLabel =
+    profile?.display_name ?? profile?.username ?? 'Explorer';
 
   const memberSince = formatMemberSince(profile?.created_at);
   const chosenCategories = CATEGORIES.filter((c) => selectedCategories.includes(c.id));
@@ -138,7 +140,7 @@ export default function ProfileScreen() {
   return (
     <View style={styles.root}>
 
-      {/* ── Left Panel ── */}
+      {/* -- Left Panel -- */}
       <View style={styles.leftPanel}>
         <ScrollView
           contentContainerStyle={styles.leftContent}
@@ -146,18 +148,16 @@ export default function ProfileScreen() {
         >
           {/* Avatar */}
           <View style={styles.avatarWrapper}>
-            {profile?.avatar_url ? (
-              <Image source={{ uri: profile.avatar_url }} style={styles.avatarImage} />
-            ) : (
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{avatarInitial}</Text>
-              </View>
-            )}
+            <Avatar
+              imageUrl={profile?.avatar_url}
+              name={displayLabel}
+              size="lg"
+            />
           </View>
 
           {/* Name & username */}
           <Text style={styles.leftName} numberOfLines={2}>
-            {profile?.display_name ?? profile?.username ?? 'Explorer'}
+            {displayLabel}
           </Text>
           {profile?.username && (
             <Text style={styles.leftUsername} numberOfLines={1}>
@@ -165,17 +165,23 @@ export default function ProfileScreen() {
             </Text>
           )}
 
-          <View style={styles.divider} />
+          {/* XP badge */}
+          <View style={styles.xpBadge}>
+            <Text style={styles.xpValue}>{(profile?.xp ?? 0).toLocaleString()}</Text>
+            <Text style={styles.xpLabel}>XP</Text>
+          </View>
+
+          <Divider spacing={spacing.md} />
 
           {/* Quick info */}
           {profile?.bio && (
-            <Text style={styles.infoLine} numberOfLines={2}>✦ {profile.bio}</Text>
+            <Text style={styles.infoLine} numberOfLines={2}>{profile.bio}</Text>
           )}
           {memberSince && (
-            <Text style={styles.infoLine}>🗓 {memberSince}</Text>
+            <Text style={styles.infoLine}>Joined {memberSince}</Text>
           )}
 
-          <View style={styles.divider} />
+          <Divider spacing={spacing.md} />
 
           {/* Nav items */}
           <Pressable
@@ -205,7 +211,18 @@ export default function ProfileScreen() {
             </Text>
           </Pressable>
 
-          <View style={styles.divider} />
+          <Divider spacing={spacing.md} />
+
+          {/* View Saved link */}
+          <Pressable
+            style={styles.savedLink}
+            onPress={() => router.push('/(tabs)/collections')}
+          >
+            <Bookmark size={16} color={colors.primary} />
+            <Text style={styles.savedLinkText}>View Saved</Text>
+          </Pressable>
+
+          <Divider spacing={spacing.md} />
 
           <Pressable onPress={signOut} style={styles.signOutBtn}>
             <Text style={styles.signOutText}>Sign out</Text>
@@ -213,7 +230,7 @@ export default function ProfileScreen() {
         </ScrollView>
       </View>
 
-      {/* ── Right Panel ── */}
+      {/* -- Right Panel -- */}
       <View style={styles.rightPanel}>
         {activeSection === 'privacy' ? (
           <ScrollView
@@ -231,8 +248,8 @@ export default function ProfileScreen() {
               <Switch
                 value={hideLocation}
                 onValueChange={setHideLocation}
-                trackColor={{ false: '#E0E0E0', true: '#222' }}
-                thumbColor="#fff"
+                trackColor={{ false: colors.border, true: colors.primary }}
+                thumbColor={colors.white}
               />
             </View>
 
@@ -246,22 +263,21 @@ export default function ProfileScreen() {
               <Switch
                 value={hideQuestProgress}
                 onValueChange={setHideQuestProgress}
-                trackColor={{ false: '#E0E0E0', true: '#222' }}
-                thumbColor="#fff"
+                trackColor={{ false: colors.border, true: colors.primary }}
+                thumbColor={colors.white}
               />
             </View>
 
-            <Pressable
-              style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
-              onPress={handleSavePrivacy}
+            <Button
+              title="Save"
+              variant="primary"
+              size="lg"
+              fullWidth
+              loading={saving}
               disabled={saving}
-            >
-              {saving ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <Text style={styles.saveBtnText}>Save</Text>
-              )}
-            </Pressable>
+              onPress={handleSavePrivacy}
+              style={styles.saveBtn}
+            />
           </ScrollView>
         ) : activeSection === 'profile' ? (
           <ScrollView
@@ -271,53 +287,52 @@ export default function ProfileScreen() {
           >
             <Text style={styles.rightHeading}>Edit Profile</Text>
 
-            <Text style={styles.fieldLabel}>PROFILE PICTURE URL</Text>
             <TextInput
-              style={styles.input}
+              label="PROFILE PICTURE URL"
               value={avatarUrl}
               onChangeText={setAvatarUrl}
               placeholder="https://..."
               autoCapitalize="none"
               keyboardType="url"
+              containerStyle={styles.fieldGap}
             />
 
-            <Text style={styles.fieldLabel}>DISPLAY NAME</Text>
             <TextInput
-              style={styles.input}
+              label="DISPLAY NAME"
               value={displayName}
               onChangeText={setDisplayName}
               placeholder="Your name"
+              containerStyle={styles.fieldGap}
             />
 
-            <Text style={styles.fieldLabel}>USERNAME</Text>
             <TextInput
-              style={styles.input}
+              label="USERNAME"
               value={username}
               onChangeText={setUsername}
               placeholder="username"
               autoCapitalize="none"
+              containerStyle={styles.fieldGap}
             />
 
-            <Text style={styles.fieldLabel}>TOP THING TO EXPLORE</Text>
             <TextInput
-              style={styles.input}
+              label="TOP THING TO EXPLORE"
               value={topInterest}
               onChangeText={setTopInterest}
-              placeholder="e.g. Live music, hiking…"
+              placeholder="e.g. Live music, hiking..."
               returnKeyType="done"
+              containerStyle={styles.fieldGap}
             />
 
-            <Pressable
-              style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
-              onPress={handleSaveProfile}
+            <Button
+              title="Save"
+              variant="primary"
+              size="lg"
+              fullWidth
+              loading={saving}
               disabled={saving}
-            >
-              {saving ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <Text style={styles.saveBtnText}>Save</Text>
-              )}
-            </Pressable>
+              onPress={handleSaveProfile}
+              style={styles.saveBtn}
+            />
           </ScrollView>
         ) : (
           <ScrollView
@@ -367,19 +382,18 @@ export default function ProfileScreen() {
               </>
             )}
 
-            <Pressable
-              style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
-              onPress={handleSaveInterests}
+            <Button
+              title="Save"
+              variant="primary"
+              size="lg"
+              fullWidth
+              loading={saving}
               disabled={saving}
-            >
-              {saving ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <Text style={styles.saveBtnText}>Save</Text>
-              )}
-            </Pressable>
+              onPress={handleSaveInterests}
+              style={styles.saveBtn}
+            />
 
-            <View style={{ height: 24 }} />
+            <View style={{ height: spacing['2xl'] }} />
           </ScrollView>
         )}
       </View>
@@ -392,188 +406,171 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     flexDirection: 'row',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.surface,
   },
 
-  // ── Left panel ──
+  // -- Left panel --
   leftPanel: {
     width: 185,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     borderRightWidth: 1,
-    borderRightColor: '#EFEFEF',
+    borderRightColor: colors.borderLight,
   },
   leftContent: {
     paddingTop: 56,
-    paddingBottom: 24,
+    paddingBottom: spacing['2xl'],
     alignItems: 'center',
-    paddingHorizontal: 10,
+    paddingHorizontal: spacing.sm + 2,
   },
   avatarWrapper: {
-    marginBottom: 10,
+    marginBottom: spacing.sm + 2,
   },
-  avatarImage: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-  },
-  avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#333',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: { color: '#fff', fontSize: 26, fontWeight: 'bold' },
   leftName: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#222',
+    ...typography.labelMd,
+    fontFamily: fonts.bold,
+    color: colors.textPrimary,
     textAlign: 'center',
   },
   leftUsername: {
-    fontSize: 11,
-    color: '#AAAAAA',
+    ...typography.caption,
+    color: colors.textTertiary,
     textAlign: 'center',
     marginTop: 2,
   },
-  divider: {
-    width: '100%',
-    height: 1,
-    backgroundColor: '#F0F0F0',
-    marginVertical: 12,
+  xpBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#6C63FF15',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 12,
+    marginTop: 8,
+    gap: 4,
+  },
+  xpValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#6C63FF',
+  },
+  xpLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#6C63FF',
   },
   infoLine: {
-    fontSize: 11,
-    color: '#888',
+    ...typography.caption,
+    color: colors.textSecondary,
     textAlign: 'center',
-    marginBottom: 4,
+    marginBottom: spacing.xs,
     lineHeight: 15,
   },
   navItem: {
     width: '100%',
-    paddingVertical: 10,
-    paddingHorizontal: 10,
-    borderRadius: 8,
+    paddingVertical: spacing.sm + 2,
+    paddingHorizontal: spacing.sm + 2,
+    borderRadius: radii.sm,
     marginBottom: 2,
   },
   navItemActive: {
-    backgroundColor: '#F3F3F3',
+    backgroundColor: colors.primaryLight,
     borderLeftWidth: 3,
-    borderLeftColor: '#222',
+    borderLeftColor: colors.primary,
   },
   navText: {
-    fontSize: 13,
-    color: '#888',
-    fontWeight: '500',
+    ...typography.labelMd,
+    fontFamily: fonts.medium,
+    color: colors.textSecondary,
   },
   navTextActive: {
-    color: '#222',
-    fontWeight: '700',
+    color: colors.primary,
+    fontFamily: fonts.bold,
+  },
+  savedLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+  },
+  savedLinkText: {
+    ...typography.labelMd,
+    fontFamily: fonts.medium,
+    color: colors.primary,
   },
   signOutBtn: {
-    paddingVertical: 6,
+    paddingVertical: spacing.sm - 2,
   },
   signOutText: {
-    fontSize: 12,
-    color: '#AAAAAA',
+    ...typography.bodySm,
+    color: colors.textTertiary,
   },
 
-  // ── Right panel ──
+  // -- Right panel --
   rightPanel: {
     flex: 1,
-    backgroundColor: '#F8F8F8',
+    backgroundColor: colors.surface,
   },
   rightContent: {
-    padding: 16,
+    padding: spacing.lg,
     paddingTop: 56,
   },
   rightHeading: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#222',
-    marginBottom: 4,
+    ...typography.headingLg,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
   },
   subHeading: {
-    fontSize: 15,
-    marginTop: 16,
-    marginBottom: 8,
+    ...typography.headingSm,
+    marginTop: spacing.lg,
+    marginBottom: spacing.sm,
   },
   rightSub: {
-    fontSize: 12,
-    color: '#888',
-    marginBottom: 12,
+    ...typography.bodySm,
+    color: colors.textSecondary,
+    marginBottom: spacing.md,
   },
-  fieldLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#999',
-    letterSpacing: 0.8,
-    marginBottom: 6,
-    marginTop: 14,
-  },
-  input: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#E4E4E4',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: '#222',
+  fieldGap: {
+    marginTop: spacing.md,
   },
   saveBtn: {
-    marginTop: 20,
-    backgroundColor: '#222',
-    borderRadius: 8,
-    paddingVertical: 13,
-    alignItems: 'center',
-  },
-  saveBtnDisabled: {
-    backgroundColor: '#AAAAAA',
-  },
-  saveBtnText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#fff',
+    marginTop: spacing.xl,
   },
   grid: {
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   subSection: {
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   subSectionTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#222',
-    marginBottom: 8,
+    ...typography.labelLg,
+    fontFamily: fonts.bold,
+    color: colors.textPrimary,
+    marginBottom: spacing.sm,
   },
 
-  // ── Privacy toggles ──
+  // -- Privacy toggles --
   dividerThin: {
     height: 1,
-    backgroundColor: '#F0F0F0',
-    marginVertical: 4,
+    backgroundColor: colors.borderLight,
+    marginVertical: spacing.xs,
   },
   toggleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 14,
-    gap: 12,
+    paddingVertical: spacing.md + 2,
+    gap: spacing.md,
   },
   toggleInfo: {
     flex: 1,
   },
   toggleLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#222',
+    ...typography.labelLg,
+    fontFamily: fonts.bold,
+    color: colors.textPrimary,
     marginBottom: 2,
   },
   toggleDesc: {
-    fontSize: 12,
-    color: '#999',
+    ...typography.bodySm,
+    color: colors.textTertiary,
   },
 });

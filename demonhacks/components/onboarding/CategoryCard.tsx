@@ -1,4 +1,5 @@
 import { Pressable, Text, StyleSheet, View } from 'react-native';
+import { colors, fonts, typography, spacing, radii } from '@/lib/theme';
 
 interface CategoryCardProps {
   emoji: string;
@@ -32,46 +33,46 @@ const styles = StyleSheet.create({
     flex: 1,
     aspectRatio: 1,
     margin: 5,
-    borderRadius: 12,
+    borderRadius: radii.md,
     borderWidth: 1.5,
-    borderColor: '#DDDDDD',
-    backgroundColor: '#FFFFFF',
+    borderColor: colors.border,
+    backgroundColor: colors.white,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 8,
+    padding: spacing.sm,
   },
   cardSelected: {
-    borderColor: '#222222',
+    borderColor: colors.primary,
     borderWidth: 2,
-    backgroundColor: '#F7F7F7',
+    backgroundColor: colors.primaryLight,
   },
   cardDisabled: {
     opacity: 0.35,
   },
   cardPressed: {
-    backgroundColor: '#F0F0F0',
+    backgroundColor: colors.surface,
   },
   emoji: {
     fontSize: 28,
     marginBottom: 6,
   },
   label: {
+    fontFamily: fonts.medium,
     fontSize: 11,
-    fontWeight: '500',
-    color: '#222222',
+    color: colors.textPrimary,
     textAlign: 'center',
     lineHeight: 14,
   },
   labelDisabled: {
-    color: '#B0B0B0',
+    color: colors.textTertiary,
   },
   checkDot: {
     position: 'absolute',
-    top: 8,
-    right: 8,
+    top: spacing.sm,
+    right: spacing.sm,
     width: 8,
     height: 8,
-    borderRadius: 4,
-    backgroundColor: '#222222',
+    borderRadius: radii.full,
+    backgroundColor: colors.primary,
   },
 });

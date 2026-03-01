@@ -6,6 +6,8 @@ import { usePreferencesStore } from '@/stores/preferences-store';
 import { useAuthStore } from '@/stores/auth-store';
 import { supabase } from '@/lib/supabase';
 import { ChipGroup } from '@/components/onboarding/ChipGroup';
+import { Button } from '@/components/ui/Button';
+import { colors, fonts, typography, spacing, radii } from '@/lib/theme';
 
 export default function SubInterestsScreen() {
   const router = useRouter();
@@ -125,9 +127,15 @@ export default function SubInterestsScreen() {
 
         {/* Finish Button */}
         <View style={styles.footer}>
-          <Pressable onPress={handleFinish} disabled={saving} style={styles.finishButton}>
-            <Text style={styles.finishText}>{saving ? 'Saving...' : 'Finish'}</Text>
-          </Pressable>
+          <Button
+            title={saving ? 'Saving...' : 'Finish'}
+            variant="primary"
+            size="lg"
+            fullWidth
+            disabled={saving}
+            loading={saving}
+            onPress={handleFinish}
+          />
         </View>
       </View>
     </SafeAreaView>
@@ -137,41 +145,39 @@ export default function SubInterestsScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background,
   },
   container: {
     flex: 1,
   },
   header: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 8,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.sm,
   },
   backButton: {
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   backText: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#222222',
+    ...typography.bodyMd,
+    fontFamily: fonts.medium,
+    color: colors.primary,
   },
   heading: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: '#222222',
+    ...typography.displayMd,
+    color: colors.textPrimary,
     marginBottom: 6,
   },
   subheading: {
-    fontSize: 15,
-    fontWeight: '400',
-    color: '#717171',
+    ...typography.bodyMd,
+    color: colors.textSecondary,
   },
   scroll: {
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xl,
   },
   section: {
     marginBottom: 28,
@@ -180,43 +186,31 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#222222',
+    ...typography.headingSm,
+    color: colors.textPrimary,
   },
   subCounter: {
-    fontSize: 12,
-    fontWeight: '400',
-    color: '#AAAAAA',
+    ...typography.labelMd,
+    fontFamily: fonts.regular,
+    color: colors.textTertiary,
   },
   subCounterAtLimit: {
-    color: '#222222',
-    fontWeight: '600',
+    color: colors.primary,
+    fontFamily: fonts.bold,
   },
   footer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: 20,
-    paddingBottom: 32,
-    paddingTop: 16,
-    backgroundColor: '#FFFFFF',
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing['3xl'],
+    paddingTop: spacing.lg,
+    backgroundColor: colors.background,
     borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
-  },
-  finishButton: {
-    backgroundColor: '#222222',
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  finishText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    borderTopColor: colors.borderLight,
   },
 });

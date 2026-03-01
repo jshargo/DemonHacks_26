@@ -7,9 +7,14 @@ interface QuestState {
   steps: QuestStep[];
   progress: QuestCheckin[];
   loading: boolean;
+  /** Tracks quests whose completion XP has already been awarded */
+  completedQuestIds: Set<string>;
 
   /** Fetch all active quests */
   fetchQuests: () => Promise<void>;
+
+  /** Find a server quest by its title (for bridging local JSON → Supabase) */
+  fetchQuestByTitle: (title: string) => Promise<Quest | null>;
 
   /** Fetch steps for a specific quest (with place data resolved via target_id) */
   fetchSteps: (questId: string) => Promise<void>;
@@ -17,8 +22,11 @@ interface QuestState {
   /** Fetch user's quest check-in progress */
   fetchProgress: (userId: string) => Promise<void>;
 
-  /** Check in at a quest step */
-  checkIn: (userId: string, questStepId: string, placeId: string | null) => Promise<void>;
+  /** Check in at a quest step and award step XP to the user profile */
+  checkIn: (userId: string, questStepId: string, placeId: string | null, xpReward?: number) => Promise<boolean>;
+
+  /** Award quest-completion bonus XP (called once when all stops are done) */
+  completeQuest: (userId: string, questId: string, bonusXp: number) => Promise<boolean>;
 
   /** Check if a specific step has been completed */
   isStepCompleted: (questStepId: string) => boolean;
@@ -32,6 +40,7 @@ export const useQuestStore = create<QuestState>((set, get) => ({
   steps: [],
   progress: [],
   loading: false,
+  completedQuestIds: new Set(),
 
   fetchQuests: async () => {
     set({ loading: true });
@@ -42,6 +51,17 @@ export const useQuestStore = create<QuestState>((set, get) => ({
       .order('created_at');
 
     set({ quests: (data as Quest[]) ?? [], loading: false });
+  },
+
+  fetchQuestByTitle: async (title) => {
+    const { data } = await supabase
+      .from('quests')
+      .select('*')
+      .eq('is_active', true)
+      .ilike('title', title)
+      .maybeSingle();
+
+    return (data as Quest) ?? null;
   },
 
   fetchSteps: async (questId) => {
@@ -90,21 +110,70 @@ export const useQuestStore = create<QuestState>((set, get) => ({
     set({ progress: (data as QuestCheckin[]) ?? [] });
   },
 
-  checkIn: async (userId, questStepId, placeId) => {
+  checkIn: async (userId, questStepId, placeId, xpReward = 25) => {
+    // Prevent duplicate check-ins
+    if (get().isStepCompleted(questStepId)) return false;
+
     const { data, error } = await supabase
       .from('checkins')
       .insert({
         user_id: userId,
         quest_step_id: questStepId,
         place_id: placeId,
-        xp_earned: 25,
+        xp_earned: xpReward,
       })
       .select()
       .single();
 
-    if (!error && data) {
-      set((state) => ({ progress: [...state.progress, data as QuestCheckin] }));
+    if (error || !data) return false;
+
+    // Update local progress
+    set((state) => ({ progress: [...state.progress, data as QuestCheckin] }));
+
+    // Increment user's XP in the profiles table
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('xp')
+      .eq('id', userId)
+      .single();
+
+    if (profile) {
+      await supabase
+        .from('profiles')
+        .update({ xp: (profile.xp ?? 0) + xpReward })
+        .eq('id', userId);
     }
+
+    return true;
+  },
+
+  completeQuest: async (userId, questId, bonusXp) => {
+    // Prevent awarding completion XP twice
+    if (get().completedQuestIds.has(questId)) return false;
+
+    // Increment user's XP with the quest completion bonus
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('xp')
+      .eq('id', userId)
+      .single();
+
+    if (!profile) return false;
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ xp: (profile.xp ?? 0) + bonusXp })
+      .eq('id', userId);
+
+    if (error) return false;
+
+    set((state) => {
+      const ids = new Set(state.completedQuestIds);
+      ids.add(questId);
+      return { completedQuestIds: ids };
+    });
+
+    return true;
   },
 
   isStepCompleted: (questStepId) => {
