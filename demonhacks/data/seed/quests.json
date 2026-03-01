@@ -1,5 +1,6 @@
 [
   {
+    "id": "deep-dish-discovery",
     "name": "Deep Dish Discovery Tour",
     "description": "Hit Chicago's most iconic food spots in one epic day. From deep-dish pizza to Chicago-style hot dogs, this quest takes you through the flavors that define the city.",
     "difficulty": "easy",
@@ -12,6 +13,7 @@
     ]
   },
   {
+    "id": "chicago-street-art",
     "name": "Chicago Street Art Walk",
     "description": "Explore Chicago's vibrant street art scene from Pilsen's murals to Wicker Park's creative energy. Bring your camera!",
     "difficulty": "medium",
@@ -25,6 +27,7 @@
     ]
   },
   {
+    "id": "lakefront-adventure",
     "name": "Lakefront Adventure",
     "description": "A full day along Chicago's stunning Lake Michigan shoreline. Parks, beaches, wildlife, and the best skyline views in the city.",
     "difficulty": "medium",
@@ -36,6 +39,62 @@
       { "spot_name": "Lakefront Trail", "stop_order": 4, "hint": "Head north on the trail. Rent a bike for the best experience." },
       { "spot_name": "Montrose Beach", "stop_order": 5, "hint": "Keep going north to Montrose. Relax on the beach and enjoy the skyline." },
       { "spot_name": "Lincoln Park Zoo", "stop_order": 6, "hint": "Cut west into Lincoln Park. The zoo is free and open year-round!" }
+    ]
+  },
+  {
+    "id": "architecture-river-cruise",
+    "name": "Architecture River Walk",
+    "description": "Chicago is the birthplace of the skyscraper. Walk along the river and Loop to see iconic buildings from the 1890s to today — no boat ticket required.",
+    "difficulty": "easy",
+    "estimated_time": "3 hours",
+    "stops": [
+      { "spot_name": "Chicago Architecture Center", "stop_order": 1, "hint": "Start here on Michigan Ave to get oriented with the city's architectural history." },
+      { "spot_name": "Wrigley Building", "stop_order": 2, "hint": "Cross the Michigan Ave bridge. The white terra-cotta towers glow at night." },
+      { "spot_name": "Tribune Tower", "stop_order": 3, "hint": "Right next door — look for fragments of famous buildings embedded in the walls." },
+      { "spot_name": "Marina City", "stop_order": 4, "hint": "The iconic 'corn cob' towers on State St. One of Chicago's most photographed buildings." },
+      { "spot_name": "Willis Tower Skydeck", "stop_order": 5, "hint": "Head south on Wacker Dr. Step onto The Ledge for a 103-floor glass-bottom view." }
+    ]
+  },
+  {
+    "id": "museum-campus-explorer",
+    "name": "Museum Campus Explorer",
+    "description": "Three world-class museums on one lakefront campus. Dinosaurs, galaxies, and an aquarium all in a single day — only in Chicago.",
+    "difficulty": "hard",
+    "estimated_time": "6 hours",
+    "stops": [
+      { "spot_name": "Field Museum of Natural History", "stop_order": 1, "hint": "Start with SUE, the largest T. rex ever found. Main hall, can't miss it." },
+      { "spot_name": "Shedd Aquarium", "stop_order": 2, "hint": "Walk east along the lakefront. Catch the beluga whale feeding if you can." },
+      { "spot_name": "Adler Planetarium", "stop_order": 3, "hint": "Keep walking to the tip of the peninsula — best skyline photo spot in Chicago." },
+      { "spot_name": "Soldier Field", "stop_order": 4, "hint": "Loop back past the home of the Chicago Bears. Check out the iconic colonnades." },
+      { "spot_name": "12th Street Beach", "stop_order": 5, "hint": "Hidden beach just south of the planetarium. Perfect for a break." }
+    ]
+  },
+  {
+    "id": "blues-jazz-trail",
+    "name": "Chicago Blues & Jazz Trail",
+    "description": "Chicago shaped modern blues and jazz. Follow the music from legendary South Side clubs to downtown jazz lounges.",
+    "difficulty": "medium",
+    "estimated_time": "5 hours",
+    "stops": [
+      { "spot_name": "Chess Records / Willie Dixon's Blues Heaven", "stop_order": 1, "hint": "2120 S Michigan Ave — where Muddy Waters, Chuck Berry, and the Stones recorded." },
+      { "spot_name": "Buddy Guy's Legends", "stop_order": 2, "hint": "Head north to Wabash Ave. Live blues every night from a living legend's club." },
+      { "spot_name": "Jazz Showcase", "stop_order": 3, "hint": "South Dearborn St. The oldest jazz club in the city, running since 1947." },
+      { "spot_name": "Green Mill Cocktail Lounge", "stop_order": 4, "hint": "Take the Red Line to Lawrence. Al Capone's favorite speakeasy — still swinging." },
+      { "spot_name": "Kingston Mines", "stop_order": 5, "hint": "Lincoln Park. Two stages, live blues till 4am. The real deal." }
+    ]
+  },
+  {
+    "id": "hidden-chicago",
+    "name": "Hidden Chicago",
+    "description": "Go beyond the tourist trail. Secret gardens, underground pedways, speakeasy bars, and spots most visitors never find.",
+    "difficulty": "hard",
+    "estimated_time": "4 hours",
+    "stops": [
+      { "spot_name": "Chicago Pedway", "stop_order": 1, "hint": "Enter from the Metra station at Millennium Park. 40 blocks of underground tunnels." },
+      { "spot_name": "Lurie Garden", "stop_order": 2, "hint": "Hidden in plain sight at the south end of Millennium Park. A secret prairie oasis." },
+      { "spot_name": "The Dearborn", "stop_order": 3, "hint": "Look for the unmarked door on Dearborn St — classic speakeasy vibes." },
+      { "spot_name": "Graceland Cemetery", "stop_order": 4, "hint": "Take the Red Line north. An open-air museum of Victorian architecture and famous Chicagoans." },
+      { "spot_name": "Oz Park", "stop_order": 5, "hint": "Lincoln Park neighborhood. Statues of the Tin Man, Scarecrow, and Dorothy — a nod to L. Frank Baum's time in Chicago." }
     ]
   }
 ]

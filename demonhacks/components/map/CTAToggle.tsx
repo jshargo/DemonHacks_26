@@ -9,10 +9,12 @@ export default function CTAToggle() {
   const showBusRoutes = useCTAStore((s) => s.showBusRoutes);
   const showLiveTrains = useCTAStore((s) => s.showLiveTrains);
   const showDivvyStations = useCTAStore((s) => s.showDivvyStations);
+  const showPedwayRoutes = useCTAStore((s) => s.showPedwayRoutes);
   const toggleRailLines = useCTAStore((s) => s.toggleRailLines);
   const toggleBusRoutes = useCTAStore((s) => s.toggleBusRoutes);
   const toggleLiveTrains = useCTAStore((s) => s.toggleLiveTrains);
   const toggleDivvyStations = useCTAStore((s) => s.toggleDivvyStations);
+  const togglePedwayRoutes = useCTAStore((s) => s.togglePedwayRoutes);
 
   return (
     <View style={styles.container}>
@@ -46,6 +48,14 @@ export default function CTAToggle() {
       >
         <Text style={[styles.icon, showDivvyStations && styles.iconActive]}>🚲</Text>
         {showDivvyStations && <View style={[styles.accent, { backgroundColor: '#00a1de' }]} />}
+      </Pressable>
+
+      <Pressable
+        style={[styles.btn, showPedwayRoutes && styles.btnActive]}
+        onPress={togglePedwayRoutes}
+      >
+        <Text style={[styles.icon, showPedwayRoutes && styles.iconActive]}>🚶</Text>
+        {showPedwayRoutes && <View style={[styles.accent, { backgroundColor: '#e07c24' }]} />}
       </Pressable>
     </View>
   );

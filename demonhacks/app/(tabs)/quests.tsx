@@ -1,45 +1,43 @@
-// Events screen — shows upcoming events from Supabase
-// The "Quests" tab now shows real events from the events table
-
 import { View, Text, FlatList, StyleSheet, Pressable } from 'react-native';
-import { useEvents } from '@/hooks/useEvents';
-import type { Event } from '@/lib/types';
+import { useRouter } from 'expo-router';
+import { useQuests, type LocalQuest } from '@/hooks/useQuests';
 
-export default function EventsScreen() {
-  const { events, loading, error } = useEvents({ upcomingOnly: false });
+const DIFFICULTY_COLORS: Record<string, string> = {
+  easy: '#00C49A',
+  medium: '#F77F00',
+  hard: '#E63946',
+};
 
-  const formatDate = (dateStr: string) => {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    });
-  };
+export default function QuestsScreen() {
+  const { quests } = useQuests();
+  const router = useRouter();
 
   return (
     <View style={styles.container}>
-      {loading && <Text style={styles.empty}>Loading events...</Text>}
-      {error && <Text style={styles.error}>{error}</Text>}
-      {!loading && events.length === 0 && (
-        <Text style={styles.empty}>No events found. Add some to your Supabase events table!</Text>
-      )}
       <FlatList
-        data={events}
+        data={quests}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }: { item: Event }) => (
-          <Pressable style={styles.card}>
+        renderItem={({ item }: { item: LocalQuest }) => (
+          <Pressable
+            style={styles.card}
+            onPress={() => router.push(`/quest/${item.id}`)}
+          >
             <Text style={styles.name}>{item.name}</Text>
-            {item.venue_name && <Text style={styles.venue}>{item.venue_name}</Text>}
-            <Text style={styles.time}>{formatDate(item.starts_at)}</Text>
-            {item.description && (
-              <Text style={styles.desc} numberOfLines={2}>{item.description}</Text>
-            )}
-            {item.attending_count > 0 && (
-              <Text style={styles.attending}>{item.attending_count} attending</Text>
-            )}
+            <View style={styles.meta}>
+              <Text
+                style={[
+                  styles.badge,
+                  { backgroundColor: DIFFICULTY_COLORS[item.difficulty] ?? '#888' },
+                ]}
+              >
+                {item.difficulty}
+              </Text>
+              <Text style={styles.time}>{item.estimated_time}</Text>
+              <Text style={styles.stops}>{item.stops.length} stops</Text>
+            </View>
+            <Text style={styles.desc} numberOfLines={2}>
+              {item.description}
+            </Text>
           </Pressable>
         )}
         contentContainerStyle={styles.list}
@@ -58,11 +56,18 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   name: { fontSize: 18, fontWeight: '600' },
-  venue: { fontSize: 14, color: '#444', marginTop: 2 },
-  time: { fontSize: 13, color: '#9B5DE5', marginTop: 4, fontWeight: '500' },
-  type: { fontSize: 12, color: '#666', marginTop: 2, textTransform: 'capitalize' },
-  desc: { fontSize: 13, color: '#777', marginTop: 6 },
-  attending: { fontSize: 12, color: '#00C49A', marginTop: 6, fontWeight: '500' },
-  empty: { fontSize: 15, color: '#999', marginTop: 24, textAlign: 'center', padding: 16 },
-  error: { fontSize: 14, color: '#e74c3c', textAlign: 'center', padding: 16 },
+  meta: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 },
+  badge: {
+    fontSize: 12,
+    color: '#fff',
+    fontWeight: '600',
+    textTransform: 'capitalize',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    overflow: 'hidden',
+  },
+  time: { fontSize: 13, color: '#666' },
+  stops: { fontSize: 13, color: '#999' },
+  desc: { fontSize: 14, color: '#555', marginTop: 8, lineHeight: 20 },
 });
