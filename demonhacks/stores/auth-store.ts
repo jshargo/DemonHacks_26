@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { supabase } from '@/lib/supabase';
 import type { Session } from '@supabase/supabase-js';
 import type { UserProfile } from '@/lib/types';
+import { usePreferencesStore } from '@/stores/preferences-store';
 
 interface AuthState {
   session: Session | null;
@@ -43,6 +44,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         get().fetchProfile();
       } else if (event === 'SIGNED_OUT') {
         set({ profile: null });
+        usePreferencesStore.getState().resetPreferences();
       }
     });
 
@@ -111,6 +113,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       .eq('id', userId)
       .single();
 
-    if (data) set({ profile: data as UserProfile });
+    if (data) {
+      set({ profile: data as UserProfile });
+      // Load all preferences (categories, subcategories, onboarding status) from Supabase
+      await usePreferencesStore.getState().loadFromSupabase(userId);
+    }
   },
 }));

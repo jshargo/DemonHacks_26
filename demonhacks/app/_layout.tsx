@@ -60,6 +60,7 @@ function RootLayoutNav() {
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+          <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
           <Stack.Screen name="quest/[id]" options={{ title: 'Quest', headerBackTitle: 'Back' }} />
           <Stack.Screen name="spot/[id]" options={{ title: 'Spot', headerBackTitle: 'Back' }} />
           <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
