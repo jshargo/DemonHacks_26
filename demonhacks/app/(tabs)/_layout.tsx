@@ -33,6 +33,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="collections"
         options={{
+          title: 'Collections',
           href: null, // Hide from tab bar — accessible via Profile navigation
         }}
       />

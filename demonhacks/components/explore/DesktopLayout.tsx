@@ -1,5 +1,5 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { View, StyleSheet, Pressable, Text } from 'react-native';
 import { useExploreStore } from '@/stores/explore-store';
 import { useCollectionStore } from '@/stores/collection-store';
 import { useAuthStore } from '@/stores/auth-store';
@@ -15,8 +15,9 @@ import FiltersModal from './FiltersModal';
 import { POIDetailPanel } from './SearchBar';
 import MapViewComponent from '@/components/map/MapView';
 import { useSearchStore } from '@/stores/search-store';
-import { colors } from '@/lib/theme';
+import { colors, fonts } from '@/lib/theme';
 import { useFilteredFeed } from '@/hooks/useFilteredFeed';
+import AIChatPanel from './AIChatPanel';
 
 const BOUNDS_DEBOUNCE_MS = 300;
 
@@ -50,10 +51,23 @@ function deduplicatePins(pins: MapPinType[], zoom: number): MapPinType[] {
   return result;
 }
 
+type PanelMode = 'feed' | 'ai';
+
 export default function DesktopLayout() {
   const boundsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const savedViewportRef = useRef<{ lat: number; lng: number; zoom: number } | null>(null);
   const [flyTarget, setFlyTarget] = useState<{ lat: number; lng: number; zoom?: number } | null>(null);
+  const [panelMode, setPanelMode] = useState<PanelMode>('feed');
+
+  // Subscribe to store flyTarget (set by Tambo tools/components) and bridge into local state
+  const storeFlyTarget = useMapStore((s) => s.flyTarget);
+  const clearStoreFlyTarget = useMapStore((s) => s.setFlyTarget);
+  useEffect(() => {
+    if (storeFlyTarget) {
+      setFlyTarget(storeFlyTarget);
+      clearStoreFlyTarget(null);
+    }
+  }, [storeFlyTarget, clearStoreFlyTarget]);
 
   const { items: rawItems, count: rawCount, loading } = useDiscoverFeed();
   const { filteredItems: items, filteredCount: count } = useFilteredFeed(rawItems);
@@ -197,24 +211,53 @@ export default function DesktopLayout() {
       {/* Filters modal overlay */}
       <FiltersModal />
 
-      {/* Left panel: TopBar + (CardFeed or DetailPanel) */}
+      {/* Left panel: TopBar + Toggle + (CardFeed/Detail or AI Chat) */}
       <View style={styles.leftPanel}>
         <TopBar showWordmark />
-        {detailItem ? (
-          <DetailPanel
-            item={detailItem}
-            onBack={handleBack}
-            isSaved={isSaved(detailItem.id)}
-            onToggleSave={handleToggleSaveDetail}
-          />
-        ) : (
-          <CardFeed
-            items={items}
-            count={count}
-            onItemPress={handleItemPress}
-            numColumns={2}
-          />
-        )}
+
+        {/* Segmented control: Explore | AI */}
+        <View style={styles.toggleBar}>
+          <Pressable
+            style={[styles.toggleBtn, panelMode === 'feed' && styles.toggleBtnActive]}
+            onPress={() => setPanelMode('feed')}
+          >
+            <Text style={[styles.toggleText, panelMode === 'feed' && styles.toggleTextActive]}>
+              Explore
+            </Text>
+          </Pressable>
+          <Pressable
+            style={[styles.toggleBtn, panelMode === 'ai' && styles.toggleBtnActive]}
+            onPress={() => setPanelMode('ai')}
+          >
+            <Text style={[styles.toggleText, panelMode === 'ai' && styles.toggleTextActive]}>
+              AI
+            </Text>
+          </Pressable>
+        </View>
+
+        {/* Feed panel — hidden when AI is active (keeps state) */}
+        <View style={[styles.panelContent, panelMode !== 'feed' && styles.hidden]}>
+          {detailItem ? (
+            <DetailPanel
+              item={detailItem}
+              onBack={handleBack}
+              isSaved={isSaved(detailItem.id)}
+              onToggleSave={handleToggleSaveDetail}
+            />
+          ) : (
+            <CardFeed
+              items={items}
+              count={count}
+              onItemPress={handleItemPress}
+              numColumns={2}
+            />
+          )}
+        </View>
+
+        {/* AI chat panel — hidden when Explore is active (preserves chat history) */}
+        <View style={[styles.panelContent, panelMode !== 'ai' && styles.hidden]}>
+          <AIChatPanel />
+        </View>
       </View>
 
       {/* Right panel: Map */}
@@ -255,5 +298,40 @@ const styles = StyleSheet.create({
   },
   rightPanel: {
     flex: 1,
+  },
+  toggleBar: {
+    flexDirection: 'row',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    gap: 4,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.borderLight,
+    backgroundColor: colors.surface,
+  },
+  toggleBtn: {
+    flex: 1,
+    paddingVertical: 6,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  toggleBtnActive: {
+    backgroundColor: colors.white,
+    // Web-only shadow for the active tab
+    ...({ boxShadow: '0px 1px 3px rgba(0,0,0,0.08)' } as unknown as object),
+  },
+  toggleText: {
+    fontFamily: fonts.medium,
+    fontSize: 13,
+    color: colors.textTertiary,
+  },
+  toggleTextActive: {
+    color: colors.primary,
+    fontFamily: fonts.bold,
+  },
+  panelContent: {
+    flex: 1,
+  },
+  hidden: {
+    display: 'none',
   },
 });

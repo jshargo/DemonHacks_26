@@ -7,9 +7,13 @@ import 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Platform } from 'react-native';
 
+import { TamboProvider } from '@tambo-ai/react';
 import { useAuthStore } from '@/stores/auth-store';
 import { useProtectedRoute } from '@/components/auth/AuthGate';
 import { colors, fonts } from '@/lib/theme';
+import { components } from '@/src/lib/tambo';
+import { tools } from '@/src/lib/tambo-tools';
+import { mapContextHelper } from '@/src/lib/tambo-context';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -90,26 +94,33 @@ function RootLayoutNav() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider value={ExploreChiTheme}>
-        <Stack
-          screenOptions={{
-            headerStyle: { backgroundColor: colors.white },
-            headerTintColor: colors.primary,
-            headerTitleStyle: { fontFamily: fonts.bold },
-            headerShadowVisible: false,
-          }}
+        <TamboProvider
+          apiKey={process.env.EXPO_PUBLIC_TAMBO_API_KEY!}
+          components={components}
+          tools={tools}
+          contextHelpers={{ mapViewport: mapContextHelper }}
         >
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-          <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
-          <Stack.Screen name="edit-profile" options={{ headerShown: false }} />
-          <Stack.Screen name="edit-preferences" options={{ headerShown: false }} />
-          <Stack.Screen name="quest/[id]" options={{ title: 'Quest', headerBackTitle: 'Back' }} />
-          <Stack.Screen name="spot/[id]" options={{ title: 'Spot', headerBackTitle: 'Back' }} />
-          <Stack.Screen name="chat/[id]" options={{ title: 'Chat', headerBackTitle: 'Back' }} />
-          <Stack.Screen name="friends/search" options={{ title: 'Find Friends', headerBackTitle: 'Back' }} />
-          <Stack.Screen name="friends/[id]" options={{ title: 'Profile', headerBackTitle: 'Back' }} />
-          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-        </Stack>
+          <Stack
+            screenOptions={{
+              headerStyle: { backgroundColor: colors.white },
+              headerTintColor: colors.primary,
+              headerTitleStyle: { fontFamily: fonts.bold },
+              headerShadowVisible: false,
+            }}
+          >
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+            <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
+            <Stack.Screen name="edit-profile" options={{ headerShown: false }} />
+            <Stack.Screen name="edit-preferences" options={{ headerShown: false }} />
+            <Stack.Screen name="quest/[id]" options={{ title: 'Quest', headerBackTitle: 'Back' }} />
+            <Stack.Screen name="spot/[id]" options={{ title: 'Spot', headerBackTitle: 'Back' }} />
+            <Stack.Screen name="chat/[id]" options={{ title: 'Chat', headerBackTitle: 'Back' }} />
+            <Stack.Screen name="friends/search" options={{ title: 'Find Friends', headerBackTitle: 'Back' }} />
+            <Stack.Screen name="friends/[id]" options={{ title: 'Profile', headerBackTitle: 'Back' }} />
+            <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+          </Stack>
+        </TamboProvider>
       </ThemeProvider>
     </GestureHandlerRootView>
   );

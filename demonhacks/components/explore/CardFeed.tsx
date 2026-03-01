@@ -19,6 +19,7 @@ export default function CardFeed({ items, count, onItemPress, numColumns = 1 }: 
   const hoveredPinId = useExploreStore((s) => s.hoveredPinId);
   const setHoveredItemId = useExploreStore((s) => s.setHoveredItemId);
 
+
   const openModal = useFilterStore((s) => s.openModal);
   const activeCount = useFilterStore((s) => s.activeCount);
   const filterCount = activeCount();

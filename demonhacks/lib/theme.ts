@@ -105,51 +105,15 @@ export const radii = {
   full: 9999,
 } as const;
 
-// ─── Shadows (web box-shadow strings — RN web supports these) ──────────────
+// ─── Shadows (CSS boxShadow strings for RN Web) ────────────────────────────
 
 export const shadows = {
-  sm: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 3,
-    elevation: 1,
-  },
-  md: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 3,
-  },
-  lg: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 24,
-    elevation: 5,
-  },
-  card: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  pin: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  fab: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 6,
-  },
+  sm: { boxShadow: '0px 1px 3px rgba(0,0,0,0.06)' },
+  md: { boxShadow: '0px 4px 12px rgba(0,0,0,0.08)' },
+  lg: { boxShadow: '0px 8px 24px rgba(0,0,0,0.12)' },
+  card: { boxShadow: '0px 2px 8px rgba(0,0,0,0.06)' },
+  pin: { boxShadow: '0px 2px 6px rgba(0,0,0,0.15)' },
+  fab: { boxShadow: '0px 4px 16px rgba(0,0,0,0.2)' },
 } as const;
 
 // ─── Z-Indices ──────────────────────────────────────────────────────────────

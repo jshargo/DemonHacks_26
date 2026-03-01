@@ -13,6 +13,7 @@ interface MapState {
   lightPreset: LightPreset;
   mapLoaded: boolean;
   hoveredNeighborhood: string | null;
+  flyTarget: { lat: number; lng: number; zoom?: number } | null;
 
   setViewport: (viewport: MapViewport) => void;
   selectPin: (pin: MapPin | null) => void;
@@ -24,6 +25,7 @@ interface MapState {
   setLightPreset: (preset: LightPreset) => void;
   setMapLoaded: (loaded: boolean) => void;
   setHoveredNeighborhood: (name: string | null) => void;
+  setFlyTarget: (target: { lat: number; lng: number; zoom?: number } | null) => void;
 }
 
 export const useMapStore = create<MapState>((set) => ({
@@ -36,6 +38,7 @@ export const useMapStore = create<MapState>((set) => ({
   lightPreset: 'day',
   mapLoaded: false,
   hoveredNeighborhood: null,
+  flyTarget: null,
 
   setViewport: (viewport) => set({ viewport }),
 
@@ -74,4 +77,6 @@ export const useMapStore = create<MapState>((set) => ({
   setMapLoaded: (loaded) => set({ mapLoaded: loaded }),
 
   setHoveredNeighborhood: (name) => set({ hoveredNeighborhood: name }),
+
+  setFlyTarget: (target) => set({ flyTarget: target }),
 }));

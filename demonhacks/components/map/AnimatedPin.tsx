@@ -74,8 +74,7 @@ export default function AnimatedPin({ entityType, index, onClick }: AnimatedPinP
   const iconPath = PIN_ICONS[entityType];
   const delay = Math.min(index * 30, 600);
 
-  // Build CSS box-shadow from theme shadow token
-  const pinShadow = `${shadows.pin.shadowOffset.width}px ${shadows.pin.shadowOffset.height}px ${shadows.pin.shadowRadius}px rgba(0,0,0,${shadows.pin.shadowOpacity})`;
+  const pinShadow = shadows.pin.boxShadow;
 
   return (
     <div

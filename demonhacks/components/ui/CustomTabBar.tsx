@@ -14,6 +14,7 @@ const TAB_ICONS: Record<string, typeof Compass> = {
 const TAB_LABELS: Record<string, string> = {
   index: 'Explore',
   quests: 'Quests',
+  collections: 'Collections',
   social: 'Social',
   profile: 'Profile',
 };
