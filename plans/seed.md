@@ -32,8 +32,8 @@ Google Places API (New) `searchNearby` returns up to 20 results per call with no
 ## Prerequisites
 
 1. **Copy Google API key** to `backend/.env`:
-   - The key `AIzaSyCpCu0_KemragZ6ufoDVbnGlRECHC2J6Vc` is in `demonhacks/.env` (`EXPO_PUBLIC_GOOGLE_PLACES_API_KEY`)
-   - Set `GOOGLE_PLACES_API_KEY=AIzaSyCpCu0_KemragZ6ufoDVbnGlRECHC2J6Vc` in `backend/.env`
+   - The key is in `demonhacks/.env` (`EXPO_PUBLIC_GOOGLE_PLACES_API_KEY`)
+   - Set `GOOGLE_PLACES_API_KEY=<your-key>` in `backend/.env`
 
 2. **Ensure API is enabled** in Google Cloud Console: "Places API (New)" must be enabled for the project
 
