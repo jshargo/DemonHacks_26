@@ -1,10 +1,21 @@
 // CTAToggle — Toggle buttons for CTA rail/bus/train overlays.
 // Positioned above the existing 3D toggle in the bottom-right corner.
+// The first button slot doubles as Pen when draw mode is active.
 
 import { View, Pressable, Text, StyleSheet } from 'react-native';
 import { useCTAStore } from '@/stores/cta-store';
 
-export default function CTAToggle() {
+interface CTAToggleProps {
+  /** Whether pen (draw) mode is active */
+  isDrawMode?: boolean;
+  /** Callback to toggle pen mode */
+  onToggleDrawMode?: () => void;
+}
+
+export default function CTAToggle({
+  isDrawMode = false,
+  onToggleDrawMode,
+}: CTAToggleProps) {
   const showRailLines = useCTAStore((s) => s.showRailLines);
   const showBusRoutes = useCTAStore((s) => s.showBusRoutes);
   const showLiveTrains = useCTAStore((s) => s.showLiveTrains);
@@ -18,45 +29,60 @@ export default function CTAToggle() {
 
   return (
     <View style={styles.container}>
+      {/* Pen icon — always first (top of stack), never moves */}
       <Pressable
-        style={[styles.btn, showLiveTrains && styles.btnActive]}
-        onPress={toggleLiveTrains}
+        style={[styles.btn, isDrawMode && styles.btnActive]}
+        onPress={onToggleDrawMode}
+        accessibilityLabel={isDrawMode ? 'Exit draw mode' : 'Enter draw mode'}
+        accessibilityRole="button"
       >
-        <Text style={[styles.icon, showLiveTrains && styles.iconActive]}>🚇</Text>
-        {showLiveTrains && <View style={[styles.accent, { backgroundColor: '#c60c30' }]} />}
+        <Text style={styles.icon}>✏️</Text>
       </Pressable>
 
-      <Pressable
-        style={[styles.btn, showRailLines && !showLiveTrains && styles.btnActive]}
-        onPress={toggleRailLines}
-      >
-        <Text style={[styles.icon, showRailLines && styles.iconActive]}>🛤️</Text>
-        {showRailLines && <View style={[styles.accent, { backgroundColor: '#00a1de' }]} />}
-      </Pressable>
+      {/* Remaining buttons — hidden when pen mode is ON */}
+      {!isDrawMode && (
+        <>
+          <Pressable
+            style={[styles.btn, showLiveTrains && styles.btnActive]}
+            onPress={toggleLiveTrains}
+          >
+            <Text style={[styles.icon, showLiveTrains && styles.iconActive]}>🚇</Text>
+            {showLiveTrains && <View style={[styles.accent, { backgroundColor: '#c60c30' }]} />}
+          </Pressable>
 
-      <Pressable
-        style={[styles.btn, showBusRoutes && styles.btnActive]}
-        onPress={toggleBusRoutes}
-      >
-        <Text style={[styles.icon, showBusRoutes && styles.iconActive]}>🚌</Text>
-        {showBusRoutes && <View style={[styles.accent, { backgroundColor: '#1a73e8' }]} />}
-      </Pressable>
+          <Pressable
+            style={[styles.btn, showRailLines && !showLiveTrains && styles.btnActive]}
+            onPress={toggleRailLines}
+          >
+            <Text style={[styles.icon, showRailLines && styles.iconActive]}>🛤️</Text>
+            {showRailLines && <View style={[styles.accent, { backgroundColor: '#00a1de' }]} />}
+          </Pressable>
 
-      <Pressable
-        style={[styles.btn, showDivvyStations && styles.btnActive]}
-        onPress={toggleDivvyStations}
-      >
-        <Text style={[styles.icon, showDivvyStations && styles.iconActive]}>🚲</Text>
-        {showDivvyStations && <View style={[styles.accent, { backgroundColor: '#00a1de' }]} />}
-      </Pressable>
+          <Pressable
+            style={[styles.btn, showBusRoutes && styles.btnActive]}
+            onPress={toggleBusRoutes}
+          >
+            <Text style={[styles.icon, showBusRoutes && styles.iconActive]}>🚌</Text>
+            {showBusRoutes && <View style={[styles.accent, { backgroundColor: '#1a73e8' }]} />}
+          </Pressable>
 
-      <Pressable
-        style={[styles.btn, showPedwayRoutes && styles.btnActive]}
-        onPress={togglePedwayRoutes}
-      >
-        <Text style={[styles.icon, showPedwayRoutes && styles.iconActive]}>🚶</Text>
-        {showPedwayRoutes && <View style={[styles.accent, { backgroundColor: '#e07c24' }]} />}
-      </Pressable>
+          <Pressable
+            style={[styles.btn, showDivvyStations && styles.btnActive]}
+            onPress={toggleDivvyStations}
+          >
+            <Text style={[styles.icon, showDivvyStations && styles.iconActive]}>🚲</Text>
+            {showDivvyStations && <View style={[styles.accent, { backgroundColor: '#00a1de' }]} />}
+          </Pressable>
+
+          <Pressable
+            style={[styles.btn, showPedwayRoutes && styles.btnActive]}
+            onPress={togglePedwayRoutes}
+          >
+            <Text style={[styles.icon, showPedwayRoutes && styles.iconActive]}>🚶</Text>
+            {showPedwayRoutes && <View style={[styles.accent, { backgroundColor: '#e07c24' }]} />}
+          </Pressable>
+        </>
+      )}
     </View>
   );
 }

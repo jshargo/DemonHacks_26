@@ -12,9 +12,11 @@ import type { MapPin as MapPinType, MapBounds, PinLabel, DiscoverItem, SearchRes
 import TopBar from './TopBar';
 import DiscoverCard from './DiscoverCard';
 import DetailPanel from './DetailPanel';
+import FiltersModal from './FiltersModal';
 import { POIDetailPanel } from './SearchBar';
 import MapViewComponent from '@/components/map/MapView';
 import { useSearchStore } from '@/stores/search-store';
+import { useFilteredFeed } from '@/hooks/useFilteredFeed';
 
 const SNAP_POINTS = ['12%', '50%', '90%'];
 const BOUNDS_DEBOUNCE_MS = 300;
@@ -25,7 +27,8 @@ export default function MobileLayout() {
   const savedViewportRef = useRef<{ lat: number; lng: number; zoom: number } | null>(null);
   const [flyTarget, setFlyTarget] = useState<{ lat: number; lng: number; zoom?: number } | null>(null);
 
-  const { items, loading } = useDiscoverFeed();
+  const { items: rawItems, loading } = useDiscoverFeed();
+  const { filteredItems: items } = useFilteredFeed(rawItems);
 
   const detailItem = useExploreStore((s) => s.detailItem);
   const openDetail = useExploreStore((s) => s.openDetail);
@@ -106,16 +109,16 @@ export default function MobileLayout() {
       const result: SearchResult | null =
         item.lat !== 0 && item.lng !== 0
           ? {
-              mapbox_id: item.mapboxId ?? item.id,
-              name: item.name,
-              address: item.placeFormatted ?? '',
-              full_address: item.placeFormatted ?? '',
-              lat: item.lat,
-              lng: item.lng,
-              category: item.subcategory ?? undefined,
-              poi_categories: item.subcategory ? [item.subcategory] : [],
-              website: item.websiteUrl ?? undefined,
-            }
+            mapbox_id: item.mapboxId ?? item.id,
+            name: item.name,
+            address: item.placeFormatted ?? '',
+            full_address: item.placeFormatted ?? '',
+            lat: item.lat,
+            lng: item.lng,
+            category: item.subcategory ?? undefined,
+            poi_categories: item.subcategory ? [item.subcategory] : [],
+            website: item.websiteUrl ?? undefined,
+          }
           : null;
 
       openWithViewportSave(item);
@@ -178,6 +181,9 @@ export default function MobileLayout() {
 
   return (
     <View style={styles.container}>
+      {/* Filters modal overlay */}
+      <FiltersModal />
+
       {/* Fullscreen map */}
       <MapViewComponent
         pins={mapPins}
