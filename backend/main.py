@@ -9,6 +9,7 @@ Run:  cd backend && uvicorn main:app --reload --port 8000
 
 import os
 import time
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 import httpx
@@ -22,6 +23,13 @@ load_dotenv()
 CTA_API_KEY = os.getenv("CTA_API_KEY", "")
 CTA_API_BASE = "https://lapi.transitchicago.com/api/1.0"
 CTA_ALL_ROUTES = ["red", "blue", "brn", "g", "org", "p", "pink", "y"]
+
+TICKETMASTER_API_KEY = os.getenv("TICKETMASTER_API_KEY", "")
+TICKETMASTER_API_BASE = "https://app.ticketmaster.com/discovery/v2"
+# Chicago center coordinates for geo-filtered event searches
+CHICAGO_LAT = "41.8781"
+CHICAGO_LON = "-87.6298"
+EVENTS_CACHE_TTL_SEC = 300  # 5 minutes — events don't change often
 
 # Map CTA API @name (lowercase) to the route codes used by the frontend
 _ROUTE_CODE_MAP = {
@@ -264,4 +272,122 @@ async def get_train_detail(run_number: str):
     )
 
     set_cached(cache_key, result)
+    return result
+
+
+# ─── Ticketmaster Models ────────────────────────────────────────────────────
+
+class TicketmasterEvent(BaseModel):
+    id: str
+    name: str
+    url: str
+    imageUrl: Optional[str] = None
+    startDate: Optional[str] = None
+    venueName: Optional[str] = None
+    lat: Optional[float] = None
+    lng: Optional[float] = None
+    genre: Optional[str] = None
+    subGenre: Optional[str] = None
+
+
+class TicketmasterEventsResponse(BaseModel):
+    events: list[TicketmasterEvent]
+
+
+# ─── Ticketmaster Routes ────────────────────────────────────────────────────
+
+@app.get("/api/ticketmaster/events", response_model=TicketmasterEventsResponse)
+async def get_ticketmaster_events(
+    keyword: Optional[str] = Query(None, description="Search keyword"),
+    classificationName: Optional[str] = Query(None, description="e.g. Sports, Music, Arts"),
+    size: int = Query(200, ge=1, le=200, description="Number of events to return"),
+):
+    """
+    Fetch upcoming events near Chicago from the Ticketmaster Discovery API.
+    Results are cached for 5 minutes.
+    """
+    if not TICKETMASTER_API_KEY:
+        raise HTTPException(status_code=500, detail="TICKETMASTER_API_KEY not configured")
+
+    # Build cache key from query params
+    cache_key = f"tm_events_{keyword}_{classificationName}_{size}"
+    cached = get_cached(cache_key)
+    if cached:
+        return cached
+
+    params: dict[str, str | int] = {
+        "apikey": TICKETMASTER_API_KEY,
+        "latlong": f"{CHICAGO_LAT},{CHICAGO_LON}",
+        "radius": "30",
+        "unit": "miles",
+        "size": size,
+        "sort": "date,asc",
+        "startDateTime": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+    }
+    if keyword:
+        params["keyword"] = keyword
+    if classificationName:
+        params["classificationName"] = classificationName
+
+    url = f"{TICKETMASTER_API_BASE}/events.json"
+
+    try:
+        resp = await http_client.get(url, params=params)
+        resp.raise_for_status()
+    except httpx.HTTPError as e:
+        raise HTTPException(status_code=502, detail=f"Ticketmaster API error: {e}")
+
+    data = resp.json()
+    raw_events = data.get("_embedded", {}).get("events", [])
+
+    events: list[TicketmasterEvent] = []
+    for ev in raw_events:
+        # Extract venue location
+        venues = ev.get("_embedded", {}).get("venues", [])
+        venue = venues[0] if venues else {}
+        location = venue.get("location", {})
+        lat = float(location["latitude"]) if "latitude" in location else None
+        lng = float(location["longitude"]) if "longitude" in location else None
+
+        # Extract image (prefer 16:9 ratio)
+        images = ev.get("images", [])
+        image_url = None
+        for img in images:
+            if img.get("ratio") == "16_9" and img.get("width", 0) >= 640:
+                image_url = img.get("url")
+                break
+        if not image_url and images:
+            image_url = images[0].get("url")
+
+        # Extract genre/subgenre
+        classifications = ev.get("classifications", [])
+        genre = None
+        sub_genre = None
+        if classifications:
+            genre = classifications[0].get("genre", {}).get("name")
+            sub_genre = classifications[0].get("subGenre", {}).get("name")
+
+        # Extract start date
+        dates = ev.get("dates", {}).get("start", {})
+        start_date = dates.get("dateTime") or dates.get("localDate")
+
+        events.append(
+            TicketmasterEvent(
+                id=ev["id"],
+                name=ev.get("name", "Unknown Event"),
+                url=ev.get("url", ""),
+                imageUrl=image_url,
+                startDate=start_date,
+                venueName=venue.get("name"),
+                lat=lat,
+                lng=lng,
+                genre=genre if genre != "Undefined" else None,
+                subGenre=sub_genre if sub_genre != "Undefined" else None,
+            )
+        )
+
+    result = TicketmasterEventsResponse(events=events)
+
+    # Use longer TTL for events
+    _cache[cache_key] = (time.time(), result)
     return result
