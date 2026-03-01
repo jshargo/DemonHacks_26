@@ -39,7 +39,7 @@ export default function InterestsScreen() {
         <FlatList
           data={CATEGORIES}
           keyExtractor={(item) => item.id}
-          numColumns={3}
+          numColumns={5}
           contentContainerStyle={styles.grid}
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (

@@ -15,14 +15,12 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { CATEGORIES, MAX_CATEGORIES } from '@/lib/categories';
+import { CATEGORIES, MAX_CATEGORIES, maxSubsForCategory } from '@/lib/categories';
 import { usePreferencesStore } from '@/stores/preferences-store';
 import { useAuthStore } from '@/stores/auth-store';
 import { supabase } from '@/lib/supabase';
 import { CategoryCard } from '@/components/onboarding/CategoryCard';
 import { ChipGroup } from '@/components/onboarding/ChipGroup';
-
-const MAX_SUBS_PER_CATEGORY = 3;
 
 export default function EditPreferencesScreen() {
   const router = useRouter();
@@ -40,11 +38,13 @@ export default function EditPreferencesScreen() {
   const chosenCategories = CATEGORIES.filter((c) => selectedCategories.includes(c.id));
 
   const handleToggleSub = (categoryId: string, label: string) => {
+    const cat = CATEGORIES.find((c) => c.id === categoryId)!;
+    const limit = maxSubsForCategory(cat);
     const current = selectedSubcategories[categoryId] ?? [];
     const exists = current.includes(label);
     const next = exists
       ? current.filter((x) => x !== label)
-      : [...current, label].slice(0, MAX_SUBS_PER_CATEGORY);
+      : [...current, label].slice(0, limit);
     setSubInterests(categoryId, next);
   };
 
@@ -116,11 +116,12 @@ export default function EditPreferencesScreen() {
         {chosenCategories.length > 0 && (
           <>
             <Text style={[styles.sectionHeading, styles.subHeadingGap]}>Refine your picks</Text>
-            <Text style={styles.sectionSub}>Up to {MAX_SUBS_PER_CATEGORY} per category — all optional</Text>
+            <Text style={styles.sectionSub}>Pick subcategories per interest — all optional</Text>
 
             {chosenCategories.map((category) => {
               const selectedSubs = selectedSubcategories[category.id] ?? [];
-              const atSubLimit = selectedSubs.length >= MAX_SUBS_PER_CATEGORY;
+              const limit = maxSubsForCategory(category);
+              const atSubLimit = selectedSubs.length >= limit;
               return (
                 <View key={category.id} style={styles.subSection}>
                   <View style={styles.subSectionHeader}>
@@ -128,7 +129,7 @@ export default function EditPreferencesScreen() {
                       {category.emoji}{'  '}{category.label}
                     </Text>
                     <Text style={[styles.subCounter, atSubLimit && styles.subCounterAtLimit]}>
-                      {selectedSubs.length}/{MAX_SUBS_PER_CATEGORY}
+                      {selectedSubs.length}/{limit}
                     </Text>
                   </View>
                   <ChipGroup

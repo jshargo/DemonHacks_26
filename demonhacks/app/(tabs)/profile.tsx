@@ -18,12 +18,11 @@ import {
 import { useAuthStore } from '@/stores/auth-store';
 import { usePreferencesStore } from '@/stores/preferences-store';
 import { supabase } from '@/lib/supabase';
-import { CATEGORIES, MAX_CATEGORIES } from '@/lib/categories';
+import { CATEGORIES, MAX_CATEGORIES, maxSubsForCategory } from '@/lib/categories';
 import { CategoryCard } from '@/components/onboarding/CategoryCard';
 import { ChipGroup } from '@/components/onboarding/ChipGroup';
 
 type Section = 'profile' | 'interests' | 'privacy';
-const MAX_SUBS = 3;
 
 function formatMemberSince(dateStr: string | undefined) {
   if (!dateStr) return null;
@@ -115,11 +114,13 @@ export default function ProfileScreen() {
   };
 
   const handleToggleSub = (categoryId: string, label: string) => {
+    const cat = CATEGORIES.find((c) => c.id === categoryId)!;
+    const limit = maxSubsForCategory(cat);
     const current = selectedSubcategories[categoryId] ?? [];
     const exists = current.includes(label);
     const next = exists
       ? current.filter((x) => x !== label)
-      : [...current, label].slice(0, MAX_SUBS);
+      : [...current, label].slice(0, limit);
     setSubInterests(categoryId, next);
   };
 
@@ -331,7 +332,7 @@ export default function ProfileScreen() {
             <FlatList
               data={CATEGORIES}
               keyExtractor={(item) => item.id}
-              numColumns={2}
+              numColumns={5}
               scrollEnabled={false}
               contentContainerStyle={styles.grid}
               renderItem={({ item }) => (
@@ -396,7 +397,7 @@ const styles = StyleSheet.create({
 
   // ── Left panel ──
   leftPanel: {
-    width: 145,
+    width: 185,
     backgroundColor: '#fff',
     borderRightWidth: 1,
     borderRightColor: '#EFEFEF',

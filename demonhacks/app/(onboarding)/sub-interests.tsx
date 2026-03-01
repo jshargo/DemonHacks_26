@@ -1,13 +1,11 @@
 import { useState } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet, SafeAreaView, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { CATEGORIES } from '@/lib/categories';
+import { CATEGORIES, maxSubsForCategory } from '@/lib/categories';
 import { usePreferencesStore } from '@/stores/preferences-store';
 import { useAuthStore } from '@/stores/auth-store';
 import { supabase } from '@/lib/supabase';
 import { ChipGroup } from '@/components/onboarding/ChipGroup';
-
-const MAX_SUBS_PER_CATEGORY = 3;
 
 export default function SubInterestsScreen() {
   const router = useRouter();
@@ -19,11 +17,13 @@ export default function SubInterestsScreen() {
   const chosenCategories = CATEGORIES.filter((c) => selectedCategories.includes(c.id));
 
   const handleToggle = (categoryId: string, label: string) => {
+    const cat = CATEGORIES.find((c) => c.id === categoryId)!;
+    const limit = maxSubsForCategory(cat);
     const current = selectedSubcategories[categoryId] ?? [];
     const exists = current.includes(label);
     const next = exists
       ? current.filter((x) => x !== label)
-      : [...current, label].slice(0, MAX_SUBS_PER_CATEGORY);
+      : [...current, label].slice(0, limit);
     setSubInterests(categoryId, next);
   };
 
@@ -86,7 +86,7 @@ export default function SubInterestsScreen() {
             <Text style={styles.backText}>← Back</Text>
           </Pressable>
           <Text style={styles.heading}>Tell us more</Text>
-          <Text style={styles.subheading}>Pick up to {MAX_SUBS_PER_CATEGORY} per interest — all optional</Text>
+          <Text style={styles.subheading}>Pick subcategories per interest — all optional</Text>
         </View>
 
         {/* Subcategory Sections */}
@@ -97,7 +97,8 @@ export default function SubInterestsScreen() {
         >
           {chosenCategories.map((category) => {
             const selectedSubs = selectedSubcategories[category.id] ?? [];
-            const atSubLimit = selectedSubs.length >= MAX_SUBS_PER_CATEGORY;
+            const limit = maxSubsForCategory(category);
+            const atSubLimit = selectedSubs.length >= limit;
 
             return (
               <View key={category.id} style={styles.section}>
@@ -106,7 +107,7 @@ export default function SubInterestsScreen() {
                     {category.emoji}{'  '}{category.label}
                   </Text>
                   <Text style={[styles.subCounter, atSubLimit && styles.subCounterAtLimit]}>
-                    {selectedSubs.length}/{MAX_SUBS_PER_CATEGORY}
+                    {selectedSubs.length}/{limit}
                   </Text>
                 </View>
                 <ChipGroup
