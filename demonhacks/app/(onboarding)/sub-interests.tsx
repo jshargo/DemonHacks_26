@@ -31,6 +31,31 @@ export default function SubInterestsScreen() {
     setSaving(true);
     const userId = session?.user.id;
     if (userId) {
+      // Ensure a profiles row exists — guards against sign-up edge cases
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', userId)
+        .single();
+
+      if (!existingProfile) {
+        const meta = session?.user?.user_metadata ?? {};
+        const username =
+          meta.username ??
+          session?.user?.email?.split('@')[0] ??
+          'user_' + userId.slice(0, 8);
+        const { error: createError } = await supabase.from('profiles').insert({
+          id: userId,
+          username,
+          display_name: meta.display_name ?? username,
+        });
+        if (createError) {
+          console.error('Failed to create profile:', createError.message);
+          setSaving(false);
+          return;
+        }
+      }
+
       // Write preferences to Supabase (upsert handles new and returning users)
       const { error: prefsError } = await supabase.from('user_onboarding_preferences').upsert({
         user_id: userId,
