@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { supabase } from '@/lib/supabase';
 import type { Session } from '@supabase/supabase-js';
 import type { UserProfile } from '@/lib/types';
+import { usePreferencesStore } from '@/stores/preferences-store';
 
 interface AuthState {
   session: Session | null;
@@ -73,9 +74,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return;
     }
 
-    // Create a row in the public.users table for this auth user
+    // Create a row in the public.profiles table for this auth user
     if (user) {
-      const { error: profileError } = await supabase.from('users').insert({
+      const { error: profileError } = await supabase.from('profiles').insert({
         id: user.id,
         username: username,
         display_name: displayName ?? username,
@@ -105,11 +106,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (!userId) return;
 
     const { data } = await supabase
-      .from('users')
+      .from('profiles')
       .select('*')
       .eq('id', userId)
       .single();
 
-    if (data) set({ profile: data as UserProfile });
+    if (data) {
+      set({ profile: data as UserProfile });
+      // Load all preferences (categories, subcategories, onboarding status) from Supabase
+      await usePreferencesStore.getState().loadFromSupabase(userId);
+    }
   },
 }));
