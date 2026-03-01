@@ -4,9 +4,10 @@ interface SubcategoryChipProps {
   label: string;
   selected: boolean;
   onPress: () => void;
+  style?: object;
 }
 
-export function SubcategoryChip({ label, selected, onPress }: SubcategoryChipProps) {
+export function SubcategoryChip({ label, selected, onPress, style }: SubcategoryChipProps) {
   return (
     <Pressable
       onPress={onPress}
@@ -14,6 +15,7 @@ export function SubcategoryChip({ label, selected, onPress }: SubcategoryChipPro
         styles.chip,
         selected && styles.chipSelected,
         pressed && styles.chipPressed,
+        style,
       ]}
     >
       <Text style={[styles.label, selected && styles.labelSelected]}>{label}</Text>
