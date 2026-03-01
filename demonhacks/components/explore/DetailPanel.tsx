@@ -44,11 +44,6 @@ export default function DetailPanel({ item, onBack, isSaved, onToggleSave }: Det
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Back button */}
-      <Pressable style={styles.backBtn} onPress={onBack}>
-        <Text style={styles.backText}>← Back to results</Text>
-      </Pressable>
-
       {/* Image */}
       <View style={styles.imageContainer}>
         {item.imageUrl ? (
@@ -140,15 +135,6 @@ const styles = StyleSheet.create({
   content: {
     padding: 16,
     paddingBottom: 40,
-  },
-  backBtn: {
-    marginBottom: 16,
-    padding: 4,
-  },
-  backText: {
-    fontSize: 14,
-    color: '#1a1a2e',
-    fontWeight: '600',
   },
   imageContainer: {
     position: 'relative',

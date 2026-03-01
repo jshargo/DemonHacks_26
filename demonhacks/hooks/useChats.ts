@@ -33,7 +33,7 @@ export function useChats() {
     setMessagesLoading(true);
     const { data } = await supabase
       .from('messages')
-      .select('*, sender:profiles(id, username, display_name, avatar_url)')
+      .select('id, chat_id, sender_id, type, content, metadata, created_at, sender:profiles(id, username, display_name, avatar_url)')
       .eq('chat_id', chatId)
       .order('created_at', { ascending: true })
       .limit(100);
@@ -119,22 +119,13 @@ export function useChats() {
   /** Create a group chat */
   const createGroupChat = useCallback(async (name: string, memberIds: string[]): Promise<string | null> => {
     if (!userId) return null;
-
-    const { data: newChat, error } = await supabase
-      .from('chats')
-      .insert({ type: 'group', name, created_by: userId })
-      .select()
-      .single();
-
-    if (error || !newChat) return null;
-
-    const allMembers = Array.from(new Set([userId, ...memberIds]));
-    await supabase.from('chat_members').insert(
-      allMembers.map((uid) => ({ chat_id: newChat.id, user_id: uid }))
-    );
-
+    const { data, error } = await supabase.rpc('create_group_chat', {
+      group_name: name || 'Group Chat',
+      member_ids: memberIds,
+    });
+    if (error) { console.warn('createGroupChat error:', error.message); return null; }
     await loadChats();
-    return newChat.id;
+    return data as string;
   }, [userId, loadChats]);
 
   // Clean up subscription on unmount

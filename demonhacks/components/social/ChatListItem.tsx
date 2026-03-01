@@ -32,15 +32,18 @@ export function ChatListItem({ chat, onPress }: Props) {
   })();
 
   const lastMsg = chat.last_message;
+  const iMeSent = !!myId && (lastMsg as any)?.sender_id === myId;
+
   const preview = (() => {
     if (!lastMsg) return 'No messages yet';
-    if ((lastMsg as any).type === 'spot') return '📍 Shared a spot';
-    if ((lastMsg as any).type === 'event') return '🗓 Shared an event';
-    return (lastMsg as any).content ?? '';
+    const prefix = iMeSent ? 'You: ' : '';
+    if ((lastMsg as any).type === 'spot') return `${prefix}📍 Shared a spot`;
+    if ((lastMsg as any).type === 'event') return `${prefix}🗓 Shared an event`;
+    return `${prefix}${(lastMsg as any).content ?? ''}`;
   })();
 
   const isUnread = (() => {
-    if (!lastMsg) return false;
+    if (!lastMsg || iMeSent) return false;
     const readAt = lastReadAt[chat.id];
     if (!readAt) return true;
     return (lastMsg as any).created_at > readAt;

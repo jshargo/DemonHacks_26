@@ -2,7 +2,7 @@
 // Filters the local discover feed AND queries Mapbox Search Box API for
 // addresses, POIs, and places beyond what's in our Supabase database.
 
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,9 @@ import {
 import { useExploreStore } from '@/stores/explore-store';
 import { useMapboxSearch } from '@/hooks/useMapboxSearch';
 import type { SearchSuggestion } from '@/lib/types';
+import { ShareToChatModal } from '@/components/social/ShareToChatModal';
+import { useChats } from '@/hooks/useChats';
+import { useSocialStore } from '@/stores/social-store';
 
 const EXPLORE_DEBOUNCE_MS = 200;
 
@@ -161,10 +164,31 @@ interface POIDetailPanelProps {
 }
 
 export function POIDetailPanel({ result, onDismiss }: POIDetailPanelProps) {
+  const [shareVisible, setShareVisible] = useState(false);
+  const { shareSpot, loadChats } = useChats();
+  const chats = useSocialStore((s) => s.chats);
+
   const handleDirections = useCallback(() => {
     const url = `https://www.google.com/maps/dir/?api=1&destination=${result.lat},${result.lng}`;
     window.open(url, '_blank');
   }, [result.lat, result.lng]);
+
+  const openShareModal = async () => {
+    await loadChats();
+    setShareVisible(true);
+  };
+
+  const handleShare = async (chatId: string) => {
+    await shareSpot(chatId, {
+      id: result.mapbox_id,
+      name: result.name,
+      lat: result.lat,
+      lng: result.lng,
+      imageUrl: null,
+      category: result.category ?? null,
+      address: result.full_address ?? result.address ?? null,
+    }, 'spot');
+  };
 
   return (
     <View style={detailStyles.container}>
@@ -211,10 +235,17 @@ export function POIDetailPanel({ result, onDismiss }: POIDetailPanelProps) {
         <Pressable style={detailStyles.directionsBtn} onPress={handleDirections}>
           <Text style={detailStyles.directionsBtnText}>Get Directions</Text>
         </Pressable>
-        <Pressable style={detailStyles.closeBtn} onPress={onDismiss}>
-          <Text style={detailStyles.closeBtnText}>Close</Text>
+        <Pressable style={detailStyles.closeBtn} onPress={openShareModal}>
+          <Text style={detailStyles.closeBtnText}>Share</Text>
         </Pressable>
       </View>
+
+      <ShareToChatModal
+        visible={shareVisible}
+        chats={chats}
+        onClose={() => setShareVisible(false)}
+        onShare={handleShare}
+      />
     </View>
   );
 }
@@ -400,13 +431,15 @@ const detailStyles = StyleSheet.create({
   },
   closeBtn: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#fff',
     paddingVertical: 10,
     borderRadius: 10,
     alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#1a1a2e',
   },
   closeBtnText: {
-    color: '#555',
+    color: '#1a1a2e',
     fontWeight: '600',
     fontSize: 14,
   },

@@ -1,6 +1,8 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
-import type { SharedSpotMetadata } from '@/lib/types';
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { router } from 'expo-router';
+import type { SharedSpotMetadata, DiscoverItem } from '@/lib/types';
+import { useExploreStore } from '@/stores/explore-store';
 
 interface Props {
   metadata: SharedSpotMetadata;
@@ -9,8 +11,36 @@ interface Props {
 }
 
 export function SpotShareCard({ metadata, type, isMe }: Props) {
+  const openDetail = useExploreStore((s) => s.openDetail);
+
+  const handlePress = () => {
+    const item: DiscoverItem = {
+      id: metadata.id,
+      entityType: type === 'event' ? 'event' : 'place',
+      name: metadata.name,
+      lat: metadata.lat,
+      lng: metadata.lng,
+      category: null,
+      subcategory: metadata.category,
+      description: null,
+      imageUrl: metadata.imageUrl,
+      neighborhood: metadata.address ?? '',
+      rating: null,
+      priceRange: null,
+      tags: [],
+      startsAt: null,
+      endsAt: null,
+      venueName: null,
+      attendingCount: null,
+      websiteUrl: null,
+      placeFormatted: metadata.address ?? undefined,
+    };
+    openDetail(item);
+    router.navigate('/(tabs)');
+  };
+
   return (
-    <View style={[styles.card, isMe ? styles.cardMe : styles.cardThem]}>
+    <TouchableOpacity onPress={handlePress} activeOpacity={0.8} style={[styles.card, isMe ? styles.cardMe : styles.cardThem]}>
       {metadata.imageUrl ? (
         <Image source={{ uri: metadata.imageUrl }} style={styles.image} />
       ) : (
@@ -21,11 +51,11 @@ export function SpotShareCard({ metadata, type, isMe }: Props) {
       <View style={styles.info}>
         <Text style={styles.label}>{type === 'event' ? 'Event' : 'Spot'}</Text>
         <Text style={styles.name} numberOfLines={2}>{metadata.name}</Text>
-        {metadata.address && (
+        {!!metadata.address && (
           <Text style={styles.address} numberOfLines={1}>{metadata.address}</Text>
         )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
