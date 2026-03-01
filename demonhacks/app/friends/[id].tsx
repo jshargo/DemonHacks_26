@@ -208,6 +208,21 @@ export default function FriendProfileScreen() {
         </View>
       )}
 
+      {/* Interests */}
+      {interests.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Interests</Text>
+          <View style={styles.interestsGrid}>
+            {interests.map((cat) => (
+              <View key={cat.id} style={styles.interestChip}>
+                <Text style={styles.interestEmoji}>{cat.emoji}</Text>
+                <Text style={styles.interestLabel}>{cat.label}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
+
       {/* Quest progress */}
       {!profile.hide_quest_progress && questProgress.length > 0 && (
         <View style={styles.section}>
@@ -226,21 +241,6 @@ export default function FriendProfileScreen() {
               </View>
             </View>
           ))}
-        </View>
-      )}
-
-      {/* Interests */}
-      {interests.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Interests</Text>
-          <View style={styles.interestsGrid}>
-            {interests.map((cat) => (
-              <View key={cat.id} style={styles.interestChip}>
-                <Text style={styles.interestEmoji}>{cat.emoji}</Text>
-                <Text style={styles.interestLabel}>{cat.label}</Text>
-              </View>
-            ))}
-          </View>
         </View>
       )}
     </ScrollView>
