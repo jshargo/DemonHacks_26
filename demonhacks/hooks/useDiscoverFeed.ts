@@ -26,11 +26,10 @@ const CATEGORY_ORDER: Record<string, number> = {
 /** Maps onboarding category IDs → Supabase PlaceCategory values */
 const ONBOARDING_TO_PLACE_CATEGORY: Record<string, PlaceCategory> = {
   'live-music': 'entertainment',
-  'comedy': 'entertainment',
   'sports': 'entertainment',
-  'museums-arts': 'arts_culture',
+  'arts-culture': 'arts_culture',
   'food-drink': 'food_drink',
-  'coffee-study': 'food_drink',
+  'coffee-cafes': 'food_drink',
   'outdoors': 'outdoors',
   'nightlife': 'entertainment',
   'family': 'entertainment',
