@@ -1,7 +1,3 @@
-// Edit interests / onboarding preferences screen
-// Lives outside (onboarding) group so AuthGate doesn't redirect away
-// Owner: Person 1 (Auth + Profiles)
-
 import { useState } from 'react';
 import {
   View,
@@ -21,6 +17,7 @@ import { useAuthStore } from '@/stores/auth-store';
 import { supabase } from '@/lib/supabase';
 import { CategoryCard } from '@/components/onboarding/CategoryCard';
 import { ChipGroup } from '@/components/onboarding/ChipGroup';
+import { colors, spacing, radii, typography } from '@/lib/theme';
 
 export default function EditPreferencesScreen() {
   const router = useRouter();
@@ -70,7 +67,6 @@ export default function EditPreferencesScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header */}
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={styles.headerBtn}>
           <Text style={styles.cancelText}>Cancel</Text>
@@ -78,7 +74,7 @@ export default function EditPreferencesScreen() {
         <Text style={styles.title}>My Interests</Text>
         <Pressable onPress={handleSave} disabled={saving} style={styles.headerBtn}>
           {saving ? (
-            <ActivityIndicator size="small" color="#222" />
+            <ActivityIndicator size="small" color={colors.primary} />
           ) : (
             <Text style={styles.saveText}>Save</Text>
           )}
@@ -89,7 +85,6 @@ export default function EditPreferencesScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {/* Category picker */}
         <Text style={styles.sectionHeading}>What are you into?</Text>
         <Text style={styles.sectionSub}>
           Pick up to {MAX_CATEGORIES} interests ({selectedCategories.length}/{MAX_CATEGORIES})
@@ -112,7 +107,6 @@ export default function EditPreferencesScreen() {
           )}
         />
 
-        {/* Subcategory sections (only shown when categories selected) */}
         {chosenCategories.length > 0 && (
           <>
             <Text style={[styles.sectionHeading, styles.subHeadingGap]}>Refine your picks</Text>
@@ -150,33 +144,33 @@ export default function EditPreferencesScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#fff' },
+  safe: { flex: 1, backgroundColor: colors.background },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing.lg,
     paddingVertical: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: colors.border,
   },
   headerBtn: { minWidth: 60 },
-  title: { fontSize: 17, fontWeight: '600', color: '#222' },
-  cancelText: { fontSize: 16, color: '#666' },
-  saveText: { fontSize: 16, fontWeight: '600', color: '#222', textAlign: 'right' },
-  content: { paddingHorizontal: 16, paddingTop: 20 },
-  sectionHeading: { fontSize: 20, fontWeight: '700', color: '#222', marginBottom: 4 },
-  subHeadingGap: { marginTop: 8 },
-  sectionSub: { fontSize: 14, color: '#717171', marginBottom: 16 },
-  grid: { paddingBottom: 8 },
-  subSection: { marginBottom: 24 },
+  title: { ...typography.headingSm, color: colors.textPrimary },
+  cancelText: { ...typography.bodyLg, color: colors.textSecondary },
+  saveText: { ...typography.bodyLg, fontWeight: '600', color: colors.primary, textAlign: 'right' },
+  content: { paddingHorizontal: spacing.lg, paddingTop: spacing.xl },
+  sectionHeading: { ...typography.headingLg, color: colors.textPrimary, marginBottom: spacing.xs },
+  subHeadingGap: { marginTop: spacing.sm },
+  sectionSub: { ...typography.bodyMd, color: colors.textSecondary, marginBottom: spacing.lg },
+  grid: { paddingBottom: spacing.sm },
+  subSection: { marginBottom: spacing['2xl'] },
   subSectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 10,
   },
-  subSectionTitle: { fontSize: 15, fontWeight: '600', color: '#222' },
-  subCounter: { fontSize: 12, color: '#AAAAAA' },
-  subCounterAtLimit: { color: '#222', fontWeight: '600' },
+  subSectionTitle: { ...typography.labelLg, fontWeight: '600', color: colors.textPrimary },
+  subCounter: { ...typography.bodySm, color: colors.textTertiary },
+  subCounterAtLimit: { color: colors.primary, fontWeight: '600' },
 });

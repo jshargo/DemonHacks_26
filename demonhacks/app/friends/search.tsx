@@ -7,6 +7,7 @@ import {
 import { useFriends } from '@/hooks/useFriends';
 import { useSocialStore } from '@/stores/social-store';
 import type { UserProfile } from '@/lib/types';
+import { colors, spacing, radii, typography } from '@/lib/theme';
 
 export default function FriendSearchScreen() {
   const [query, setQuery] = useState('');
@@ -53,6 +54,7 @@ export default function FriendSearchScreen() {
         <TextInput
           style={styles.input}
           placeholder="Search by username..."
+          placeholderTextColor={colors.textTertiary}
           value={query}
           onChangeText={setQuery}
           returnKeyType="search"
@@ -64,7 +66,7 @@ export default function FriendSearchScreen() {
         </TouchableOpacity>
       </View>
 
-      {searching && <ActivityIndicator style={{ marginTop: 40 }} color="#6C63FF" />}
+      {searching && <ActivityIndicator style={{ marginTop: 40 }} color={colors.primary} />}
 
       <FlatList
         data={results}
@@ -116,75 +118,76 @@ export default function FriendSearchScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#fff' },
+  safe: { flex: 1, backgroundColor: colors.background },
   searchRow: {
     flexDirection: 'row',
-    padding: 12,
-    gap: 8,
+    padding: spacing.md,
+    gap: spacing.sm,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E5E5',
+    borderBottomColor: colors.border,
   },
   input: {
     flex: 1,
     height: 42,
-    backgroundColor: '#F0F0F0',
-    borderRadius: 21,
-    paddingHorizontal: 16,
-    fontSize: 15,
+    backgroundColor: colors.surface,
+    borderRadius: radii.full,
+    paddingHorizontal: spacing.lg,
+    ...typography.bodyMd,
+    color: colors.textPrimary,
   },
   searchBtn: {
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing.lg,
     height: 42,
-    borderRadius: 21,
-    backgroundColor: '#6C63FF',
+    borderRadius: radii.full,
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  searchBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  searchBtnText: { ...typography.bodyMd, fontWeight: '700', color: colors.textInverse },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E5E5',
+    borderBottomColor: colors.borderLight,
   },
   avatar: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#6C63FF',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: spacing.md,
     overflow: 'hidden',
   },
   avatarImg: { width: 44, height: 44 },
-  initials: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  initials: { color: colors.textInverse, fontWeight: '700', fontSize: 16 },
   info: { flex: 1 },
-  name: { fontSize: 15, fontWeight: '600', color: '#111' },
-  username: { fontSize: 13, color: '#888', marginTop: 2 },
+  name: { ...typography.labelLg, fontWeight: '600', color: colors.textPrimary },
+  username: { ...typography.bodySm, color: colors.textTertiary, marginTop: 2 },
   addBtn: {
     paddingHorizontal: 14,
     paddingVertical: 7,
-    borderRadius: 20,
-    backgroundColor: '#6C63FF',
+    borderRadius: radii.full,
+    backgroundColor: colors.primary,
   },
-  addBtnText: { color: '#fff', fontWeight: '600', fontSize: 13 },
+  addBtnText: { ...typography.bodySm, fontWeight: '600', color: colors.textInverse },
   cancelBtn: {
     paddingHorizontal: 14,
     paddingVertical: 7,
-    borderRadius: 20,
-    backgroundColor: '#F0F0F0',
+    borderRadius: radii.full,
+    backgroundColor: colors.surface,
   },
-  cancelBtnText: { color: '#666', fontWeight: '600', fontSize: 13 },
+  cancelBtnText: { ...typography.bodySm, fontWeight: '600', color: colors.textSecondary },
   friendsBadge: {
     paddingHorizontal: 14,
     paddingVertical: 7,
-    borderRadius: 20,
-    backgroundColor: '#E8F5E9',
+    borderRadius: radii.full,
+    backgroundColor: colors.primaryLight,
   },
-  friendsBadgeText: { color: '#4CAF50', fontWeight: '600', fontSize: 13 },
+  friendsBadgeText: { ...typography.bodySm, fontWeight: '600', color: colors.primary },
   empty: { alignItems: 'center', paddingTop: 60 },
-  emptyText: { color: '#888', fontSize: 15 },
+  emptyText: { ...typography.bodyMd, color: colors.textTertiary },
 });

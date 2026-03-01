@@ -1,12 +1,12 @@
 import { useEffect } from 'react';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-import { useColorScheme } from '@/components/useColorScheme';
+import { colors } from '@/lib/theme';
 import { useAuthStore } from '@/stores/auth-store';
 import { useProtectedRoute } from '@/components/auth/AuthGate';
 
@@ -17,6 +17,18 @@ export const unstable_settings = {
 };
 
 SplashScreen.preventAutoHideAsync();
+
+const ExploreChiTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: colors.primary,
+    background: colors.background,
+    card: colors.white,
+    text: colors.textPrimary,
+    border: colors.borderLight,
+  },
+};
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
@@ -35,7 +47,6 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
-  // Initialize Supabase auth listener
   useEffect(() => {
     const cleanup = initialize();
     return cleanup;
@@ -49,15 +60,20 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
-
-  // Protect routes — redirects to sign-in if not authenticated
   useProtectedRoute();
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack>
+      <ThemeProvider value={ExploreChiTheme}>
+        <Stack
+          screenOptions={{
+            headerStyle: { backgroundColor: colors.white },
+            headerTintColor: colors.primary,
+            headerTitleStyle: { fontWeight: '600', color: colors.textPrimary },
+            headerShadowVisible: false,
+            contentStyle: { backgroundColor: colors.background },
+          }}
+        >
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />

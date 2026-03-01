@@ -1,11 +1,12 @@
 import { View, Text, FlatList, StyleSheet, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuests, type LocalQuest } from '@/hooks/useQuests';
+import { colors, spacing, radii, shadows, typography } from '@/lib/theme';
 
 const DIFFICULTY_COLORS: Record<string, string> = {
-  easy: '#00C49A',
-  medium: '#F77F00',
-  hard: '#E63946',
+  easy: colors.success,
+  medium: colors.warning,
+  hard: colors.error,
 };
 
 export default function QuestsScreen() {
@@ -19,7 +20,7 @@ export default function QuestsScreen() {
         keyExtractor={(item) => item.id}
         renderItem={({ item }: { item: LocalQuest }) => (
           <Pressable
-            style={styles.card}
+            style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
             onPress={() => router.push(`/quest/${item.id}`)}
           >
             <Text style={styles.name}>{item.name}</Text>
@@ -27,7 +28,7 @@ export default function QuestsScreen() {
               <Text
                 style={[
                   styles.badge,
-                  { backgroundColor: DIFFICULTY_COLORS[item.difficulty] ?? '#888' },
+                  { backgroundColor: DIFFICULTY_COLORS[item.difficulty] ?? colors.textTertiary },
                 ]}
               >
                 {item.difficulty}
@@ -47,27 +48,33 @@ export default function QuestsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  list: { padding: 16 },
+  container: { flex: 1, backgroundColor: colors.background },
+  list: { padding: spacing.lg },
   card: {
-    padding: 16,
-    borderRadius: 12,
-    backgroundColor: '#f8f8f8',
-    marginBottom: 12,
+    padding: spacing.lg,
+    borderRadius: radii.lg,
+    backgroundColor: colors.white,
+    marginBottom: spacing.md,
+    ...shadows.card,
   },
-  name: { fontSize: 18, fontWeight: '600' },
-  meta: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 },
+  cardPressed: {
+    backgroundColor: colors.surface,
+  },
+  name: {
+    ...typography.headingMd,
+    color: colors.textPrimary,
+  },
+  meta: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: 6 },
   badge: {
-    fontSize: 12,
-    color: '#fff',
-    fontWeight: '600',
+    ...typography.labelMd,
+    color: colors.textInverse,
     textTransform: 'capitalize',
-    paddingHorizontal: 8,
+    paddingHorizontal: spacing.sm,
     paddingVertical: 3,
-    borderRadius: 6,
+    borderRadius: radii.sm,
     overflow: 'hidden',
   },
-  time: { fontSize: 13, color: '#666' },
-  stops: { fontSize: 13, color: '#999' },
-  desc: { fontSize: 14, color: '#555', marginTop: 8, lineHeight: 20 },
+  time: { ...typography.bodySm, color: colors.textSecondary },
+  stops: { ...typography.bodySm, color: colors.textTertiary },
+  desc: { ...typography.bodyMd, color: colors.textSecondary, marginTop: spacing.sm, lineHeight: 20 },
 });

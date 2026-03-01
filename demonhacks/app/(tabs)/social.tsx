@@ -12,6 +12,7 @@ import { FriendRequestCard } from '@/components/social/FriendRequestCard';
 import { ChatListItem } from '@/components/social/ChatListItem';
 import { NewChatModal } from '@/components/social/NewChatModal';
 import type { Chat, UserProfile } from '@/lib/types';
+import { colors, spacing, radii, typography } from '@/lib/theme';
 
 type Tab = 'chats' | 'friends';
 
@@ -42,14 +43,9 @@ export default function SocialScreen() {
   };
 
   const handleMessage = async (profile: UserProfile) => {
-    console.log('[handleMessage] called for', profile.id);
     const chatId = await openOrCreateDM(profile.id);
-    console.log('[handleMessage] chatId =', chatId);
     if (chatId) {
-      console.log('[handleMessage] navigating to /chat/' + chatId);
       router.push(`/chat/${chatId}` as any);
-    } else {
-      console.warn('[handleMessage] openOrCreateDM returned null');
     }
   };
 
@@ -110,7 +106,6 @@ export default function SocialScreen() {
           renderItem={({ item }) => <ChatListItem chat={item} onPress={handleOpenChat} />}
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyIcon}>💬</Text>
               <Text style={styles.emptyTitle}>No chats yet</Text>
               <Text style={styles.emptySubtitle}>Start a conversation with a friend</Text>
             </View>
@@ -150,7 +145,6 @@ export default function SocialScreen() {
           }
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyIcon}>👥</Text>
               <Text style={styles.emptyTitle}>No friends yet</Text>
               <Text style={styles.emptySubtitle}>Search for people by username</Text>
               <TouchableOpacity
@@ -176,71 +170,73 @@ export default function SocialScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#fff' },
+  safe: { flex: 1, backgroundColor: colors.background },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E5E5',
+    borderBottomColor: colors.border,
   },
-  title: { fontSize: 24, fontWeight: '800', color: '#111' },
-  headerActions: { flexDirection: 'row', gap: 8 },
+  title: {
+    ...typography.displaySm,
+    color: colors.textPrimary,
+  },
+  headerActions: { flexDirection: 'row', gap: spacing.sm },
   addBtn: {
     paddingHorizontal: 14,
     paddingVertical: 7,
-    borderRadius: 20,
-    backgroundColor: '#6C63FF',
+    borderRadius: radii.full,
+    backgroundColor: colors.primary,
   },
-  addBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  addBtnText: { ...typography.bodyMd, fontWeight: '700', color: colors.textInverse },
   tabs: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing.lg,
     paddingVertical: 10,
-    gap: 8,
+    gap: spacing.sm,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E5E5',
+    borderBottomColor: colors.border,
   },
   tabBtn: {
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing.lg,
     paddingVertical: 7,
-    borderRadius: 20,
-    backgroundColor: '#F0F0F0',
+    borderRadius: radii.full,
+    backgroundColor: colors.surface,
   },
-  tabBtnActive: { backgroundColor: '#6C63FF' },
-  tabText: { fontSize: 14, fontWeight: '600', color: '#555' },
-  tabTextActive: { color: '#fff' },
+  tabBtnActive: { backgroundColor: colors.primary },
+  tabText: { ...typography.labelLg, color: colors.textSecondary },
+  tabTextActive: { color: colors.textInverse },
   badge: {
     minWidth: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: '#FF3B30',
+    backgroundColor: colors.error,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 4,
   },
-  badgeText: { color: '#fff', fontSize: 11, fontWeight: '800' },
+  badgeText: { color: colors.textInverse, ...typography.caption, fontWeight: '800' },
   sectionLabel: {
-    fontSize: 13,
+    ...typography.labelMd,
     fontWeight: '700',
-    color: '#888',
+    color: colors.textTertiary,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 4,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.xs,
   },
-  empty: { alignItems: 'center', paddingTop: 80, paddingHorizontal: 32 },
-  emptyIcon: { fontSize: 48, marginBottom: 12 },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#111', marginBottom: 6 },
-  emptySubtitle: { fontSize: 14, color: '#888', textAlign: 'center', marginBottom: 20 },
+  empty: { alignItems: 'center', paddingTop: 80, paddingHorizontal: spacing['3xl'] },
+  emptyTitle: { ...typography.headingMd, color: colors.textPrimary, marginBottom: 6 },
+  emptySubtitle: { ...typography.bodyMd, color: colors.textTertiary, textAlign: 'center', marginBottom: spacing.xl },
   searchBtn: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 24,
-    backgroundColor: '#6C63FF',
+    paddingHorizontal: spacing['2xl'],
+    paddingVertical: spacing.md,
+    borderRadius: radii.full,
+    backgroundColor: colors.primary,
   },
-  searchBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  searchBtnText: { ...typography.bodyMd, fontWeight: '700', color: colors.textInverse },
 });

@@ -5,6 +5,7 @@ import { usePreferencesStore } from '@/stores/preferences-store';
 import { useAuthStore } from '@/stores/auth-store';
 import { supabase } from '@/lib/supabase';
 import { CategoryCard } from '@/components/onboarding/CategoryCard';
+import { colors, spacing, radii, typography } from '@/lib/theme';
 
 export default function InterestsScreen() {
   const router = useRouter();
@@ -29,13 +30,11 @@ export default function InterestsScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
-        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.heading}>What are you into?</Text>
           <Text style={styles.subheading}>Pick up to {MAX_CATEGORIES} interests</Text>
         </View>
 
-        {/* Category Grid */}
         <FlatList
           data={CATEGORIES}
           keyExtractor={(item) => item.id}
@@ -53,7 +52,6 @@ export default function InterestsScreen() {
           )}
         />
 
-        {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.counter}>
             {selectedCategories.length} / {MAX_CATEGORIES} selected
@@ -62,7 +60,11 @@ export default function InterestsScreen() {
           <Pressable
             onPress={handleContinue}
             disabled={!hasSelection}
-            style={[styles.continueButton, !hasSelection && styles.continueButtonDisabled]}
+            style={({ pressed }) => [
+              styles.continueButton,
+              !hasSelection && styles.continueButtonDisabled,
+              pressed && hasSelection && styles.continueButtonPressed,
+            ]}
           >
             <Text style={[styles.continueText, !hasSelection && styles.continueTextDisabled]}>
               Continue
@@ -81,70 +83,68 @@ export default function InterestsScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background,
   },
   container: {
     flex: 1,
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing.lg,
     maxWidth: 900,
     width: '100%',
     alignSelf: 'center',
   },
   header: {
-    paddingTop: 32,
-    paddingBottom: 16,
-    paddingHorizontal: 4,
+    paddingTop: spacing['3xl'],
+    paddingBottom: spacing.lg,
+    paddingHorizontal: spacing.xs,
   },
   heading: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: '#222222',
+    ...typography.displayMd,
+    color: colors.textPrimary,
     marginBottom: 6,
   },
   subheading: {
-    fontSize: 15,
-    fontWeight: '400',
-    color: '#717171',
+    ...typography.bodyMd,
+    color: colors.textSecondary,
   },
   grid: {
-    paddingBottom: 16,
+    paddingBottom: spacing.lg,
   },
   footer: {
-    paddingBottom: 24,
-    paddingHorizontal: 4,
-    gap: 12,
+    paddingBottom: spacing['2xl'],
+    paddingHorizontal: spacing.xs,
+    gap: spacing.md,
   },
   counter: {
-    fontSize: 13,
-    fontWeight: '400',
-    color: '#717171',
+    ...typography.bodySm,
+    color: colors.textSecondary,
     textAlign: 'center',
   },
   continueButton: {
-    backgroundColor: '#222222',
-    borderRadius: 12,
-    paddingVertical: 16,
+    backgroundColor: colors.primary,
+    borderRadius: radii.md,
+    paddingVertical: spacing.lg,
     alignItems: 'center',
   },
   continueButtonDisabled: {
-    backgroundColor: '#DDDDDD',
+    backgroundColor: colors.border,
+  },
+  continueButtonPressed: {
+    backgroundColor: colors.primaryDark,
   },
   continueText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    ...typography.headingSm,
+    color: colors.textInverse,
   },
   continueTextDisabled: {
-    color: '#B0B0B0',
+    color: colors.textTertiary,
   },
   skipButton: {
     alignItems: 'center',
-    paddingVertical: 4,
+    paddingVertical: spacing.xs,
   },
   skipText: {
-    fontSize: 14,
-    fontWeight: '400',
-    color: '#717171',
+    ...typography.bodyMd,
+    color: colors.textSecondary,
     textDecorationLine: 'underline',
   },
 });

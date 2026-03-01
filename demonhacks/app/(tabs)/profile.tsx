@@ -1,6 +1,3 @@
-// User profile screen — two-panel layout (left nav, right content)
-// Owner: Person 1 (Auth + Profiles)
-
 import { useState, useEffect } from 'react';
 import {
   View,
@@ -21,6 +18,7 @@ import { supabase } from '@/lib/supabase';
 import { CATEGORIES, MAX_CATEGORIES, maxSubsForCategory } from '@/lib/categories';
 import { CategoryCard } from '@/components/onboarding/CategoryCard';
 import { ChipGroup } from '@/components/onboarding/ChipGroup';
+import { colors, spacing, radii, typography } from '@/lib/theme';
 
 type Section = 'profile' | 'interests' | 'privacy';
 
@@ -37,13 +35,11 @@ export default function ProfileScreen() {
   const [activeSection, setActiveSection] = useState<Section>('profile');
   const [saving, setSaving] = useState(false);
 
-  // Edit Profile fields — sync whenever profile changes
   const [displayName, setDisplayName] = useState(profile?.display_name ?? '');
   const [username, setUsername] = useState(profile?.username ?? '');
   const [topInterest, setTopInterest] = useState(profile?.bio ?? '');
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url ?? '');
 
-  // Privacy fields
   const [hideLocation, setHideLocation] = useState(profile?.hide_location ?? false);
   const [hideQuestProgress, setHideQuestProgress] = useState(profile?.hide_quest_progress ?? false);
 
@@ -138,13 +134,12 @@ export default function ProfileScreen() {
   return (
     <View style={styles.root}>
 
-      {/* ── Left Panel ── */}
+      {/* Left Panel */}
       <View style={styles.leftPanel}>
         <ScrollView
           contentContainerStyle={styles.leftContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* Avatar */}
           <View style={styles.avatarWrapper}>
             {profile?.avatar_url ? (
               <Image source={{ uri: profile.avatar_url }} style={styles.avatarImage} />
@@ -155,7 +150,6 @@ export default function ProfileScreen() {
             )}
           </View>
 
-          {/* Name & username */}
           <Text style={styles.leftName} numberOfLines={2}>
             {profile?.display_name ?? profile?.username ?? 'Explorer'}
           </Text>
@@ -167,17 +161,15 @@ export default function ProfileScreen() {
 
           <View style={styles.divider} />
 
-          {/* Quick info */}
           {profile?.bio && (
-            <Text style={styles.infoLine} numberOfLines={2}>✦ {profile.bio}</Text>
+            <Text style={styles.infoLine} numberOfLines={2}>{profile.bio}</Text>
           )}
           {memberSince && (
-            <Text style={styles.infoLine}>🗓 {memberSince}</Text>
+            <Text style={styles.infoLine}>Joined {memberSince}</Text>
           )}
 
           <View style={styles.divider} />
 
-          {/* Nav items */}
           <Pressable
             style={[styles.navItem, activeSection === 'profile' && styles.navItemActive]}
             onPress={() => setActiveSection('profile')}
@@ -213,7 +205,7 @@ export default function ProfileScreen() {
         </ScrollView>
       </View>
 
-      {/* ── Right Panel ── */}
+      {/* Right Panel */}
       <View style={styles.rightPanel}>
         {activeSection === 'privacy' ? (
           <ScrollView
@@ -231,8 +223,8 @@ export default function ProfileScreen() {
               <Switch
                 value={hideLocation}
                 onValueChange={setHideLocation}
-                trackColor={{ false: '#E0E0E0', true: '#222' }}
-                thumbColor="#fff"
+                trackColor={{ false: colors.border, true: colors.primary }}
+                thumbColor={colors.white}
               />
             </View>
 
@@ -246,8 +238,8 @@ export default function ProfileScreen() {
               <Switch
                 value={hideQuestProgress}
                 onValueChange={setHideQuestProgress}
-                trackColor={{ false: '#E0E0E0', true: '#222' }}
-                thumbColor="#fff"
+                trackColor={{ false: colors.border, true: colors.primary }}
+                thumbColor={colors.white}
               />
             </View>
 
@@ -257,7 +249,7 @@ export default function ProfileScreen() {
               disabled={saving}
             >
               {saving ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <ActivityIndicator size="small" color={colors.textInverse} />
               ) : (
                 <Text style={styles.saveBtnText}>Save</Text>
               )}
@@ -277,6 +269,7 @@ export default function ProfileScreen() {
               value={avatarUrl}
               onChangeText={setAvatarUrl}
               placeholder="https://..."
+              placeholderTextColor={colors.textTertiary}
               autoCapitalize="none"
               keyboardType="url"
             />
@@ -287,6 +280,7 @@ export default function ProfileScreen() {
               value={displayName}
               onChangeText={setDisplayName}
               placeholder="Your name"
+              placeholderTextColor={colors.textTertiary}
             />
 
             <Text style={styles.fieldLabel}>USERNAME</Text>
@@ -295,6 +289,7 @@ export default function ProfileScreen() {
               value={username}
               onChangeText={setUsername}
               placeholder="username"
+              placeholderTextColor={colors.textTertiary}
               autoCapitalize="none"
             />
 
@@ -303,7 +298,8 @@ export default function ProfileScreen() {
               style={styles.input}
               value={topInterest}
               onChangeText={setTopInterest}
-              placeholder="e.g. Live music, hiking…"
+              placeholder="e.g. Live music, hiking..."
+              placeholderTextColor={colors.textTertiary}
               returnKeyType="done"
             />
 
@@ -313,7 +309,7 @@ export default function ProfileScreen() {
               disabled={saving}
             >
               {saving ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <ActivityIndicator size="small" color={colors.textInverse} />
               ) : (
                 <Text style={styles.saveBtnText}>Save</Text>
               )}
@@ -373,7 +369,7 @@ export default function ProfileScreen() {
               disabled={saving}
             >
               {saving ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <ActivityIndicator size="small" color={colors.textInverse} />
               ) : (
                 <Text style={styles.saveBtnText}>Save</Text>
               )}
@@ -392,19 +388,18 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     flexDirection: 'row',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.surface,
   },
 
-  // ── Left panel ──
   leftPanel: {
     width: 185,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     borderRightWidth: 1,
-    borderRightColor: '#EFEFEF',
+    borderRightColor: colors.borderLight,
   },
   leftContent: {
     paddingTop: 56,
-    paddingBottom: 24,
+    paddingBottom: spacing['2xl'],
     alignItems: 'center',
     paddingHorizontal: 10,
   },
@@ -420,160 +415,158 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#333',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarText: { color: '#fff', fontSize: 26, fontWeight: 'bold' },
+  avatarText: { color: colors.textInverse, fontSize: 26, fontWeight: 'bold' },
   leftName: {
-    fontSize: 13,
+    ...typography.labelMd,
     fontWeight: '700',
-    color: '#222',
+    color: colors.textPrimary,
     textAlign: 'center',
   },
   leftUsername: {
-    fontSize: 11,
-    color: '#AAAAAA',
+    ...typography.caption,
+    color: colors.textTertiary,
     textAlign: 'center',
     marginTop: 2,
   },
   divider: {
     width: '100%',
     height: 1,
-    backgroundColor: '#F0F0F0',
-    marginVertical: 12,
+    backgroundColor: colors.borderLight,
+    marginVertical: spacing.md,
   },
   infoLine: {
-    fontSize: 11,
-    color: '#888',
+    ...typography.caption,
+    color: colors.textTertiary,
     textAlign: 'center',
-    marginBottom: 4,
+    marginBottom: spacing.xs,
     lineHeight: 15,
   },
   navItem: {
     width: '100%',
     paddingVertical: 10,
     paddingHorizontal: 10,
-    borderRadius: 8,
+    borderRadius: radii.sm,
     marginBottom: 2,
   },
   navItemActive: {
-    backgroundColor: '#F3F3F3',
+    backgroundColor: colors.primaryLight,
     borderLeftWidth: 3,
-    borderLeftColor: '#222',
+    borderLeftColor: colors.primary,
   },
   navText: {
-    fontSize: 13,
-    color: '#888',
+    ...typography.labelMd,
+    color: colors.textTertiary,
     fontWeight: '500',
   },
   navTextActive: {
-    color: '#222',
+    color: colors.primary,
     fontWeight: '700',
   },
   signOutBtn: {
     paddingVertical: 6,
   },
   signOutText: {
-    fontSize: 12,
-    color: '#AAAAAA',
+    ...typography.bodySm,
+    color: colors.textTertiary,
   },
 
-  // ── Right panel ──
   rightPanel: {
     flex: 1,
-    backgroundColor: '#F8F8F8',
+    backgroundColor: colors.surface,
   },
   rightContent: {
-    padding: 16,
+    padding: spacing.lg,
     paddingTop: 56,
   },
   rightHeading: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#222',
-    marginBottom: 4,
+    ...typography.headingMd,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
   },
   subHeading: {
-    fontSize: 15,
-    marginTop: 16,
-    marginBottom: 8,
+    ...typography.bodyMd,
+    fontWeight: '600',
+    marginTop: spacing.lg,
+    marginBottom: spacing.sm,
   },
   rightSub: {
-    fontSize: 12,
-    color: '#888',
-    marginBottom: 12,
+    ...typography.bodySm,
+    color: colors.textTertiary,
+    marginBottom: spacing.md,
   },
   fieldLabel: {
-    fontSize: 10,
+    ...typography.labelSm,
     fontWeight: '700',
-    color: '#999',
+    color: colors.textTertiary,
     letterSpacing: 0.8,
     marginBottom: 6,
     marginTop: 14,
   },
   input: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: '#E4E4E4',
-    borderRadius: 8,
-    paddingHorizontal: 12,
+    borderColor: colors.border,
+    borderRadius: radii.sm,
+    paddingHorizontal: spacing.md,
     paddingVertical: 10,
-    fontSize: 14,
-    color: '#222',
+    ...typography.bodyMd,
+    color: colors.textPrimary,
   },
   saveBtn: {
-    marginTop: 20,
-    backgroundColor: '#222',
-    borderRadius: 8,
+    marginTop: spacing.xl,
+    backgroundColor: colors.primary,
+    borderRadius: radii.sm,
     paddingVertical: 13,
     alignItems: 'center',
   },
   saveBtnDisabled: {
-    backgroundColor: '#AAAAAA',
+    backgroundColor: colors.textTertiary,
   },
   saveBtnText: {
-    fontSize: 15,
+    ...typography.labelLg,
     fontWeight: '600',
-    color: '#fff',
+    color: colors.textInverse,
   },
   grid: {
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   subSection: {
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   subSectionTitle: {
-    fontSize: 13,
+    ...typography.labelMd,
     fontWeight: '600',
-    color: '#222',
-    marginBottom: 8,
+    color: colors.textPrimary,
+    marginBottom: spacing.sm,
   },
 
-  // ── Privacy toggles ──
   dividerThin: {
     height: 1,
-    backgroundColor: '#F0F0F0',
-    marginVertical: 4,
+    backgroundColor: colors.borderLight,
+    marginVertical: spacing.xs,
   },
   toggleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 14,
-    gap: 12,
+    gap: spacing.md,
   },
   toggleInfo: {
     flex: 1,
   },
   toggleLabel: {
-    fontSize: 14,
+    ...typography.bodyMd,
     fontWeight: '600',
-    color: '#222',
+    color: colors.textPrimary,
     marginBottom: 2,
   },
   toggleDesc: {
-    fontSize: 12,
-    color: '#999',
+    ...typography.bodySm,
+    color: colors.textTertiary,
   },
 });

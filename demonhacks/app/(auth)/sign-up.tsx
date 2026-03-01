@@ -1,10 +1,8 @@
-// Sign-up screen
-// Owner: Person 1 (Auth + Profiles)
-
 import { useState } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
 import { Link } from 'expo-router';
 import { useAuthStore } from '@/stores/auth-store';
+import { colors, spacing, radii, typography } from '@/lib/theme';
 
 export default function SignUpScreen() {
   const [email, setEmail] = useState('');
@@ -27,6 +25,7 @@ export default function SignUpScreen() {
       <TextInput
         style={styles.input}
         placeholder="Username (required)"
+        placeholderTextColor={colors.textTertiary}
         value={username}
         onChangeText={setUsername}
         autoCapitalize="none"
@@ -34,12 +33,14 @@ export default function SignUpScreen() {
       <TextInput
         style={styles.input}
         placeholder="Display Name"
+        placeholderTextColor={colors.textTertiary}
         value={displayName}
         onChangeText={setDisplayName}
       />
       <TextInput
         style={styles.input}
         placeholder="Email"
+        placeholderTextColor={colors.textTertiary}
         value={email}
         onChangeText={setEmail}
         autoCapitalize="none"
@@ -48,12 +49,17 @@ export default function SignUpScreen() {
       <TextInput
         style={styles.input}
         placeholder="Password"
+        placeholderTextColor={colors.textTertiary}
         value={password}
         onChangeText={setPassword}
         secureTextEntry
       />
 
-      <Pressable style={styles.button} onPress={handleSignUp} disabled={loading}>
+      <Pressable
+        style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+        onPress={handleSignUp}
+        disabled={loading}
+      >
         <Text style={styles.buttonText}>{loading ? 'Creating account...' : 'Sign Up'}</Text>
       </Pressable>
 
@@ -65,26 +71,58 @@ export default function SignUpScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, justifyContent: 'center', backgroundColor: '#fff' },
-  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 4 },
-  subtitle: { fontSize: 16, color: '#666', marginBottom: 32 },
-  error: { color: '#e74c3c', marginBottom: 12, fontSize: 14 },
+  container: {
+    flex: 1,
+    padding: spacing['3xl'],
+    justifyContent: 'center',
+    backgroundColor: colors.background,
+  },
+  title: {
+    ...typography.displayMd,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
+  },
+  subtitle: {
+    ...typography.bodyLg,
+    color: colors.textSecondary,
+    marginBottom: spacing['4xl'],
+  },
+  error: {
+    ...typography.bodyMd,
+    color: colors.error,
+    marginBottom: spacing.md,
+  },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
+    borderColor: colors.border,
+    borderRadius: radii.md,
     padding: 14,
     fontSize: 16,
-    marginBottom: 12,
+    color: colors.textPrimary,
+    backgroundColor: colors.white,
+    marginBottom: spacing.md,
   },
   button: {
-    backgroundColor: '#333',
+    backgroundColor: colors.primary,
     paddingVertical: 14,
-    borderRadius: 8,
+    borderRadius: radii.md,
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
-  buttonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
-  link: { marginTop: 16, alignSelf: 'center' },
-  linkText: { color: '#4285F4', fontSize: 14 },
+  buttonPressed: {
+    backgroundColor: colors.primaryDark,
+  },
+  buttonText: {
+    color: colors.textInverse,
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  link: {
+    marginTop: spacing.lg,
+    alignSelf: 'center',
+  },
+  linkText: {
+    color: colors.primary,
+    ...typography.bodyMd,
+  },
 });

@@ -2,27 +2,32 @@ import React from 'react';
 import { SymbolView } from 'expo-symbols';
 import { Tabs } from 'expo-router';
 
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
+import { colors } from '@/lib/theme';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme].tint,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textTertiary,
+        tabBarStyle: {
+          backgroundColor: colors.white,
+          borderTopColor: colors.borderLight,
+        },
         headerShown: useClientOnlyValue(false, true),
+        headerStyle: { backgroundColor: colors.white },
+        headerTitleStyle: { fontWeight: '600', color: colors.textPrimary },
+        headerShadowVisible: false,
       }}>
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Map',
+          title: 'Explore',
           headerShown: false,
           tabBarIcon: ({ color }) => (
             <SymbolView
-              name={{ ios: 'map', android: 'map', web: 'map' }}
+              name={{ ios: 'safari', android: 'explore', web: 'explore' }}
               tintColor={color}
               size={28}
             />

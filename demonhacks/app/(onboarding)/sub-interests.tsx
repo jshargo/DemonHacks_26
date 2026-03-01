@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { View, Text, ScrollView, Pressable, StyleSheet, SafeAreaView, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, Pressable, StyleSheet, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { CATEGORIES, maxSubsForCategory } from '@/lib/categories';
 import { usePreferencesStore } from '@/stores/preferences-store';
 import { useAuthStore } from '@/stores/auth-store';
 import { supabase } from '@/lib/supabase';
 import { ChipGroup } from '@/components/onboarding/ChipGroup';
+import { colors, spacing, radii, typography } from '@/lib/theme';
 
 export default function SubInterestsScreen() {
   const router = useRouter();
@@ -31,7 +32,6 @@ export default function SubInterestsScreen() {
     setSaving(true);
     const userId = session?.user.id;
     if (userId) {
-      // Ensure a profiles row exists — guards against sign-up edge cases
       const { data: existingProfile } = await supabase
         .from('profiles')
         .select('id')
@@ -56,7 +56,6 @@ export default function SubInterestsScreen() {
         }
       }
 
-      // Write preferences to Supabase (upsert handles new and returning users)
       const { error: prefsError } = await supabase.from('user_onboarding_preferences').upsert({
         user_id: userId,
         selected_categories: selectedCategories,
@@ -65,14 +64,12 @@ export default function SubInterestsScreen() {
       });
       if (prefsError) console.error('Failed to save preferences:', prefsError.message);
 
-      // Mark onboarding done on the user profile
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ onboarding_completed: true })
         .eq('id', userId);
       if (profileError) console.error('Failed to update profile:', profileError.message);
     }
-    // Always update local state so AuthGate can redirect even if Supabase is slow
     completeOnboarding();
     setSaving(false);
   };
@@ -80,16 +77,14 @@ export default function SubInterestsScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
-        {/* Header */}
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <Text style={styles.backText}>← Back</Text>
+            <Text style={styles.backText}>{'\u2190'} Back</Text>
           </Pressable>
           <Text style={styles.heading}>Tell us more</Text>
           <Text style={styles.subheading}>Pick subcategories per interest — all optional</Text>
         </View>
 
-        {/* Subcategory Sections */}
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
@@ -119,13 +114,18 @@ export default function SubInterestsScreen() {
             );
           })}
 
-          {/* Bottom padding so content clears the footer */}
           <View style={{ height: 100 }} />
         </ScrollView>
 
-        {/* Finish Button */}
         <View style={styles.footer}>
-          <Pressable onPress={handleFinish} disabled={saving} style={styles.finishButton}>
+          <Pressable
+            onPress={handleFinish}
+            disabled={saving}
+            style={({ pressed }) => [
+              styles.finishButton,
+              pressed && styles.finishButtonPressed,
+            ]}
+          >
             <Text style={styles.finishText}>{saving ? 'Saving...' : 'Finish'}</Text>
           </Pressable>
         </View>
@@ -137,41 +137,38 @@ export default function SubInterestsScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background,
   },
   container: {
     flex: 1,
   },
   header: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 8,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.sm,
   },
   backButton: {
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   backText: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#222222',
+    ...typography.labelLg,
+    color: colors.primary,
   },
   heading: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: '#222222',
+    ...typography.displayMd,
+    color: colors.textPrimary,
     marginBottom: 6,
   },
   subheading: {
-    fontSize: 15,
-    fontWeight: '400',
-    color: '#717171',
+    ...typography.bodyMd,
+    color: colors.textSecondary,
   },
   scroll: {
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xl,
   },
   section: {
     marginBottom: 28,
@@ -180,20 +177,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#222222',
+    ...typography.headingSm,
+    color: colors.textPrimary,
   },
   subCounter: {
-    fontSize: 12,
-    fontWeight: '400',
-    color: '#AAAAAA',
+    ...typography.bodySm,
+    color: colors.textTertiary,
   },
   subCounterAtLimit: {
-    color: '#222222',
+    color: colors.primary,
     fontWeight: '600',
   },
   footer: {
@@ -201,22 +196,24 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: 20,
-    paddingBottom: 32,
-    paddingTop: 16,
-    backgroundColor: '#FFFFFF',
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing['3xl'],
+    paddingTop: spacing.lg,
+    backgroundColor: colors.background,
     borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
+    borderTopColor: colors.borderLight,
   },
   finishButton: {
-    backgroundColor: '#222222',
-    borderRadius: 12,
-    paddingVertical: 16,
+    backgroundColor: colors.primary,
+    borderRadius: radii.md,
+    paddingVertical: spacing.lg,
     alignItems: 'center',
   },
+  finishButtonPressed: {
+    backgroundColor: colors.primaryDark,
+  },
   finishText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    ...typography.headingSm,
+    color: colors.textInverse,
   },
 });

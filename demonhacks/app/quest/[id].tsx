@@ -1,11 +1,12 @@
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useQuestById } from '@/hooks/useQuests';
+import { colors, spacing, radii, shadows, typography } from '@/lib/theme';
 
 const DIFFICULTY_COLORS: Record<string, string> = {
-  easy: '#00C49A',
-  medium: '#F77F00',
-  hard: '#E63946',
+  easy: colors.success,
+  medium: colors.warning,
+  hard: colors.error,
 };
 
 export default function QuestDetailScreen() {
@@ -28,7 +29,7 @@ export default function QuestDetailScreen() {
         <Text
           style={[
             styles.badge,
-            { backgroundColor: DIFFICULTY_COLORS[quest.difficulty] ?? '#888' },
+            { backgroundColor: DIFFICULTY_COLORS[quest.difficulty] ?? colors.textTertiary },
           ]}
         >
           {quest.difficulty}
@@ -57,43 +58,43 @@ export default function QuestDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  content: { padding: 16, paddingBottom: 40 },
-  title: { fontSize: 26, fontWeight: 'bold' },
-  meta: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10 },
+  container: { flex: 1, backgroundColor: colors.background },
+  content: { padding: spacing.lg, paddingBottom: spacing['4xl'] },
+  title: { ...typography.displayMd, color: colors.textPrimary },
+  meta: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: 10 },
   badge: {
-    fontSize: 12,
-    color: '#fff',
-    fontWeight: '600',
+    ...typography.labelMd,
+    color: colors.textInverse,
     textTransform: 'capitalize',
-    paddingHorizontal: 8,
+    paddingHorizontal: spacing.sm,
     paddingVertical: 3,
-    borderRadius: 6,
+    borderRadius: radii.sm,
     overflow: 'hidden',
   },
-  metaText: { fontSize: 14, color: '#666' },
-  description: { fontSize: 15, color: '#444', marginTop: 14, lineHeight: 22 },
-  sectionTitle: { fontSize: 20, fontWeight: '600', marginTop: 24, marginBottom: 12 },
+  metaText: { ...typography.bodyMd, color: colors.textSecondary },
+  description: { ...typography.bodyLg, color: colors.textSecondary, marginTop: 14, lineHeight: 22 },
+  sectionTitle: { ...typography.headingLg, color: colors.textPrimary, marginTop: spacing['2xl'], marginBottom: spacing.md },
   stopCard: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    padding: 12,
-    borderRadius: 10,
-    backgroundColor: '#f8f8f8',
+    padding: spacing.md,
+    borderRadius: radii.md,
+    backgroundColor: colors.white,
     marginBottom: 10,
+    ...shadows.card,
   },
   stopNumber: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#9B5DE5',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: spacing.md,
   },
-  stopNumberText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  stopNumberText: { color: colors.textInverse, fontWeight: '700', fontSize: 14 },
   stopInfo: { flex: 1 },
-  stopName: { fontSize: 16, fontWeight: '600' },
-  stopHint: { fontSize: 13, color: '#777', marginTop: 4, lineHeight: 18 },
-  empty: { fontSize: 15, color: '#999', textAlign: 'center', marginTop: 40 },
+  stopName: { ...typography.headingSm, color: colors.textPrimary },
+  stopHint: { ...typography.bodySm, color: colors.textSecondary, marginTop: spacing.xs, lineHeight: 18 },
+  empty: { ...typography.bodyMd, color: colors.textTertiary, textAlign: 'center', marginTop: spacing['4xl'] },
 });

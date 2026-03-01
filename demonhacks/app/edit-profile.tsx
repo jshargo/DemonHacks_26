@@ -1,6 +1,3 @@
-// Edit profile screen — display name, username, avatar, top interest
-// Owner: Person 1 (Auth + Profiles)
-
 import { useState } from 'react';
 import {
   View,
@@ -17,6 +14,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/stores/auth-store';
 import { supabase } from '@/lib/supabase';
+import { colors, spacing, radii, typography } from '@/lib/theme';
 
 export default function EditProfileScreen() {
   const router = useRouter();
@@ -24,7 +22,6 @@ export default function EditProfileScreen() {
 
   const [displayName, setDisplayName] = useState(profile?.display_name ?? '');
   const [username, setUsername] = useState(profile?.username ?? '');
-  // bio stores the category ID for "top interest"
   const [topInterest, setTopInterest] = useState(profile?.bio ?? '');
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url ?? '');
   const [saving, setSaving] = useState(false);
@@ -66,7 +63,6 @@ export default function EditProfileScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header */}
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={styles.headerBtn}>
           <Text style={styles.cancelText}>Cancel</Text>
@@ -74,7 +70,7 @@ export default function EditProfileScreen() {
         <Text style={styles.title}>Edit Profile</Text>
         <Pressable onPress={handleSave} disabled={saving} style={styles.headerBtn}>
           {saving ? (
-            <ActivityIndicator size="small" color="#222" />
+            <ActivityIndicator size="small" color={colors.primary} />
           ) : (
             <Text style={styles.saveText}>Save</Text>
           )}
@@ -86,7 +82,6 @@ export default function EditProfileScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Avatar preview */}
         <View style={styles.avatarSection}>
           {avatarUrl ? (
             <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
@@ -97,7 +92,6 @@ export default function EditProfileScreen() {
           )}
         </View>
 
-        {/* Avatar URL */}
         <View style={styles.field}>
           <Text style={styles.label}>PROFILE PICTURE URL</Text>
           <TextInput
@@ -105,13 +99,13 @@ export default function EditProfileScreen() {
             value={avatarUrl}
             onChangeText={setAvatarUrl}
             placeholder="Paste an image URL (https://...)"
+            placeholderTextColor={colors.textTertiary}
             autoCapitalize="none"
             keyboardType="url"
             returnKeyType="done"
           />
         </View>
 
-        {/* Display name */}
         <View style={styles.field}>
           <Text style={styles.label}>DISPLAY NAME</Text>
           <TextInput
@@ -119,11 +113,11 @@ export default function EditProfileScreen() {
             value={displayName}
             onChangeText={setDisplayName}
             placeholder="Your name"
+            placeholderTextColor={colors.textTertiary}
             returnKeyType="next"
           />
         </View>
 
-        {/* Username */}
         <View style={styles.field}>
           <Text style={styles.label}>USERNAME</Text>
           <TextInput
@@ -131,19 +125,20 @@ export default function EditProfileScreen() {
             value={username}
             onChangeText={setUsername}
             placeholder="username"
+            placeholderTextColor={colors.textTertiary}
             autoCapitalize="none"
             returnKeyType="next"
           />
         </View>
 
-        {/* Top interest — free text */}
         <View style={styles.field}>
           <Text style={styles.label}>NUMBER ONE THING I WANT TO EXPLORE</Text>
           <TextInput
             style={styles.input}
             value={topInterest}
             onChangeText={setTopInterest}
-            placeholder="e.g. Live music, hiking, trying new food…"
+            placeholder="e.g. Live music, hiking, trying new food..."
+            placeholderTextColor={colors.textTertiary}
             returnKeyType="done"
           />
         </View>
@@ -153,48 +148,48 @@ export default function EditProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#fff' },
+  safe: { flex: 1, backgroundColor: colors.background },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing.lg,
     paddingVertical: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: colors.border,
   },
   headerBtn: { minWidth: 60 },
-  title: { fontSize: 17, fontWeight: '600', color: '#222' },
-  cancelText: { fontSize: 16, color: '#666' },
-  saveText: { fontSize: 16, fontWeight: '600', color: '#222', textAlign: 'right' },
-  content: { padding: 20, paddingBottom: 60 },
+  title: { ...typography.headingSm, color: colors.textPrimary },
+  cancelText: { ...typography.bodyLg, color: colors.textSecondary },
+  saveText: { ...typography.bodyLg, fontWeight: '600', color: colors.primary, textAlign: 'right' },
+  content: { padding: spacing.xl, paddingBottom: 60 },
   avatarSection: { alignItems: 'center', marginBottom: 28 },
   avatarImage: { width: 96, height: 96, borderRadius: 48 },
   avatarPlaceholder: {
     width: 96,
     height: 96,
     borderRadius: 48,
-    backgroundColor: '#333',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarInitial: { color: '#fff', fontSize: 38, fontWeight: 'bold' },
-  field: { marginBottom: 24 },
+  avatarInitial: { color: colors.textInverse, fontSize: 38, fontWeight: 'bold' },
+  field: { marginBottom: spacing['2xl'] },
   label: {
-    fontSize: 11,
+    ...typography.caption,
     fontWeight: '700',
-    color: '#888',
+    color: colors.textTertiary,
     letterSpacing: 0.8,
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 10,
+    borderColor: colors.border,
+    borderRadius: radii.md,
     paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: '#222',
-    backgroundColor: '#FAFAFA',
+    paddingVertical: spacing.md,
+    ...typography.bodyMd,
+    color: colors.textPrimary,
+    backgroundColor: colors.surface,
   },
 });

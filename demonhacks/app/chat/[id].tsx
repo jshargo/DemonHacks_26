@@ -9,6 +9,7 @@ import { useSocialStore } from '@/stores/social-store';
 import { useChats } from '@/hooks/useChats';
 import { MessageBubble } from '@/components/social/MessageBubble';
 import { useAuthStore } from '@/stores/auth-store';
+import { colors, spacing, radii, typography } from '@/lib/theme';
 
 export default function ChatScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -24,7 +25,6 @@ export default function ChatScreen() {
 
   const chat = chats.find((c) => c.id === id);
 
-  // Derive chat title
   const chatTitle = (() => {
     if (!chat) return 'Chat';
     if (chat.type === 'group') return chat.name ?? 'Group Chat';
@@ -43,7 +43,6 @@ export default function ChatScreen() {
     loadMessages(id);
     subscribeToChat(id);
 
-    // Poll every 3s as fallback in case realtime is not enabled
     const poll = setInterval(() => loadMessages(id), 3000);
 
     return () => {
@@ -53,7 +52,6 @@ export default function ChatScreen() {
     };
   }, [id]);
 
-  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (messages.length > 0) {
       setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
@@ -84,7 +82,7 @@ export default function ChatScreen() {
           ListEmptyComponent={
             messagesLoading ? null : (
               <View style={styles.empty}>
-                <Text style={styles.emptyText}>No messages yet. Say hi! 👋</Text>
+                <Text style={styles.emptyText}>No messages yet. Say hi!</Text>
               </View>
             )
           }
@@ -96,6 +94,7 @@ export default function ChatScreen() {
             value={input}
             onChangeText={setInput}
             placeholder="Message..."
+            placeholderTextColor={colors.textTertiary}
             multiline
             returnKeyType="send"
             onSubmitEditing={handleSend}
@@ -105,7 +104,7 @@ export default function ChatScreen() {
             onPress={handleSend}
             disabled={!input.trim()}
           >
-            <Text style={styles.sendIcon}>↑</Text>
+            <Text style={styles.sendIcon}>{'\u2191'}</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -114,42 +113,43 @@ export default function ChatScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#fff' },
+  safe: { flex: 1, backgroundColor: colors.background },
   flex: { flex: 1 },
   messageList: {
-    paddingHorizontal: 12,
-    paddingVertical: 16,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.lg,
     flexGrow: 1,
   },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 80 },
-  emptyText: { color: '#888', fontSize: 15 },
+  emptyText: { ...typography.bodyMd, color: colors.textTertiary },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    paddingHorizontal: 12,
+    paddingHorizontal: spacing.md,
     paddingVertical: 10,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#E5E5E5',
-    gap: 8,
+    borderTopColor: colors.border,
+    gap: spacing.sm,
   },
   input: {
     flex: 1,
     minHeight: 40,
     maxHeight: 120,
-    backgroundColor: '#F0F0F0',
-    borderRadius: 20,
-    paddingHorizontal: 16,
+    backgroundColor: colors.surface,
+    borderRadius: radii.full,
+    paddingHorizontal: spacing.lg,
     paddingVertical: 10,
-    fontSize: 15,
+    ...typography.bodyMd,
+    color: colors.textPrimary,
   },
   sendBtn: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: '#6C63FF',
+    borderRadius: radii.full,
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  sendBtnDis: { backgroundColor: '#CCC' },
-  sendIcon: { color: '#fff', fontSize: 20, fontWeight: '700' },
+  sendBtnDis: { backgroundColor: colors.border },
+  sendIcon: { color: colors.textInverse, fontSize: 20, fontWeight: '700' },
 });

@@ -1,6 +1,3 @@
-// Saved items screen — shows all places and events the user has saved.
-// Tap an item to navigate to it on the map.
-
 import { useCallback } from 'react';
 import { View, Text, FlatList, Pressable, Image, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -8,6 +5,7 @@ import { useCollections } from '@/hooks/useCollections';
 import { useExploreStore } from '@/stores/explore-store';
 import { PLACE_CATEGORIES } from '@/lib/constants';
 import type { SavedItemWithPlace, PlaceCategory, DiscoverItem } from '@/lib/types';
+import { colors, spacing, radii, typography } from '@/lib/theme';
 
 export default function CollectionsScreen() {
   const router = useRouter();
@@ -46,14 +44,16 @@ export default function CollectionsScreen() {
   );
 
   const getBadgeColor = (category: PlaceCategory): string =>
-    PLACE_CATEGORIES[category]?.color ?? '#888';
+    PLACE_CATEGORIES[category]?.color ?? colors.textTertiary;
 
   const getBadgeLabel = (category: PlaceCategory): string =>
     PLACE_CATEGORIES[category]?.label ?? 'Place';
 
   const renderItem = ({ item }: { item: SavedItemWithPlace }) => (
-    <Pressable style={styles.itemRow} onPress={() => handleItemPress(item)}>
-      {/* Thumbnail */}
+    <Pressable
+      style={({ pressed }) => [styles.itemRow, pressed && styles.itemRowPressed]}
+      onPress={() => handleItemPress(item)}
+    >
       {item.place?.image_url ? (
         <Image
           source={{ uri: item.place.image_url }}
@@ -64,7 +64,6 @@ export default function CollectionsScreen() {
         <View style={[styles.thumbnail, styles.thumbnailPlaceholder]} />
       )}
 
-      {/* Info */}
       <View style={styles.itemInfo}>
         <Text style={styles.itemName} numberOfLines={1}>
           {item.place?.name ?? 'Unknown Place'}
@@ -78,7 +77,6 @@ export default function CollectionsScreen() {
         )}
       </View>
 
-      {/* Remove */}
       <Pressable
         onPress={() => removeItem(item.id)}
         hitSlop={8}
@@ -114,67 +112,68 @@ export default function CollectionsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.background,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#1a1a2e',
-    padding: 16,
-    paddingBottom: 8,
+    ...typography.displayMd,
+    color: colors.textPrimary,
+    padding: spacing.lg,
+    paddingBottom: spacing.sm,
   },
   empty: {
-    fontSize: 15,
-    color: '#999',
-    marginTop: 24,
+    ...typography.bodyMd,
+    color: colors.textTertiary,
+    marginTop: spacing['2xl'],
     textAlign: 'center',
-    paddingHorizontal: 32,
+    paddingHorizontal: spacing['3xl'],
   },
   listContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 32,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing['3xl'],
   },
   itemRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: colors.borderLight,
+  },
+  itemRowPressed: {
+    backgroundColor: colors.surface,
   },
   thumbnail: {
     width: 56,
     height: 56,
-    borderRadius: 8,
+    borderRadius: radii.sm,
   },
   thumbnailPlaceholder: {
-    backgroundColor: '#e8e8e8',
+    backgroundColor: colors.surface,
   },
   itemInfo: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: spacing.md,
   },
   itemName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#1a1a2e',
-    marginBottom: 4,
+    ...typography.labelLg,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
   },
   badge: {
     alignSelf: 'flex-start',
-    paddingHorizontal: 8,
+    paddingHorizontal: spacing.sm,
     paddingVertical: 2,
-    borderRadius: 10,
+    borderRadius: radii.full,
   },
   badgeText: {
-    color: '#fff',
-    fontSize: 11,
+    color: colors.textInverse,
+    ...typography.caption,
     fontWeight: '600',
   },
   removeBtn: {
-    padding: 8,
+    padding: spacing.sm,
   },
   removeText: {
     fontSize: 16,
-    color: '#999',
+    color: colors.textTertiary,
   },
 });
