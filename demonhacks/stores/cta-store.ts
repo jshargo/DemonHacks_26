@@ -10,6 +10,9 @@ interface CTAState {
   showLiveTrains: boolean;
   showDivvyStations: boolean;
   showPedwayRoutes: boolean;
+  showTicketmasterEvents: boolean;
+  ticketmasterDateFilter: 'today' | 'tomorrow' | 'week';
+  ticketmasterGenreFilter: Set<string>; // empty = show all
 
   // Live train data
   trains: CTATrain[];
@@ -28,6 +31,9 @@ interface CTAState {
   toggleLiveTrains: () => void;
   toggleDivvyStations: () => void;
   togglePedwayRoutes: () => void;
+  toggleTicketmasterEvents: () => void;
+  setTicketmasterDateFilter: (filter: 'today' | 'tomorrow' | 'week') => void;
+  toggleTicketmasterGenre: (genre: string) => void;
   setTrains: (trains: CTATrain[]) => void;
   selectTrain: (train: CTATrain | null) => void;
   setTrainDetail: (detail: CTATrainDetail | null) => void;
@@ -43,6 +49,9 @@ export const useCTAStore = create<CTAState>((set, get) => ({
   showLiveTrains: false,
   showDivvyStations: false,
   showPedwayRoutes: false,
+  showTicketmasterEvents: false,
+  ticketmasterDateFilter: 'week',
+  ticketmasterGenreFilter: new Set<string>(),
   trains: [],
   prevTrains: new Map(),
   lastFetchTime: 0,
@@ -81,6 +90,16 @@ export const useCTAStore = create<CTAState>((set, get) => ({
   toggleDivvyStations: () => set((s) => ({ showDivvyStations: !s.showDivvyStations })),
 
   togglePedwayRoutes: () => set((s) => ({ showPedwayRoutes: !s.showPedwayRoutes })),
+
+  toggleTicketmasterEvents: () => set((s) => ({ showTicketmasterEvents: !s.showTicketmasterEvents })),
+
+  setTicketmasterDateFilter: (filter) => set({ ticketmasterDateFilter: filter }),
+
+  toggleTicketmasterGenre: (genre) => set((s) => {
+    const next = new Set(s.ticketmasterGenreFilter);
+    if (next.has(genre)) next.delete(genre); else next.add(genre);
+    return { ticketmasterGenreFilter: next };
+  }),
 
   setTrains: (trains) =>
     set((s) => {

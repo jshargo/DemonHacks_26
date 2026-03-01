@@ -15,6 +15,8 @@ export default function CTAToggle() {
   const toggleLiveTrains = useCTAStore((s) => s.toggleLiveTrains);
   const toggleDivvyStations = useCTAStore((s) => s.toggleDivvyStations);
   const togglePedwayRoutes = useCTAStore((s) => s.togglePedwayRoutes);
+  const showTicketmasterEvents = useCTAStore((s) => s.showTicketmasterEvents);
+  const toggleTicketmasterEvents = useCTAStore((s) => s.toggleTicketmasterEvents);
 
   return (
     <View style={styles.container}>
@@ -56,6 +58,14 @@ export default function CTAToggle() {
       >
         <Text style={[styles.icon, showPedwayRoutes && styles.iconActive]}>🚶</Text>
         {showPedwayRoutes && <View style={[styles.accent, { backgroundColor: '#e07c24' }]} />}
+      </Pressable>
+
+      <Pressable
+        style={[styles.btn, showTicketmasterEvents && styles.btnActive]}
+        onPress={toggleTicketmasterEvents}
+      >
+        <Text style={[styles.icon, showTicketmasterEvents && styles.iconActive]}>🎟️</Text>
+        {showTicketmasterEvents && <View style={[styles.accent, { backgroundColor: '#ff4d4d' }]} />}
       </Pressable>
     </View>
   );
