@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { View, Text, FlatList, Switch, StyleSheet, type ListRenderItemInfo } from 'react-native';
+import { View, Text, FlatList, StyleSheet, type ListRenderItemInfo } from 'react-native';
 import { useExploreStore } from '@/stores/explore-store';
 import { useCollectionStore } from '@/stores/collection-store';
 import { useAuthStore } from '@/stores/auth-store';
@@ -14,8 +14,6 @@ interface CardFeedProps {
 }
 
 export default function CardFeed({ items, count, onItemPress, numColumns = 1 }: CardFeedProps) {
-  const searchAsIMove = useExploreStore((s) => s.searchAsIMove);
-  const setSearchAsIMove = useExploreStore((s) => s.setSearchAsIMove);
   const hoveredPinId = useExploreStore((s) => s.hoveredPinId);
   const setHoveredItemId = useExploreStore((s) => s.setHoveredItemId);
 
@@ -62,16 +60,8 @@ export default function CardFeed({ items, count, onItemPress, numColumns = 1 }: 
   const ListHeader = (
     <View style={styles.header}>
       <Text style={styles.countText}>
-        {count} {count === 1 ? 'thing' : 'things'} to do in this area
+        {count >= 1000 ? '999+' : count} {count === 1 ? 'thing' : 'things'} to do in this area
       </Text>
-      <View style={styles.toggleRow}>
-        <Text style={styles.toggleLabel}>Search as I move the map</Text>
-        <Switch
-          value={searchAsIMove}
-          onValueChange={setSearchAsIMove}
-          trackColor={{ false: '#ccc', true: '#1a1a2e' }}
-        />
-      </View>
     </View>
   );
 
@@ -103,16 +93,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1a1a2e',
     marginBottom: 8,
-  },
-  toggleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  toggleLabel: {
-    fontSize: 13,
-    color: '#666',
   },
   columnWrapper: {
     gap: 12,

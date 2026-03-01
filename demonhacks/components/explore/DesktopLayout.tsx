@@ -17,6 +17,36 @@ import { useSearchStore } from '@/stores/search-store';
 
 const BOUNDS_DEBOUNCE_MS = 300;
 
+/** Minimum pixel distance between two pins before one is hidden */
+const MIN_PIN_GAP_PX = 20;
+
+/** Convert lat/lng to Mercator pixel position at a given zoom level */
+function toPixel(lng: number, lat: number, zoom: number) {
+  const scale = 256 * Math.pow(2, zoom);
+  const x = ((lng + 180) / 360) * scale;
+  const latRad = (lat * Math.PI) / 180;
+  const y =
+    (1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * scale;
+  return { x, y };
+}
+
+/** Drop pins whose center would overlap an already-kept pin at the current zoom */
+function deduplicatePins(pins: MapPinType[], zoom: number): MapPinType[] {
+  const kept: Array<{ x: number; y: number }> = [];
+  const result: MapPinType[] = [];
+  for (const pin of pins) {
+    const p = toPixel(pin.lng, pin.lat, zoom);
+    const overlaps = kept.some(
+      (k) => Math.sqrt((p.x - k.x) ** 2 + (p.y - k.y) ** 2) < MIN_PIN_GAP_PX,
+    );
+    if (!overlaps) {
+      kept.push(p);
+      result.push(pin);
+    }
+  }
+  return result;
+}
+
 export default function DesktopLayout() {
   const boundsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const savedViewportRef = useRef<{ lat: number; lng: number; zoom: number } | null>(null);
@@ -41,24 +71,25 @@ export default function DesktopLayout() {
   const findSavedItem = useCollectionStore((s) => s.findSavedItem);
   const session = useAuthStore((s) => s.session);
 
-  // Convert DiscoverItems → MapPins (only items with coordinates)
-  const mapPins: MapPinType[] = useMemo(
-    () =>
-      items
-        .filter((item) => item.lat !== 0 && item.lng !== 0)
-        .map((item) => ({
-          id: item.id,
-          entityType: item.entityType,
-          name: item.name,
-          lat: item.lat,
-          lng: item.lng,
-          category: item.category,
-          subcategory: item.subcategory,
-          description: item.description,
-          imageUrl: item.imageUrl,
-        })),
-    [items],
-  );
+  const zoom = useMapStore((s) => s.viewport.zoom);
+
+  // Convert DiscoverItems → MapPins, then drop pins that would visually overlap
+  const mapPins: MapPinType[] = useMemo(() => {
+    const all = items
+      .filter((item) => item.lat !== 0 && item.lng !== 0)
+      .map((item) => ({
+        id: item.id,
+        entityType: item.entityType,
+        name: item.name,
+        lat: item.lat,
+        lng: item.lng,
+        category: item.category,
+        subcategory: item.subcategory,
+        description: item.description,
+        imageUrl: item.imageUrl,
+      }));
+    return deduplicatePins(all, zoom);
+  }, [items, zoom]);
 
   // Build pin labels map
   const pinLabels: Map<string, PinLabel> = useMemo(() => {
