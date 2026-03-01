@@ -120,6 +120,7 @@ function drawTrainIcon(color: string): ImageData {
     ctx.fill();
   }
 
+
   return ctx.getImageData(0, 0, w, h);
 }
 
