@@ -9,6 +9,8 @@ interface AuthState {
   profile: UserProfile | null;
   loading: boolean;
   error: string | null;
+  /** Monotonic counter that increments whenever the user's XP changes */
+  xpVersion: number;
 
   /** Initialize auth — call once in root layout */
   initialize: () => () => void;
@@ -19,6 +21,9 @@ interface AuthState {
 
   /** Fetch the user's profile from the profiles table */
   fetchProfile: () => Promise<void>;
+
+  /** Bump after awarding XP so subscribers (e.g. leaderboard) know to refetch */
+  bumpXpVersion: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -26,6 +31,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   profile: null,
   loading: true,
   error: null,
+  xpVersion: 0,
 
   initialize: () => {
     // Get initial session
@@ -124,4 +130,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await usePreferencesStore.getState().loadFromSupabase(userId);
     }
   },
+
+  bumpXpVersion: () => set((s) => ({ xpVersion: s.xpVersion + 1 })),
 }));

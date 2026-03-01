@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/auth-store';
 import { useSocialStore } from '@/stores/social-store';
@@ -18,6 +18,7 @@ export function useLeaderboard() {
   const [loading, setLoading] = useState(false);
 
   const userId = useAuthStore((s) => s.session?.user?.id);
+  const xpVersion = useAuthStore((s) => s.xpVersion);
   const friends = useSocialStore((s) => s.friends);
 
   const loadLeaderboard = useCallback(async () => {
@@ -66,6 +67,16 @@ export function useLeaderboard() {
       setLoading(false);
     }
   }, [userId, friends]);
+
+  // Auto-refresh leaderboard when XP changes (skip initial mount)
+  const mountedRef = useRef(false);
+  useEffect(() => {
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      return;
+    }
+    loadLeaderboard();
+  }, [xpVersion]);
 
   return { entries, loading, loadLeaderboard };
 }
