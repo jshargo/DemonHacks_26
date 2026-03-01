@@ -4,14 +4,15 @@
 // used to *find* and materialize new places into the database. The feed shows
 // what's in our database, enabling bookmarks, images, ratings, and stable IDs.
 
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useExploreStore } from '@/stores/explore-store';
+import { usePreferencesStore } from '@/stores/preferences-store';
 import { supabase } from '@/lib/supabase';
 import type { DiscoverCategory, DiscoverItem, Place, PlaceCategory } from '@/lib/types';
 
 const FETCH_DEBOUNCE_MS = 400;
 
-/** Category sort order — determines grouping in "All" view */
+/** Fallback sort order when no preference matches */
 const CATEGORY_ORDER: Record<string, number> = {
   food_drink: 0,
   outdoors: 1,
@@ -22,11 +23,35 @@ const CATEGORY_ORDER: Record<string, number> = {
   other: 6,
 };
 
-/** Sort items by category, with events last */
-function sortByCategory(items: DiscoverItem[]): DiscoverItem[] {
+/** Maps onboarding category IDs → Supabase PlaceCategory values */
+const ONBOARDING_TO_PLACE_CATEGORY: Record<string, PlaceCategory> = {
+  'live-music': 'entertainment',
+  'sports': 'entertainment',
+  'arts-culture': 'arts_culture',
+  'food-drink': 'food_drink',
+  'coffee-cafes': 'food_drink',
+  'outdoors': 'outdoors',
+  'nightlife': 'entertainment',
+  'family': 'entertainment',
+  'markets-festivals': 'entertainment',
+  'fitness': 'other',
+};
+
+/**
+ * Sort items so that those matching the user's preferred categories come first.
+ * Within the same tier, preserves Supabase ordering (featured → alphabetical).
+ */
+function sortByPreference(
+  items: DiscoverItem[],
+  preferredPlaceCategories: Set<string>,
+): DiscoverItem[] {
   return [...items].sort((a, b) => {
-    const orderA = a.entityType === 'event' ? 5 : CATEGORY_ORDER[a.category ?? 'other'] ?? 4;
-    const orderB = b.entityType === 'event' ? 5 : CATEGORY_ORDER[b.category ?? 'other'] ?? 4;
+    const aMatch = a.category && preferredPlaceCategories.has(a.category) ? 1 : 0;
+    const bMatch = b.category && preferredPlaceCategories.has(b.category) ? 1 : 0;
+    if (aMatch !== bMatch) return bMatch - aMatch;
+    // Fallback: use predefined category order, events last
+    const orderA = a.entityType === 'event' ? 99 : CATEGORY_ORDER[a.category ?? 'other'] ?? 98;
+    const orderB = b.entityType === 'event' ? 99 : CATEGORY_ORDER[b.category ?? 'other'] ?? 98;
     if (orderA !== orderB) return orderA - orderB;
     return a.name.localeCompare(b.name);
   });
@@ -44,6 +69,7 @@ function supabasePlaceToDiscoverItem(place: Place): DiscoverItem {
     subcategory: null,
     description: place.description,
     imageUrl: place.image_url,
+    photoUrls: place.photo_urls ?? [],
     neighborhood: place.address ?? '',
     rating: null,
     priceRange: null,
@@ -81,15 +107,28 @@ export function useDiscoverFeed(): {
   loading: boolean;
   patchItem: (id: string, patch: Partial<DiscoverItem>) => void;
 } {
-  const [items, setItems] = useState<DiscoverItem[]>([]);
+  // allItems holds the full Supabase result; bounds filtering happens client-side
+  const [allItems, setAllItems] = useState<DiscoverItem[]>([]);
   const [loading, setLoading] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const activeCategory = useExploreStore((s) => s.activeCategory);
   const searchQuery = useExploreStore((s) => s.searchQuery);
+  const mapBounds = useExploreStore((s) => s.mapBounds);
+  const searchAsIMove = useExploreStore((s) => s.searchAsIMove);
+
+  const selectedCategories = usePreferencesStore((s) => s.selectedCategories);
+  const preferredPlaceCategories = useMemo(() => {
+    const result = new Set<string>();
+    for (const catId of selectedCategories) {
+      const mapped = ONBOARDING_TO_PLACE_CATEGORY[catId];
+      if (mapped) result.add(mapped);
+    }
+    return result;
+  }, [selectedCategories]);
 
   const patchItem = useCallback((id: string, patch: Partial<DiscoverItem>) => {
-    setItems((prev) =>
+    setAllItems((prev) =>
       prev.map((item) => (item.id === id ? { ...item, ...patch } : item)),
     );
   }, []);
@@ -120,7 +159,8 @@ export function useDiscoverFeed(): {
             );
           }
 
-          query = query.order('is_featured', { ascending: false }).order('name');
+          // Supabase default page limit is 1000 — explicit here to make it visible
+          query = query.order('is_featured', { ascending: false }).order('name').limit(1000);
 
           const { data, error } = await query;
 
@@ -130,8 +170,7 @@ export function useDiscoverFeed(): {
           }
 
           const places = (data ?? []) as Place[];
-          const discoverItems = places.map(supabasePlaceToDiscoverItem);
-          setItems(sortByCategory(discoverItems));
+          setAllItems(places.map(supabasePlaceToDiscoverItem));
         } catch (err) {
           console.warn('Discover feed error:', err);
         } finally {
@@ -144,6 +183,21 @@ export function useDiscoverFeed(): {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, [activeCategory, searchQuery]);
+
+  // Filter by bounds, then sort by user preference
+  const items = useMemo(() => {
+    const bounded =
+      searchAsIMove && mapBounds
+        ? allItems.filter(
+            (item) =>
+              item.lat >= mapBounds.south &&
+              item.lat <= mapBounds.north &&
+              item.lng >= mapBounds.west &&
+              item.lng <= mapBounds.east,
+          )
+        : allItems;
+    return sortByPreference(bounded, preferredPlaceCategories);
+  }, [allItems, mapBounds, searchAsIMove, preferredPlaceCategories]);
 
   return { items, count: items.length, loading, patchItem };
 }

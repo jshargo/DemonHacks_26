@@ -1,10 +1,11 @@
 import { useCallback } from 'react';
-import { View, Text, FlatList, Switch, StyleSheet, type ListRenderItemInfo } from 'react-native';
+import { View, Text, FlatList, StyleSheet, type ListRenderItemInfo } from 'react-native';
 import { useExploreStore } from '@/stores/explore-store';
 import { useCollectionStore } from '@/stores/collection-store';
 import { useAuthStore } from '@/stores/auth-store';
 import type { DiscoverItem } from '@/lib/types';
 import DiscoverCard from './DiscoverCard';
+import { colors, typography, spacing } from '@/lib/theme';
 
 interface CardFeedProps {
   items: DiscoverItem[];
@@ -14,8 +15,6 @@ interface CardFeedProps {
 }
 
 export default function CardFeed({ items, count, onItemPress, numColumns = 1 }: CardFeedProps) {
-  const searchAsIMove = useExploreStore((s) => s.searchAsIMove);
-  const setSearchAsIMove = useExploreStore((s) => s.setSearchAsIMove);
   const hoveredPinId = useExploreStore((s) => s.hoveredPinId);
   const setHoveredItemId = useExploreStore((s) => s.setHoveredItemId);
 
@@ -62,16 +61,8 @@ export default function CardFeed({ items, count, onItemPress, numColumns = 1 }: 
   const ListHeader = (
     <View style={styles.header}>
       <Text style={styles.countText}>
-        {count} {count === 1 ? 'thing' : 'things'} to do in this area
+        {count >= 1000 ? '999+' : count} {count === 1 ? 'thing' : 'things'} to do in this area
       </Text>
-      <View style={styles.toggleRow}>
-        <Text style={styles.toggleLabel}>Search as I move the map</Text>
-        <Switch
-          value={searchAsIMove}
-          onValueChange={setSearchAsIMove}
-          trackColor={{ false: '#ccc', true: '#1a1a2e' }}
-        />
-      </View>
     </View>
   );
 
@@ -92,30 +83,19 @@ export default function CardFeed({ items, count, onItemPress, numColumns = 1 }: 
 
 const styles = StyleSheet.create({
   list: {
-    padding: 16,
-    paddingBottom: 32,
+    padding: spacing.lg,
+    paddingBottom: spacing['3xl'],
   },
   header: {
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   countText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1a1a2e',
-    marginBottom: 8,
-  },
-  toggleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  toggleLabel: {
-    fontSize: 13,
-    color: '#666',
+    ...typography.headingMd,
+    color: colors.textPrimary,
+    marginBottom: spacing.sm,
   },
   columnWrapper: {
-    gap: 12,
+    gap: spacing.md,
   },
   columnItem: {
     flex: 1,

@@ -372,5 +372,192 @@
     "lat": 41.9296,
     "lng": -87.7050,
     "website": "https://www.logansquarefarmersmarket.org"
+  },
+  {
+    "name": "Wrigley Building",
+    "description": "Iconic 1920s white terra-cotta tower on the Magnificent Mile. Glows beautifully when illuminated at night.",
+    "category": "outdoors",
+    "subcategory": "landmark",
+    "tags": ["architecture", "landmark", "iconic", "photography"],
+    "address": "400-410 N Michigan Ave, Chicago, IL 60611",
+    "lat": 41.8899,
+    "lng": -87.6247,
+    "website": null
+  },
+  {
+    "name": "Tribune Tower",
+    "description": "Neo-Gothic landmark on Michigan Ave with fragments of famous buildings from around the world embedded in its walls.",
+    "category": "outdoors",
+    "subcategory": "landmark",
+    "tags": ["architecture", "landmark", "historic", "gothic"],
+    "address": "435 N Michigan Ave, Chicago, IL 60611",
+    "lat": 41.8905,
+    "lng": -87.6236,
+    "website": null
+  },
+  {
+    "name": "Marina City",
+    "description": "Iconic 'corn cob' twin towers designed by Bertrand Goldberg. A Chicago architectural landmark since 1964.",
+    "category": "outdoors",
+    "subcategory": "landmark",
+    "tags": ["architecture", "landmark", "iconic", "photography"],
+    "address": "300 N State St, Chicago, IL 60654",
+    "lat": 41.8887,
+    "lng": -87.6275,
+    "website": null
+  },
+  {
+    "name": "Field Museum of Natural History",
+    "description": "World-class natural history museum home to SUE, the largest T. rex ever discovered.",
+    "category": "events",
+    "subcategory": "museum",
+    "tags": ["museum", "dinosaurs", "science", "family-friendly"],
+    "address": "1400 S DuSable Lake Shore Dr, Chicago, IL 60605",
+    "lat": 41.8663,
+    "lng": -87.6170,
+    "website": "https://www.fieldmuseum.org"
+  },
+  {
+    "name": "Shedd Aquarium",
+    "description": "One of the world's largest indoor aquariums with 32,000+ animals including beluga whales and dolphins.",
+    "category": "events",
+    "subcategory": "aquarium",
+    "tags": ["aquarium", "family-friendly", "animals", "lakefront"],
+    "address": "1200 S DuSable Lake Shore Dr, Chicago, IL 60605",
+    "lat": 41.8676,
+    "lng": -87.6140,
+    "website": "https://www.sheddaquarium.org"
+  },
+  {
+    "name": "Adler Planetarium",
+    "description": "America's first planetarium. Stunning skyline views from the tip of the Museum Campus peninsula.",
+    "category": "events",
+    "subcategory": "museum",
+    "tags": ["planetarium", "space", "skyline-views", "museum"],
+    "address": "1300 S DuSable Lake Shore Dr, Chicago, IL 60605",
+    "lat": 41.8663,
+    "lng": -87.6068,
+    "website": "https://www.adlerplanetarium.org"
+  },
+  {
+    "name": "Soldier Field",
+    "description": "Historic stadium home of the Chicago Bears. The neoclassical colonnades are a must-see landmark.",
+    "category": "events",
+    "subcategory": "stadium",
+    "tags": ["sports", "bears", "football", "landmark"],
+    "address": "1410 Special Olympics Dr, Chicago, IL 60605",
+    "lat": 41.8623,
+    "lng": -87.6167,
+    "website": "https://www.soldierfield.com"
+  },
+  {
+    "name": "12th Street Beach",
+    "description": "Hidden urban beach just south of Adler Planetarium with great skyline views and fewer crowds.",
+    "category": "outdoors",
+    "subcategory": "beach",
+    "tags": ["beach", "hidden-gem", "skyline-views", "summer"],
+    "address": "1200 S Linn White Dr, Chicago, IL 60605",
+    "lat": 41.8621,
+    "lng": -87.6072,
+    "website": null
+  },
+  {
+    "name": "Chess Records / Willie Dixon's Blues Heaven",
+    "description": "Legendary recording studio where Muddy Waters, Chuck Berry, and the Rolling Stones recorded. Now a blues museum.",
+    "category": "events",
+    "subcategory": "museum",
+    "tags": ["blues", "music-history", "museum", "iconic"],
+    "address": "2120 S Michigan Ave, Chicago, IL 60616",
+    "lat": 41.8542,
+    "lng": -87.6236,
+    "website": "https://bluesheaven.com"
+  },
+  {
+    "name": "Buddy Guy's Legends",
+    "description": "Blues club owned by living legend Buddy Guy. Live blues every night in a storied South Loop venue.",
+    "category": "events",
+    "subcategory": "live-music",
+    "tags": ["blues", "live-music", "iconic", "nightlife"],
+    "address": "700 S Wabash Ave, Chicago, IL 60605",
+    "lat": 41.8729,
+    "lng": -87.6260,
+    "website": "https://buddyguy.com"
+  },
+  {
+    "name": "Jazz Showcase",
+    "description": "Chicago's oldest jazz club, running since 1947. World-class jazz performances in an intimate setting.",
+    "category": "events",
+    "subcategory": "live-music",
+    "tags": ["jazz", "live-music", "historic", "intimate"],
+    "address": "806 S Plymouth Ct, Chicago, IL 60605",
+    "lat": 41.8721,
+    "lng": -87.6299,
+    "website": "https://www.jazzshowcase.com"
+  },
+  {
+    "name": "Green Mill Cocktail Lounge",
+    "description": "Historic jazz club and former Al Capone speakeasy. Live jazz and the famous Uptown Poetry Slam.",
+    "category": "events",
+    "subcategory": "live-music",
+    "tags": ["jazz", "speakeasy", "historic", "poetry-slam"],
+    "address": "4802 N Broadway, Chicago, IL 60640",
+    "lat": 41.9681,
+    "lng": -87.6598,
+    "website": "https://greenmilljazz.com"
+  },
+  {
+    "name": "Chicago Pedway",
+    "description": "Underground pedestrian walkway system spanning 40 blocks beneath the Loop. A hidden city beneath the city.",
+    "category": "outdoors",
+    "subcategory": "landmark",
+    "tags": ["hidden-gem", "underground", "walking", "unique"],
+    "address": "Millennium Station, 151 E Randolph St, Chicago, IL 60601",
+    "lat": 41.8843,
+    "lng": -87.6247,
+    "website": null
+  },
+  {
+    "name": "Lurie Garden",
+    "description": "5-acre botanical garden hidden at the south end of Millennium Park. A secret prairie oasis in the city.",
+    "category": "outdoors",
+    "subcategory": "garden",
+    "tags": ["garden", "hidden-gem", "free", "nature"],
+    "address": "220 E Monroe St, Chicago, IL 60602",
+    "lat": 41.8811,
+    "lng": -87.6216,
+    "website": "https://www.luriegarden.org"
+  },
+  {
+    "name": "The Dearborn",
+    "description": "Upscale American tavern in the Loop with a speakeasy atmosphere and seasonal craft cocktails.",
+    "category": "food",
+    "subcategory": "restaurant",
+    "tags": ["speakeasy", "cocktails", "upscale", "loop"],
+    "address": "145 N Dearborn St, Chicago, IL 60602",
+    "lat": 41.8841,
+    "lng": -87.6294,
+    "website": "https://thedearborn.com"
+  },
+  {
+    "name": "Graceland Cemetery",
+    "description": "Victorian-era cemetery and open-air architectural museum. Final resting place of many famous Chicagoans.",
+    "category": "outdoors",
+    "subcategory": "landmark",
+    "tags": ["historic", "architecture", "walking", "unique"],
+    "address": "4001 N Clark St, Chicago, IL 60613",
+    "lat": 41.9561,
+    "lng": -87.6592,
+    "website": "https://www.gracelandcemetery.org"
+  },
+  {
+    "name": "Oz Park",
+    "description": "Lincoln Park neighborhood park with Wizard of Oz character statues. A nod to L. Frank Baum's time in Chicago.",
+    "category": "outdoors",
+    "subcategory": "park",
+    "tags": ["park", "statues", "family-friendly", "unique"],
+    "address": "2021 N Burling St, Chicago, IL 60614",
+    "lat": 41.9206,
+    "lng": -87.6491,
+    "website": null
   }
 ]

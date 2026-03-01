@@ -4,6 +4,7 @@
 // - Styled circle with number
 
 import { View, Text, StyleSheet } from 'react-native';
+import { colors, fonts, shadows } from '@/lib/theme';
 
 interface ClusterMarkerProps {
   count: number;
@@ -23,9 +24,10 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#333',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
+    ...shadows.pin,
   },
-  text: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
+  text: { color: colors.textInverse, fontFamily: fonts.bold, fontSize: 14 },
 });

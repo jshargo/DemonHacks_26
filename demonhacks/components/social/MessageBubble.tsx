@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import type { Message } from '@/lib/types';
 import { SpotShareCard } from './SpotShareCard';
+import { colors, fonts, typography, spacing } from '@/lib/theme';
 
 interface Props {
   message: Message;
@@ -47,24 +48,36 @@ export function MessageBubble({ message, myId }: Props) {
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    marginVertical: 4,
+    marginVertical: spacing.xs,
   },
   spacer: { flex: 1 },
   inner: { maxWidth: '80%' },
   innerMe: { alignItems: 'flex-end' },
   innerThem: { alignItems: 'flex-start' },
-  senderName: { fontSize: 11, color: '#888', marginBottom: 2, marginLeft: 4 },
+  senderName: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    marginBottom: 2,
+    marginLeft: spacing.xs,
+  },
   bubble: {
     borderRadius: 18,
     paddingHorizontal: 14,
     paddingVertical: 9,
   },
-  bubbleMe: { backgroundColor: '#6C63FF' },
-  bubbleThem: { backgroundColor: '#F0F0F0' },
-  text: { fontSize: 15, lineHeight: 20 },
-  textMe: { color: '#fff' },
-  textThem: { color: '#111' },
-  time: { fontSize: 11, marginTop: 3 },
-  timeMe: { color: '#aaa', marginRight: 4 },
-  timeThem: { color: '#aaa', marginLeft: 4 },
+  bubbleMe: { backgroundColor: colors.primary },
+  bubbleThem: { backgroundColor: colors.surface },
+  text: {
+    ...typography.bodyMd,
+    fontSize: 15,
+    lineHeight: 20,
+  },
+  textMe: { color: colors.textInverse },
+  textThem: { color: colors.textPrimary },
+  time: {
+    ...typography.caption,
+    marginTop: 3,
+  },
+  timeMe: { color: colors.textTertiary, marginRight: spacing.xs },
+  timeThem: { color: colors.textTertiary, marginLeft: spacing.xs },
 });

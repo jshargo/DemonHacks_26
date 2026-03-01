@@ -16,6 +16,7 @@ export interface TicketmasterEvent {
     venueName: string | null;
     lat: number | null;
     lng: number | null;
+    segment: string | null;
     genre: string | null;
     subGenre: string | null;
 }

@@ -4,19 +4,21 @@
 import { useState } from 'react';
 import {
   View,
-  Text,
-  TextInput,
-  Pressable,
+  ScrollView,
   StyleSheet,
   SafeAreaView,
-  ScrollView,
   Alert,
   ActivityIndicator,
-  Image,
+  Pressable,
+  Text,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/stores/auth-store';
 import { supabase } from '@/lib/supabase';
+import { Header } from '@/components/ui/Header';
+import { Avatar } from '@/components/ui/Avatar';
+import { TextInput } from '@/components/ui/TextInput';
+import { colors, fonts, typography, spacing } from '@/lib/theme';
 
 export default function EditProfileScreen() {
   const router = useRouter();
@@ -58,28 +60,23 @@ export default function EditProfileScreen() {
     router.back();
   };
 
-  const avatarInitial = (
-    displayName[0] ||
-    username[0] ||
-    '?'
-  ).toUpperCase();
+  const avatarName = displayName || username || '?';
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.headerBtn}>
-          <Text style={styles.cancelText}>Cancel</Text>
-        </Pressable>
-        <Text style={styles.title}>Edit Profile</Text>
-        <Pressable onPress={handleSave} disabled={saving} style={styles.headerBtn}>
-          {saving ? (
-            <ActivityIndicator size="small" color="#222" />
-          ) : (
-            <Text style={styles.saveText}>Save</Text>
-          )}
-        </Pressable>
-      </View>
+      <Header
+        title="Edit Profile"
+        onBack={() => router.back()}
+        rightAction={
+          <Pressable onPress={handleSave} disabled={saving}>
+            {saving ? (
+              <ActivityIndicator size="small" color={colors.primary} />
+            ) : (
+              <Text style={styles.saveText}>Save</Text>
+            )}
+          </Pressable>
+        }
+      />
 
       <ScrollView
         contentContainerStyle={styles.content}
@@ -88,113 +85,78 @@ export default function EditProfileScreen() {
       >
         {/* Avatar preview */}
         <View style={styles.avatarSection}>
-          {avatarUrl ? (
-            <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
-          ) : (
-            <View style={styles.avatarPlaceholder}>
-              <Text style={styles.avatarInitial}>{avatarInitial}</Text>
-            </View>
-          )}
+          <Avatar
+            imageUrl={avatarUrl || null}
+            name={avatarName}
+            size="xl"
+          />
         </View>
 
         {/* Avatar URL */}
-        <View style={styles.field}>
-          <Text style={styles.label}>PROFILE PICTURE URL</Text>
-          <TextInput
-            style={styles.input}
-            value={avatarUrl}
-            onChangeText={setAvatarUrl}
-            placeholder="Paste an image URL (https://...)"
-            autoCapitalize="none"
-            keyboardType="url"
-            returnKeyType="done"
-          />
-        </View>
+        <TextInput
+          label="PROFILE PICTURE URL"
+          value={avatarUrl}
+          onChangeText={setAvatarUrl}
+          placeholder="Paste an image URL (https://...)"
+          autoCapitalize="none"
+          keyboardType="url"
+          returnKeyType="done"
+          containerStyle={styles.field}
+        />
 
         {/* Display name */}
-        <View style={styles.field}>
-          <Text style={styles.label}>DISPLAY NAME</Text>
-          <TextInput
-            style={styles.input}
-            value={displayName}
-            onChangeText={setDisplayName}
-            placeholder="Your name"
-            returnKeyType="next"
-          />
-        </View>
+        <TextInput
+          label="DISPLAY NAME"
+          value={displayName}
+          onChangeText={setDisplayName}
+          placeholder="Your name"
+          returnKeyType="next"
+          containerStyle={styles.field}
+        />
 
         {/* Username */}
-        <View style={styles.field}>
-          <Text style={styles.label}>USERNAME</Text>
-          <TextInput
-            style={styles.input}
-            value={username}
-            onChangeText={setUsername}
-            placeholder="username"
-            autoCapitalize="none"
-            returnKeyType="next"
-          />
-        </View>
+        <TextInput
+          label="USERNAME"
+          value={username}
+          onChangeText={setUsername}
+          placeholder="username"
+          autoCapitalize="none"
+          returnKeyType="next"
+          containerStyle={styles.field}
+        />
 
         {/* Top interest — free text */}
-        <View style={styles.field}>
-          <Text style={styles.label}>NUMBER ONE THING I WANT TO EXPLORE</Text>
-          <TextInput
-            style={styles.input}
-            value={topInterest}
-            onChangeText={setTopInterest}
-            placeholder="e.g. Live music, hiking, trying new food…"
-            returnKeyType="done"
-          />
-        </View>
+        <TextInput
+          label="NUMBER ONE THING I WANT TO EXPLORE"
+          value={topInterest}
+          onChangeText={setTopInterest}
+          placeholder="e.g. Live music, hiking, trying new food..."
+          returnKeyType="done"
+          containerStyle={styles.field}
+        />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#fff' },
-  header: {
-    flexDirection: 'row',
+  safe: {
+    flex: 1,
+    backgroundColor: colors.white,
+  },
+  saveText: {
+    ...typography.headingSm,
+    color: colors.primary,
+  },
+  content: {
+    padding: spacing.xl,
+    paddingBottom: 60,
+  },
+  avatarSection: {
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E0E0E0',
+    marginBottom: spacing['3xl'] - 4,
   },
-  headerBtn: { minWidth: 60 },
-  title: { fontSize: 17, fontWeight: '600', color: '#222' },
-  cancelText: { fontSize: 16, color: '#666' },
-  saveText: { fontSize: 16, fontWeight: '600', color: '#222', textAlign: 'right' },
-  content: { padding: 20, paddingBottom: 60 },
-  avatarSection: { alignItems: 'center', marginBottom: 28 },
-  avatarImage: { width: 96, height: 96, borderRadius: 48 },
-  avatarPlaceholder: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: '#333',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarInitial: { color: '#fff', fontSize: 38, fontWeight: 'bold' },
-  field: { marginBottom: 24 },
-  label: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#888',
-    letterSpacing: 0.8,
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: '#222',
-    backgroundColor: '#FAFAFA',
+  field: {
+    marginBottom: spacing['2xl'],
   },
 });

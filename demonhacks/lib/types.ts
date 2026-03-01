@@ -20,6 +20,7 @@ export interface Place {
   lat: number;
   lng: number;
   image_url: string | null;
+  photo_urls: string[];
   website_url: string | null;
   phone: string | null;
   mapbox_id: string | null;
@@ -85,6 +86,7 @@ export interface UserProfile {
   onboarding_completed: boolean;
   hide_location: boolean;
   hide_quest_progress: boolean;
+  xp: number;
   created_at: string;
   updated_at: string;
 }
@@ -97,33 +99,42 @@ export interface Quest {
   title: string;
   slug: string;
   description: string | null;
+  xp_reward: number;
   image_url: string | null;
-  difficulty: 'easy' | 'medium' | 'hard';
-  estimated_time: string | null;
   is_active: boolean;
   created_at: string;
 }
 
-/** An ordered stop within a quest (public.quest_stops) */
-export interface QuestStop {
+/** An ordered step within a quest (public.quest_steps) */
+export interface QuestStep {
   id: string;
   quest_id: string;
-  place_id: string;
-  stop_order: number;
-  hint: string | null;
+  step_order: number;
+  title: string;
+  description: string | null;
+  target_type: 'place' | 'event';
+  target_id: string;
+  xp_reward: number;
   created_at: string;
-  // Joined data (optional, from .select('*, place:places(*)'))
+  // Joined data (fetched separately via target_id)
   place?: Place;
 }
 
-/** User's check-in at a quest stop (public.quest_progress) */
-export interface QuestProgress {
+/** Backwards-compatible alias */
+export type QuestStop = QuestStep;
+
+/** User's check-in at a quest step (public.checkins where quest_step_id is set) */
+export interface QuestCheckin {
   id: string;
   user_id: string;
-  quest_id: string;
-  quest_stop_id: string;
-  checked_in_at: string;
+  quest_step_id: string;
+  place_id: string | null;
+  xp_earned: number;
+  created_at: string;
 }
+
+/** Backwards-compatible alias */
+export type QuestProgress = QuestCheckin;
 
 // ─── Saved Items ────────────────────────────────────────────────────────────
 
@@ -167,6 +178,7 @@ export interface DiscoverItem {
   subcategory: string | null;
   description: string | null;
   imageUrl: string | null;
+  photoUrls: string[];
   neighborhood: string;
   rating: number | null;
   priceRange: '$' | '$$' | '$$$' | '$$$$' | null;

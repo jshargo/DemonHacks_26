@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "demonhacks",
-    "slug": "demonhacks",
+    "name": "ExploreChi",
+    "slug": "explorechi",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "demonhacks",
+    "scheme": "explorechi",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/splash-icon.png",

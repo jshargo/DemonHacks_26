@@ -6,6 +6,7 @@
 import { useRef, useEffect } from 'react';
 import type { EntityType } from '@/lib/types';
 import { ENTITY_TYPES, PIN_ICONS } from '@/lib/constants';
+import { colors, shadows } from '@/lib/theme';
 
 // ─── Inject keyframes into <head> once ───
 
@@ -69,9 +70,12 @@ export default function AnimatedPin({ entityType, index, onClick }: AnimatedPinP
     return () => el.removeEventListener('animationend', handler);
   }, []);
 
-  const color = ENTITY_TYPES[entityType]?.color ?? '#333';
+  const color = ENTITY_TYPES[entityType]?.color ?? colors.textPrimary;
   const iconPath = PIN_ICONS[entityType];
   const delay = Math.min(index * 30, 600);
+
+  // Build CSS box-shadow from theme shadow token
+  const pinShadow = `${shadows.pin.shadowOffset.width}px ${shadows.pin.shadowOffset.height}px ${shadows.pin.shadowRadius}px rgba(0,0,0,${shadows.pin.shadowOpacity})`;
 
   return (
     <div
@@ -82,12 +86,12 @@ export default function AnimatedPin({ entityType, index, onClick }: AnimatedPinP
         height: 36,
         borderRadius: '50%',
         backgroundColor: color,
-        border: '2.5px solid #fff',
+        border: `2.5px solid ${colors.white}`,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         cursor: 'pointer',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+        boxShadow: pinShadow,
         animation: `pin-drop-bounce 0.5s ease-out ${delay}ms both`,
         willChange: 'transform, opacity',
       }}
@@ -99,7 +103,7 @@ export default function AnimatedPin({ entityType, index, onClick }: AnimatedPinP
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <path d={iconPath} fill="#fff" />
+        <path d={iconPath} fill={colors.white} />
       </svg>
     </div>
   );

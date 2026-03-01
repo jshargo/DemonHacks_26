@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet, SafeAreaView, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { CATEGORIES } from '@/lib/categories';
+import { CATEGORIES, maxSubsForCategory } from '@/lib/categories';
 import { usePreferencesStore } from '@/stores/preferences-store';
 import { useAuthStore } from '@/stores/auth-store';
 import { supabase } from '@/lib/supabase';
 import { ChipGroup } from '@/components/onboarding/ChipGroup';
-
-const MAX_SUBS_PER_CATEGORY = 3;
+import { Button } from '@/components/ui/Button';
+import { colors, fonts, typography, spacing, radii } from '@/lib/theme';
 
 export default function SubInterestsScreen() {
   const router = useRouter();
@@ -19,11 +19,13 @@ export default function SubInterestsScreen() {
   const chosenCategories = CATEGORIES.filter((c) => selectedCategories.includes(c.id));
 
   const handleToggle = (categoryId: string, label: string) => {
+    const cat = CATEGORIES.find((c) => c.id === categoryId)!;
+    const limit = maxSubsForCategory(cat);
     const current = selectedSubcategories[categoryId] ?? [];
     const exists = current.includes(label);
     const next = exists
       ? current.filter((x) => x !== label)
-      : [...current, label].slice(0, MAX_SUBS_PER_CATEGORY);
+      : [...current, label].slice(0, limit);
     setSubInterests(categoryId, next);
   };
 
@@ -86,7 +88,7 @@ export default function SubInterestsScreen() {
             <Text style={styles.backText}>← Back</Text>
           </Pressable>
           <Text style={styles.heading}>Tell us more</Text>
-          <Text style={styles.subheading}>Pick up to {MAX_SUBS_PER_CATEGORY} per interest — all optional</Text>
+          <Text style={styles.subheading}>Pick subcategories per interest — all optional</Text>
         </View>
 
         {/* Subcategory Sections */}
@@ -97,7 +99,8 @@ export default function SubInterestsScreen() {
         >
           {chosenCategories.map((category) => {
             const selectedSubs = selectedSubcategories[category.id] ?? [];
-            const atSubLimit = selectedSubs.length >= MAX_SUBS_PER_CATEGORY;
+            const limit = maxSubsForCategory(category);
+            const atSubLimit = selectedSubs.length >= limit;
 
             return (
               <View key={category.id} style={styles.section}>
@@ -106,7 +109,7 @@ export default function SubInterestsScreen() {
                     {category.emoji}{'  '}{category.label}
                   </Text>
                   <Text style={[styles.subCounter, atSubLimit && styles.subCounterAtLimit]}>
-                    {selectedSubs.length}/{MAX_SUBS_PER_CATEGORY}
+                    {selectedSubs.length}/{limit}
                   </Text>
                 </View>
                 <ChipGroup
@@ -124,9 +127,15 @@ export default function SubInterestsScreen() {
 
         {/* Finish Button */}
         <View style={styles.footer}>
-          <Pressable onPress={handleFinish} disabled={saving} style={styles.finishButton}>
-            <Text style={styles.finishText}>{saving ? 'Saving...' : 'Finish'}</Text>
-          </Pressable>
+          <Button
+            title={saving ? 'Saving...' : 'Finish'}
+            variant="primary"
+            size="lg"
+            fullWidth
+            disabled={saving}
+            loading={saving}
+            onPress={handleFinish}
+          />
         </View>
       </View>
     </SafeAreaView>
@@ -136,41 +145,39 @@ export default function SubInterestsScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background,
   },
   container: {
     flex: 1,
   },
   header: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 8,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.sm,
   },
   backButton: {
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   backText: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#222222',
+    ...typography.bodyMd,
+    fontFamily: fonts.medium,
+    color: colors.primary,
   },
   heading: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: '#222222',
+    ...typography.displayMd,
+    color: colors.textPrimary,
     marginBottom: 6,
   },
   subheading: {
-    fontSize: 15,
-    fontWeight: '400',
-    color: '#717171',
+    ...typography.bodyMd,
+    color: colors.textSecondary,
   },
   scroll: {
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xl,
   },
   section: {
     marginBottom: 28,
@@ -179,43 +186,31 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#222222',
+    ...typography.headingSm,
+    color: colors.textPrimary,
   },
   subCounter: {
-    fontSize: 12,
-    fontWeight: '400',
-    color: '#AAAAAA',
+    ...typography.labelMd,
+    fontFamily: fonts.regular,
+    color: colors.textTertiary,
   },
   subCounterAtLimit: {
-    color: '#222222',
-    fontWeight: '600',
+    color: colors.primary,
+    fontFamily: fonts.bold,
   },
   footer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: 20,
-    paddingBottom: 32,
-    paddingTop: 16,
-    backgroundColor: '#FFFFFF',
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing['3xl'],
+    paddingTop: spacing.lg,
+    backgroundColor: colors.background,
     borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
-  },
-  finishButton: {
-    backgroundColor: '#222222',
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  finishText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    borderTopColor: colors.borderLight,
   },
 });

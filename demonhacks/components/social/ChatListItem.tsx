@@ -3,6 +3,8 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import type { Chat } from '@/lib/types';
 import { useAuthStore } from '@/stores/auth-store';
 import { useSocialStore } from '@/stores/social-store';
+import { colors, fonts, typography, spacing } from '@/lib/theme';
+import { Avatar } from '@/components/ui/Avatar';
 
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -49,14 +51,12 @@ export function ChatListItem({ chat, onPress }: Props) {
     return (lastMsg as any).created_at > readAt;
   })();
 
-  const initials = displayName.slice(0, 2).toUpperCase();
-
   const timestamp = lastMsg ? timeAgo((lastMsg as any).created_at) : '';
 
   return (
     <TouchableOpacity style={styles.row} onPress={() => onPress(chat)}>
-      <View style={styles.avatar}>
-        <Text style={styles.initials}>{initials}</Text>
+      <View style={styles.avatarWrap}>
+        <Avatar name={displayName} size="lg" />
       </View>
       <View style={styles.info}>
         <View style={styles.nameRow}>
@@ -74,33 +74,44 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E5E5',
+    borderBottomColor: colors.border,
   },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#6C63FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
+  avatarWrap: {
+    marginRight: spacing.md,
   },
-  initials: { color: '#fff', fontWeight: '700', fontSize: 18 },
   info: { flex: 1 },
   nameRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  name: { fontSize: 15, fontWeight: '600', color: '#111', flex: 1 },
-  nameUnread: { fontWeight: '800', color: '#000' },
-  timestamp: { fontSize: 12, color: '#aaa', marginLeft: 4 },
-  preview: { fontSize: 13, color: '#888', marginTop: 2 },
-  previewUnread: { color: '#333', fontWeight: '600' },
+  name: {
+    ...typography.headingSm,
+    color: colors.textPrimary,
+    flex: 1,
+  },
+  nameUnread: {
+    fontFamily: fonts.black,
+    color: colors.textPrimary,
+  },
+  timestamp: {
+    ...typography.bodySm,
+    color: colors.textTertiary,
+    marginLeft: spacing.xs,
+  },
+  preview: {
+    ...typography.bodySm,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  previewUnread: {
+    color: colors.textPrimary,
+    fontFamily: fonts.medium,
+  },
   dot: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#6C63FF',
-    marginLeft: 8,
+    backgroundColor: colors.primary,
+    marginLeft: spacing.sm,
   },
 });

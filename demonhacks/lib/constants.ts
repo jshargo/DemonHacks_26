@@ -31,15 +31,15 @@ export const ENTITY_TYPES: Record<EntityType, { label: string; color: string }> 
 /** All entity type keys for iteration */
 export const ENTITY_TYPE_KEYS = Object.keys(ENTITY_TYPES) as EntityType[];
 
-/** Place category definitions with display labels and colors */
+/** Place category definitions with display labels, colors, and Lucide icon names */
 export const PLACE_CATEGORIES: Record<PlaceCategory, { label: string; color: string; icon: string }> = {
-  food_drink:    { label: 'Food & Drink',    color: '#FF6B35', icon: 'restaurant' },
-  outdoors:      { label: 'Outdoors',        color: '#00C49A', icon: 'nature' },
+  food_drink:    { label: 'Food & Drink',    color: '#FF6B35', icon: 'utensils-crossed' },
+  outdoors:      { label: 'Outdoors',        color: '#00C49A', icon: 'tree-pine' },
   shopping:      { label: 'Shopping',        color: '#F77F00', icon: 'shopping-bag' },
-  entertainment: { label: 'Entertainment',   color: '#9B5DE5', icon: 'theater' },
-  arts_culture:  { label: 'Arts & Culture',  color: '#00BBF9', icon: 'museum' },
-  volunteering:  { label: 'Volunteering',    color: '#E63946', icon: 'volunteer' },
-  other:         { label: 'Other',           color: '#888888', icon: 'pin' },
+  entertainment: { label: 'Entertainment',   color: '#9B5DE5', icon: 'music' },
+  arts_culture:  { label: 'Arts & Culture',  color: '#00BBF9', icon: 'palette' },
+  volunteering:  { label: 'Volunteering',    color: '#E63946', icon: 'heart-handshake' },
+  other:         { label: 'Other',           color: '#888888', icon: 'map-pin' },
 };
 
 /** All place category keys for iteration */

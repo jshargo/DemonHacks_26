@@ -12,26 +12,25 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
+import { Search, X, MapPin, Home, Building2, Navigation } from 'lucide-react-native';
 import { useExploreStore } from '@/stores/explore-store';
 import { useMapboxSearch } from '@/hooks/useMapboxSearch';
 import type { SearchSuggestion } from '@/lib/types';
+import { colors, fonts, typography, spacing, radii, shadows, zIndex } from '@/lib/theme';
+import { Button } from '@/components/ui/Button';
 import { ShareToChatModal } from '@/components/social/ShareToChatModal';
 import { useChats } from '@/hooks/useChats';
 import { useSocialStore } from '@/stores/social-store';
 
 const EXPLORE_DEBOUNCE_MS = 200;
 
-/** Icon by feature type */
-function featureIcon(type: string): string {
+function FeatureIcon({ type }: { type: string }) {
+  const props = { size: 16, color: colors.textTertiary };
   switch (type) {
-    case 'poi':
-      return '\u{1F4CD}'; // 📍
-    case 'address':
-      return '\u{1F3E0}'; // 🏠
-    case 'place':
-      return '\u{1F306}'; // 🌆
-    default:
-      return '\u{1F50D}'; // 🔍
+    case 'poi': return <MapPin {...props} />;
+    case 'address': return <Home {...props} />;
+    case 'place': return <Building2 {...props} />;
+    default: return <Search {...props} />;
   }
 }
 
@@ -53,10 +52,7 @@ export default function SearchBar() {
 
   const handleChangeText = useCallback(
     (text: string) => {
-      // Update Mapbox search
       setQuery(text);
-
-      // Also update local explore store filter (debounced)
       if (exploreTimerRef.current) clearTimeout(exploreTimerRef.current);
       exploreTimerRef.current = setTimeout(() => {
         setExploreSearchQuery(text);
@@ -81,20 +77,18 @@ export default function SearchBar() {
   );
 
   const handleBlur = useCallback(() => {
-    // Small delay to allow suggestion press to register
     setTimeout(() => dismissDropdown(), 150);
   }, [dismissDropdown]);
 
   return (
     <View style={styles.container}>
-      {/* Search pill */}
       <View style={styles.pill}>
-        <Text style={styles.searchIcon}>{'\u{1F50D}'}</Text>
+        <Search size={18} color={colors.textTertiary} />
         <TextInput
           ref={inputRef}
           style={styles.input}
           placeholder="Search Chicago..."
-          placeholderTextColor="#999"
+          placeholderTextColor={colors.textTertiary}
           value={query}
           onChangeText={handleChangeText}
           onBlur={handleBlur}
@@ -102,16 +96,15 @@ export default function SearchBar() {
           returnKeyType="search"
         />
         {isSearching && (
-          <ActivityIndicator size="small" color="#999" style={styles.spinner} />
+          <ActivityIndicator size="small" color={colors.textTertiary} style={styles.spinner} />
         )}
         {query.length > 0 && !isSearching && (
           <Pressable onPress={handleClear} hitSlop={8}>
-            <Text style={styles.clearBtn}>{'\u2715'}</Text>
+            <X size={16} color={colors.textTertiary} />
           </Pressable>
         )}
       </View>
 
-      {/* Autocomplete dropdown */}
       {showDropdown && suggestions.length > 0 && (
         <View style={styles.dropdown}>
           <ScrollView
@@ -127,9 +120,9 @@ export default function SearchBar() {
                 ]}
                 onPress={() => handleSelectSuggestion(s)}
               >
-                <Text style={styles.suggestionIcon}>
-                  {featureIcon(s.feature_type)}
-                </Text>
+                <View style={styles.suggestionIconWrap}>
+                  <FeatureIcon type={s.feature_type} />
+                </View>
                 <View style={styles.suggestionText}>
                   <Text style={styles.suggestionName} numberOfLines={1}>
                     {s.name}
@@ -192,17 +185,15 @@ export function POIDetailPanel({ result, onDismiss }: POIDetailPanelProps) {
 
   return (
     <View style={detailStyles.container}>
-      {/* Header */}
       <View style={detailStyles.header}>
         <Text style={detailStyles.name} numberOfLines={2}>
           {result.name}
         </Text>
         <Pressable onPress={onDismiss} hitSlop={8}>
-          <Text style={detailStyles.dismiss}>{'\u2715'}</Text>
+          <X size={18} color={colors.textTertiary} />
         </Pressable>
       </View>
 
-      {/* Category badge */}
       {result.category && (
         <View style={detailStyles.categoryRow}>
           <View style={detailStyles.badge}>
@@ -211,10 +202,8 @@ export function POIDetailPanel({ result, onDismiss }: POIDetailPanelProps) {
         </View>
       )}
 
-      {/* Address */}
       <Text style={detailStyles.address}>{result.full_address}</Text>
 
-      {/* Contact info */}
       {(result.phone || result.website) && (
         <View style={detailStyles.contactRow}>
           {result.phone && (
@@ -230,14 +219,22 @@ export function POIDetailPanel({ result, onDismiss }: POIDetailPanelProps) {
         </View>
       )}
 
-      {/* Action buttons */}
       <View style={detailStyles.actions}>
-        <Pressable style={detailStyles.directionsBtn} onPress={handleDirections}>
-          <Text style={detailStyles.directionsBtnText}>Get Directions</Text>
-        </Pressable>
-        <Pressable style={detailStyles.closeBtn} onPress={openShareModal}>
-          <Text style={detailStyles.closeBtnText}>Share</Text>
-        </Pressable>
+        <Button
+          title="Get Directions"
+          variant="primary"
+          size="md"
+          leftIcon={<Navigation size={16} color={colors.textInverse} />}
+          onPress={handleDirections}
+          style={{ flex: 1 }}
+        />
+        <Button
+          title="Share"
+          variant="ghost"
+          size="md"
+          onPress={openShareModal}
+          style={{ flex: 1 }}
+        />
       </View>
 
       <ShareToChatModal
@@ -254,49 +251,41 @@ export function POIDetailPanel({ result, onDismiss }: POIDetailPanelProps) {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 8,
-    zIndex: 200,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
+    zIndex: zIndex.modal,
   },
   pill: {
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    backgroundColor: colors.white,
+    borderRadius: radii.full,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-  },
-  searchIcon: {
-    fontSize: 16,
-    marginRight: 8,
+    gap: spacing.sm,
+    ...shadows.sm,
   },
   input: {
     flex: 1,
     fontSize: 15,
-    color: '#1a1a2e',
+    fontFamily: fonts.regular,
+    color: colors.textPrimary,
     outlineStyle: 'none',
   } as never,
   spinner: {
-    marginLeft: 8,
-  },
-  clearBtn: {
-    fontSize: 16,
-    color: '#999',
-    marginLeft: 8,
-    fontWeight: '600',
+    marginLeft: spacing.sm,
   },
   dropdown: {
-    marginTop: 4,
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    marginTop: spacing.xs,
+    backgroundColor: colors.white,
+    borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: '#eee',
-    boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+    borderColor: colors.borderLight,
     overflow: 'hidden',
+    ...shadows.md,
   },
   dropdownScroll: {
     maxHeight: 320,
@@ -304,116 +293,108 @@ const styles = StyleSheet.create({
   suggestionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f5f5f5',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.borderLight,
   },
   suggestionRowPressed: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.surface,
   },
-  suggestionIcon: {
-    fontSize: 18,
-    marginRight: 10,
+  suggestionIconWrap: {
     width: 24,
-    textAlign: 'center',
+    alignItems: 'center',
+    marginRight: spacing.md,
   },
   suggestionText: {
     flex: 1,
-    marginRight: 8,
+    marginRight: spacing.sm,
   },
   suggestionName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1a1a2e',
+    ...typography.labelLg,
+    color: colors.textPrimary,
   },
   suggestionAddress: {
-    fontSize: 12,
-    color: '#888',
+    ...typography.bodySm,
+    color: colors.textTertiary,
     marginTop: 2,
   },
   categoryBadge: {
-    backgroundColor: '#f0f0f0',
-    paddingHorizontal: 8,
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: spacing.sm,
     paddingVertical: 3,
-    borderRadius: 10,
+    borderRadius: radii.full,
   },
   categoryBadgeText: {
-    fontSize: 11,
-    color: '#666',
-    fontWeight: '500',
+    ...typography.caption,
+    color: colors.primary,
+    fontFamily: fonts.medium,
   },
 });
 
 const detailStyles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 20,
-    left: 16,
-    right: 16,
-    zIndex: 200,
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
-    boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+    bottom: spacing.xl,
+    left: spacing.lg,
+    right: spacing.lg,
+    zIndex: zIndex.modal,
+    backgroundColor: colors.white,
+    borderRadius: radii.lg,
+    padding: spacing.lg,
     maxWidth: 420,
+    ...shadows.lg,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   name: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1a1a2e',
+    ...typography.headingMd,
+    color: colors.textPrimary,
     flex: 1,
-    marginRight: 12,
-  },
-  dismiss: {
-    fontSize: 18,
-    color: '#999',
-    fontWeight: '600',
+    marginRight: spacing.md,
   },
   categoryRow: {
     flexDirection: 'row',
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   badge: {
-    backgroundColor: '#e8f4fd',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: radii.sm,
   },
   badgeText: {
-    fontSize: 12,
-    color: '#2196F3',
-    fontWeight: '600',
+    ...typography.bodySm,
+    color: colors.primary,
+    fontFamily: fonts.bold,
   },
   address: {
-    fontSize: 14,
-    color: '#555',
-    marginBottom: 8,
-    lineHeight: 20,
+    ...typography.bodyMd,
+    color: colors.textSecondary,
+    marginBottom: spacing.sm,
   },
   contactRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
-    marginBottom: 12,
+    gap: spacing.lg,
+    marginBottom: spacing.md,
   },
   contactText: {
-    fontSize: 13,
-    color: '#666',
+    ...typography.bodySm,
+    color: colors.textSecondary,
   },
   websiteLink: {
-    fontSize: 13,
-    color: '#2196F3',
-    fontWeight: '600',
+    ...typography.bodySm,
+    color: colors.primary,
+    fontFamily: fonts.bold,
   },
   actions: {
     flexDirection: 'row',
+<<<<<<< HEAD
     gap: 10,
     marginTop: 4,
   },
@@ -442,5 +423,9 @@ const detailStyles = StyleSheet.create({
     color: '#1a1a2e',
     fontWeight: '600',
     fontSize: 14,
+=======
+    gap: spacing.md,
+    marginTop: spacing.xs,
+>>>>>>> origin/main
   },
 });

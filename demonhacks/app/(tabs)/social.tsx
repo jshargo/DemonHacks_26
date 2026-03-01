@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View, Text, TouchableOpacity, FlatList, StyleSheet, SafeAreaView,
+  View, Text, FlatList, StyleSheet, SafeAreaView,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 
@@ -8,13 +9,61 @@ import { useSocialStore } from '@/stores/social-store';
 import { useAuthStore } from '@/stores/auth-store';
 import { useFriends } from '@/hooks/useFriends';
 import { useChats } from '@/hooks/useChats';
+import { useLeaderboard, type LeaderboardEntry } from '@/hooks/useLeaderboard';
 import { FriendCard } from '@/components/social/FriendCard';
 import { FriendRequestCard } from '@/components/social/FriendRequestCard';
 import { ChatListItem } from '@/components/social/ChatListItem';
 import { NewChatModal } from '@/components/social/NewChatModal';
+import { Avatar } from '@/components/ui/Avatar';
+import { Button } from '@/components/ui/Button';
 import type { Chat, UserProfile } from '@/lib/types';
+import { colors, fonts, typography, spacing, radii, shadows } from '@/lib/theme';
 
-type Tab = 'chats' | 'friends';
+type Tab = 'chats' | 'friends' | 'leaderboard';
+
+const MEDAL_COLORS: Record<number, string> = {
+  1: '#FFD700',
+  2: '#C0C0C0',
+  3: '#CD7F32',
+};
+
+function LeaderboardRow({ entry }: { entry: LeaderboardEntry }) {
+  const medalColor = MEDAL_COLORS[entry.rank];
+  const displayName = entry.display_name ?? entry.username ?? '?';
+
+  return (
+    <View style={[styles.lbRow, entry.isCurrentUser && styles.lbRowHighlight]}>
+      <View style={[
+        styles.lbRank,
+        medalColor ? { backgroundColor: medalColor } : styles.lbRankDefault,
+      ]}>
+        <Text style={[
+          styles.lbRankText,
+          medalColor ? { color: colors.textInverse } : { color: colors.textSecondary },
+        ]}>
+          {entry.rank}
+        </Text>
+      </View>
+
+      <View style={styles.lbAvatarWrap}>
+        <Avatar imageUrl={entry.avatar_url} name={displayName} size="md" />
+      </View>
+
+      <View style={styles.lbInfo}>
+        <Text style={styles.lbName} numberOfLines={1}>
+          {displayName}
+          {entry.isCurrentUser ? ' (You)' : ''}
+        </Text>
+        <Text style={styles.lbUsername}>@{entry.username}</Text>
+      </View>
+
+      <View style={styles.lbXpContainer}>
+        <Text style={styles.lbXpValue}>{entry.xp.toLocaleString()}</Text>
+        <Text style={styles.lbXpLabel}>XP</Text>
+      </View>
+    </View>
+  );
+}
 
 export default function SocialScreen() {
   const router = useRouter();
@@ -25,6 +74,7 @@ export default function SocialScreen() {
   const { friends, pendingReceived, chats } = useSocialStore();
   const { loadFriends, acceptRequest, declineRequest, unfriend } = useFriends();
   const { loadChats, openOrCreateDM, createGroupChat } = useChats();
+  const { entries, loading: lbLoading, loadLeaderboard } = useLeaderboard();
 
   const sortedChats = [...chats].sort((a, b) => {
     const aTime = (a.last_message as any)?.created_at ?? a.created_at;
@@ -36,6 +86,7 @@ export default function SocialScreen() {
     if (!userId) return;
     loadFriends();
     loadChats();
+    loadLeaderboard();
     const poll = setInterval(loadChats, 5000);
     return () => clearInterval(poll);
   }, [userId]);
@@ -45,14 +96,9 @@ export default function SocialScreen() {
   };
 
   const handleMessage = async (profile: UserProfile) => {
-    console.log('[handleMessage] called for', profile.id);
     const chatId = await openOrCreateDM(profile.id);
-    console.log('[handleMessage] chatId =', chatId);
     if (chatId) {
-      console.log('[handleMessage] navigating to /chat/' + chatId);
       router.push(`/chat/${chatId}` as any);
-    } else {
-      console.warn('[handleMessage] openOrCreateDM returned null');
     }
   };
 
@@ -72,38 +118,48 @@ export default function SocialScreen() {
         <Text style={styles.title}>Social</Text>
         <View style={styles.headerActions}>
           {tab === 'friends' && (
-            <TouchableOpacity style={styles.addBtn} onPress={() => router.push('/friends/search')}>
-              <Text style={styles.addBtnText}>+ Add</Text>
-            </TouchableOpacity>
+            <Button
+              title="+ Add"
+              variant="primary"
+              size="sm"
+              onPress={() => router.push('/friends/search')}
+            />
           )}
           {tab === 'chats' && (
-            <TouchableOpacity style={styles.addBtn} onPress={() => setNewChatVisible(true)}>
-              <Text style={styles.addBtnText}>+ New</Text>
-            </TouchableOpacity>
+            <Button
+              title="+ New"
+              variant="primary"
+              size="sm"
+              onPress={() => setNewChatVisible(true)}
+            />
           )}
         </View>
       </View>
 
       <View style={styles.tabs}>
-        <TouchableOpacity
-          style={[styles.tabBtn, tab === 'chats' && styles.tabBtnActive]}
-          onPress={() => setTab('chats')}
-        >
-          <Text style={[styles.tabText, tab === 'chats' && styles.tabTextActive]}>Chats</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tabBtn, tab === 'friends' && styles.tabBtnActive]}
-          onPress={() => setTab('friends')}
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Text style={[styles.tabText, tab === 'friends' && styles.tabTextActive]}>Friends</Text>
-            {pendingReceived.length > 0 && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{pendingReceived.length}</Text>
-              </View>
-            )}
-          </View>
-        </TouchableOpacity>
+        {(['chats', 'friends', 'leaderboard'] as Tab[]).map((t) => {
+          const isActive = tab === t;
+          const label = t === 'leaderboard' ? 'Ranks' : t.charAt(0).toUpperCase() + t.slice(1);
+          return (
+            <View key={t} style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Button
+                title={label}
+                variant={isActive ? 'primary' : 'ghost'}
+                size="sm"
+                onPress={() => {
+                  setTab(t);
+                  if (t === 'leaderboard') loadLeaderboard();
+                }}
+                style={!isActive ? { backgroundColor: colors.surface } : undefined}
+              />
+              {t === 'friends' && pendingReceived.length > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{pendingReceived.length}</Text>
+                </View>
+              )}
+            </View>
+          );
+        })}
       </View>
 
       {tab === 'chats' && (
@@ -113,7 +169,7 @@ export default function SocialScreen() {
           renderItem={({ item }) => <ChatListItem chat={item} onPress={handleOpenChat} />}
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyIcon}>💬</Text>
+              <Text style={styles.emptyIcon}>{'\uD83D\uDCAC'}</Text>
               <Text style={styles.emptyTitle}>No chats yet</Text>
               <Text style={styles.emptySubtitle}>Start a conversation with a friend</Text>
             </View>
@@ -153,16 +209,40 @@ export default function SocialScreen() {
           }
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyIcon}>👥</Text>
+              <Text style={styles.emptyIcon}>{'\uD83D\uDC65'}</Text>
               <Text style={styles.emptyTitle}>No friends yet</Text>
               <Text style={styles.emptySubtitle}>Search for people by username</Text>
-              <TouchableOpacity
-                style={styles.searchBtn}
+              <Button
+                title="Find Friends"
+                variant="primary"
+                size="md"
                 onPress={() => router.push('/friends/search')}
-              >
-                <Text style={styles.searchBtnText}>Find Friends</Text>
-              </TouchableOpacity>
+                style={{ marginTop: spacing.lg }}
+              />
             </View>
+          }
+        />
+      )}
+
+      {tab === 'leaderboard' && (
+        <FlatList
+          data={entries}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => <LeaderboardRow entry={item} />}
+          contentContainerStyle={{ paddingBottom: spacing['2xl'] }}
+          ListEmptyComponent={
+            lbLoading ? (
+              <View style={styles.empty}>
+                <ActivityIndicator size="large" color={colors.primary} />
+                <Text style={[styles.emptySubtitle, { marginTop: spacing.md }]}>Loading leaderboard...</Text>
+              </View>
+            ) : (
+              <View style={styles.empty}>
+                <Text style={styles.emptyIcon}>{'\uD83C\uDFC6'}</Text>
+                <Text style={styles.emptyTitle}>No rankings yet</Text>
+                <Text style={styles.emptySubtitle}>Complete quests to earn XP and climb the leaderboard</Text>
+              </View>
+            )
           }
         />
       )}
@@ -179,71 +259,118 @@ export default function SocialScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#fff' },
+  safe: { flex: 1, backgroundColor: colors.background },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E5E5',
+    borderBottomColor: colors.border,
   },
-  title: { fontSize: 24, fontWeight: '800', color: '#111' },
-  headerActions: { flexDirection: 'row', gap: 8 },
-  addBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 20,
-    backgroundColor: '#6C63FF',
+  title: {
+    ...typography.displaySm,
+    color: colors.textPrimary,
   },
-  addBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  headerActions: { flexDirection: 'row', gap: spacing.sm },
   tabs: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    gap: 8,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    gap: spacing.sm,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E5E5',
+    borderBottomColor: colors.border,
   },
-  tabBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 7,
-    borderRadius: 20,
-    backgroundColor: '#F0F0F0',
-  },
-  tabBtnActive: { backgroundColor: '#6C63FF' },
-  tabText: { fontSize: 14, fontWeight: '600', color: '#555' },
-  tabTextActive: { color: '#fff' },
   badge: {
     minWidth: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: '#FF3B30',
+    backgroundColor: colors.error,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 4,
+    paddingHorizontal: spacing.xs,
+    marginLeft: spacing.xs,
   },
-  badgeText: { color: '#fff', fontSize: 11, fontWeight: '800' },
+  badgeText: {
+    color: colors.textInverse,
+    fontFamily: fonts.black,
+    fontSize: 11,
+  },
   sectionLabel: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#888',
+    ...typography.labelMd,
+    color: colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 4,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.xs,
   },
-  empty: { alignItems: 'center', paddingTop: 80, paddingHorizontal: 32 },
-  emptyIcon: { fontSize: 48, marginBottom: 12 },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#111', marginBottom: 6 },
-  emptySubtitle: { fontSize: 14, color: '#888', textAlign: 'center', marginBottom: 20 },
-  searchBtn: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 24,
-    backgroundColor: '#6C63FF',
+  empty: { alignItems: 'center', paddingTop: 80, paddingHorizontal: spacing['3xl'] },
+  emptyIcon: { fontSize: 48, marginBottom: spacing.md },
+  emptyTitle: {
+    ...typography.headingMd,
+    color: colors.textPrimary,
+    marginBottom: spacing.sm,
   },
-  searchBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  emptySubtitle: {
+    ...typography.bodyMd,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: spacing.xl,
+  },
+
+  // Leaderboard
+  lbRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
+  },
+  lbRowHighlight: {
+    backgroundColor: colors.primary + '10',
+  },
+  lbRank: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.md,
+  },
+  lbRankDefault: {
+    backgroundColor: colors.surface,
+  },
+  lbRankText: {
+    ...typography.labelLg,
+    fontFamily: fonts.bold,
+  },
+  lbAvatarWrap: {
+    marginRight: spacing.md,
+  },
+  lbInfo: {
+    flex: 1,
+  },
+  lbName: {
+    ...typography.headingSm,
+    color: colors.textPrimary,
+  },
+  lbUsername: {
+    ...typography.bodySm,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  lbXpContainer: {
+    alignItems: 'flex-end',
+  },
+  lbXpValue: {
+    ...typography.headingSm,
+    color: colors.primary,
+  },
+  lbXpLabel: {
+    ...typography.labelSm,
+    color: colors.textTertiary,
+  },
 });

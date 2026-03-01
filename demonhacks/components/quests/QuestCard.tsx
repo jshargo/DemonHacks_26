@@ -1,19 +1,26 @@
-// Quest card for quest list view
-// Owner: Person 3 (Quests + Check-ins)
-
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import type { Quest } from '@/lib/types';
+import { colors, fonts, typography, spacing, radii } from '@/lib/theme';
+
+interface QuestCardQuest {
+  title: string;
+  difficulty?: string;
+  estimated_time?: string | null;
+  description?: string | null;
+}
 
 interface QuestCardProps {
-  quest: Quest;
+  quest: QuestCardQuest;
   completedStops?: number;
   totalStops?: number;
-  onPress: (quest: Quest) => void;
+  onPress: (quest: QuestCardQuest) => void;
 }
 
 export default function QuestCard({ quest, completedStops, totalStops, onPress }: QuestCardProps) {
   return (
-    <Pressable style={styles.card} onPress={() => onPress(quest)}>
+    <Pressable
+      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+      onPress={() => onPress(quest)}
+    >
       <Text style={styles.title}>{quest.title}</Text>
       <View style={styles.meta}>
         <Text style={styles.difficulty}>{quest.difficulty}</Text>
@@ -32,20 +39,46 @@ export default function QuestCard({ quest, completedStops, totalStops, onPress }
 }
 
 const styles = StyleSheet.create({
-  card: { padding: 16, borderBottomWidth: 1, borderBottomColor: '#eee' },
-  title: { fontSize: 18, fontWeight: '600' },
-  meta: { flexDirection: 'row', gap: 8, marginTop: 4 },
+  card: {
+    padding: spacing.lg,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.borderLight,
+  },
+  cardPressed: {
+    backgroundColor: colors.surface,
+  },
+  title: {
+    ...typography.headingMd,
+    color: colors.textPrimary,
+  },
+  meta: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginTop: spacing.xs,
+  },
   difficulty: {
-    fontSize: 12,
-    color: '#666',
+    ...typography.caption,
+    color: colors.textSecondary,
     textTransform: 'capitalize',
-    backgroundColor: '#f0f0f0',
-    paddingHorizontal: 6,
+    backgroundColor: colors.surface,
+    paddingHorizontal: spacing.sm,
     paddingVertical: 2,
-    borderRadius: 4,
+    borderRadius: radii.sm,
     overflow: 'hidden',
   },
-  time: { fontSize: 12, color: '#999' },
-  desc: { fontSize: 14, color: '#555', marginTop: 6 },
-  progress: { fontSize: 12, color: '#00C49A', marginTop: 6, fontWeight: '500' },
+  time: {
+    ...typography.caption,
+    color: colors.textTertiary,
+  },
+  desc: {
+    ...typography.bodyMd,
+    color: colors.textSecondary,
+    marginTop: spacing.sm,
+  },
+  progress: {
+    ...typography.bodySm,
+    color: colors.success,
+    marginTop: spacing.sm,
+    fontFamily: fonts.medium,
+  },
 });

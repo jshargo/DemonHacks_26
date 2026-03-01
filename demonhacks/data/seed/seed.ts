@@ -54,8 +54,6 @@ async function seed() {
         slug: slugify(s.name),
         description: s.description,
         category: mapCategory(s.category),
-        subcategory: s.subcategory,
-        tags: s.tags,
         address: s.address,
         lat: s.lat,
         lng: s.lng,
@@ -76,19 +74,22 @@ async function seed() {
   const placeLookup = new Map<string, string>();
   places?.forEach((p) => placeLookup.set(p.name, p.id));
 
-  // Insert quests and stops
+  // Insert quests and quest_steps
   console.log('Seeding quests...');
 
   for (const quest of questsData) {
+    // Upsert quest (avoid duplicates on re-run)
     const { data: insertedQuest, error: questError } = await supabase
       .from('quests')
-      .insert({
-        title: quest.name,
-        slug: slugify(quest.name),
-        description: quest.description,
-        difficulty: quest.difficulty,
-        estimated_time: quest.estimated_time,
-      })
+      .upsert(
+        {
+          title: quest.name,
+          slug: slugify(quest.name),
+          description: quest.description,
+          xp_reward: (quest as any).xp_reward ?? 100,
+        },
+        { onConflict: 'slug' }
+      )
       .select()
       .single();
 
@@ -97,12 +98,15 @@ async function seed() {
       continue;
     }
 
-    // Insert quest stops with direct FK to places
-    const stops = quest.stops.map((stop) => ({
+    // Build quest_steps rows — links each stop to a place via target_type / target_id
+    const steps = quest.stops.map((stop) => ({
       quest_id: insertedQuest.id,
-      place_id: placeLookup.get(stop.spot_name),
-      stop_order: stop.stop_order,
-      hint: stop.hint,
+      step_order: stop.stop_order,
+      title: stop.spot_name,
+      description: stop.hint,
+      target_type: 'place',
+      target_id: placeLookup.get(stop.spot_name),
+      xp_reward: (stop as any).xp_reward ?? 25,
     }));
 
     const missingPlaces = quest.stops.filter((s) => !placeLookup.has(s.spot_name));
@@ -113,18 +117,18 @@ async function seed() {
       );
     }
 
-    const validStops = stops.filter((s) => s.place_id != null);
-    if (validStops.length > 0) {
-      const { error: stopsError } = await supabase
-        .from('quest_stops')
-        .insert(validStops);
+    const validSteps = steps.filter((s) => s.target_id != null);
+    if (validSteps.length > 0) {
+      const { error: stepsError } = await supabase
+        .from('quest_steps')
+        .insert(validSteps);
 
-      if (stopsError) {
-        console.error(`Error seeding stops for "${quest.name}":`, stopsError);
+      if (stepsError) {
+        console.error(`Error seeding steps for "${quest.name}":`, stepsError);
       }
     }
 
-    console.log(`  Quest "${quest.name}" — ${validStops.length} stops`);
+    console.log(`  Quest "${quest.name}" — ${validSteps.length}/${quest.stops.length} steps linked`);
   }
 
   console.log('Seeding complete!');
