@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="demonhacks/assets/images/icon.png" alt="ChiExplore Logo" width="120" />
-</p>
-
 <h1 align="center">ChiExplore</h1>
 
 <p align="center">
@@ -17,6 +13,23 @@
   <a href="#team">Team</a> •
   <a href="#license">License</a>
 </p>
+
+---
+
+## Demo
+
+<div align="center">
+  <table>
+    <tr>
+      <td>
+        <video src="demonhacks/assets/demo.mp4" width="600" controls>
+          Your browser does not support the video tag.
+        </video>
+      </td>
+    </tr>
+  </table>
+  <sub>🎬 Full walkthrough of ChiExplore — map exploration, quests, and collections</sub>
+</div>
 
 ---
 
