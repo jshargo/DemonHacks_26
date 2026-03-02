@@ -19,11 +19,7 @@
 ## Demo
 
 <div align="center">
-  <a href="https://youtu.be/Za_1-ED3Iq4">
-    <img src="https://img.youtube.com/vi/Za_1-ED3Iq4/maxresdefault.jpg" alt="ChiExplore Demo" width="600" />
-  </a>
-  <br>
-  <sub>🎬 Click to watch the full ChiExplore walkthrough</sub>
+  <video src="https://github.com/user-attachments/assets/28986a5e-7487-4f27-b87c-3c56dedf68e8" autoplay muted loop playsinline width="600"></video>
 </div>
 
 ---
